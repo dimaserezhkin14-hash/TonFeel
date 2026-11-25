@@ -1135,6 +1135,48 @@ body.modal-open .app {
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+
+/* ====== GIFT DEPOSIT STYLES ====== */
+.gift-hero {
+  padding: 15px;
+  border-radius: 18px;
+  background: linear-gradient(155deg, rgba(56,189,248,0.14) 0%, rgba(168,85,247,0.10) 100%);
+  border: 1px solid rgba(125,211,252,0.24);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);
+  margin-bottom: 12px;
+}
+.gift-rule {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  font-size: 12.5px;
+  color: var(--text-2);
+  margin-top: 8px;
+}
+.gift-rule b { color: var(--text); }
+.gift-rule-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-hi);
+  margin-top: 6px;
+  flex-shrink: 0;
+}
+.gift-btn-special {
+  background: linear-gradient(155deg, rgba(168,85,247,0.24), rgba(56,189,248,0.18));
+  border-color: rgba(192,132,252,0.36);
+  color: #f5f3ff;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.26);
+}
+.gift-catalog-scroll {
+  max-height: 210px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+
 /* Helpers */
 .row-between { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .chips-row { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
@@ -1481,7 +1523,7 @@ body.modal-open .app {
 
     <!-- VERSION FOOTER (5x tap hidden admin trigger) -->
     <div style="text-align:center;margin:20px 0 8px;user-select:none">
-      <span id="appVersionTap" onclick="onVersionTap()" style="font-size:11.5px;color:var(--text-3);padding:6px 14px;cursor:pointer">TonPain v6.0 · TON Mainnet</span>
+      <span id="appVersionTap" onclick="onVersionTap()" style="font-size:11.5px;color:var(--text-3);padding:6px 14px;cursor:pointer">TonPain v6.1 · TON Mainnet</span>
     </div>
   </section>
 </div>
@@ -1647,6 +1689,8 @@ let nextHitAt = 0;
 // Admin local UI state
 let adminSubTab = "overview";
 let adminOverview = null;
+let adminGiftsData = null;
+let giftCatalogCache = null;
 let adminTarget = null;
 let adminLogCat = "all";
 let verTaps = 0;
@@ -2259,9 +2303,11 @@ function renderProfile() {
       const absAmt = Math.abs(Number(tx.amount_ton));
       const amtStr = (pos ? "+" : "−") + (absAmt >= 0.01 ? absAmt.toFixed(4) : absAmt.toFixed(6)) + " TON";
       let icoCls = pos ? "in" : "out";
-      let icoSvg = pos
-        ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M19 12l-7 7-7-7"/></svg>`
-        : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg>`;
+      let icoSvg = tx.tx_type === "gift"
+        ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>`
+        : (pos
+          ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M19 12l-7 7-7-7"/></svg>`
+          : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg>`);
       let stTag = "";
       if (tx.status === "pending") {
         icoCls = "pend";
@@ -2578,6 +2624,10 @@ function openDeposit() {
     <div style="display:flex;flex-direction:column;gap:8px;margin-top:14px">
       <button class="btn btn-primary btn-full" onclick="startPayment('deposit', '', 'ton')">${LANG === "en" ? "Pay with TON" : "Оплатить через TON"}</button>
       <button class="btn btn-full" onclick="startPayment('deposit', '', 'stars')">${LANG === "en" ? "Pay with Telegram Stars" : "Оплатить Telegram Stars ★"}</button>
+      <button class="btn gift-btn-special btn-full" onclick="openGiftDeposit()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+        <span>${LANG === "en" ? "Deposit with Telegram Gifts" : "Пополнить подарками Telegram"}</span>
+      </button>
     </div>`
   );
 }
@@ -2589,6 +2639,152 @@ function setDepAmt(v) {
 function updateDepUsd() {
   const v = parseFloat($("depAmtInput").value || "0") || 0;
   $("depUsdHint").textContent = "≈ " + fmtUsd(v);
+}
+
+
+function openTgLink(url) {
+  haptic("light");
+  if (tg && tg.openTelegramLink) tg.openTelegramLink(url);
+  else window.open(url, "_blank");
+}
+
+async function openGiftDeposit() {
+  haptic("light");
+  const relUser = (S && S.config && S.config.relayer_username) ? S.config.relayer_username : "TonPain_Relayer";
+  const relUrl = (S && S.config && S.config.relayer_url) ? S.config.relayer_url : ("https://t.me/" + relUser);
+  const feePct = (S && S.config && S.config.gift_fee_pct) ? S.config.gift_fee_pct : 10;
+  const isOnline = Boolean(S && S.config && S.config.relayer_online);
+
+  const myGiftsHtml = (S && S.gift_deposits && S.gift_deposits.length)
+    ? `<div style="font-size:12px;color:var(--text-2);margin:12px 0 6px">${LANG === "en" ? "Your recent gift deposits" : "Ваши принятые подарки"}</div>`
+      + S.gift_deposits.slice(0, 6).map((g) => `
+        <div class="tx-row" style="margin-bottom:6px;padding:9px 11px">
+          <div style="min-width:0">
+            <div class="tx-title">${esc(g.collection_name)}${g.gift_num ? " #" + g.gift_num : ""}</div>
+            <div class="tx-meta">${g.is_unique ? (g.backdrop_name ? esc(g.backdrop_name) + " · " : "") + `−${g.fee_pct}%` : `${g.stars_value} ★ → TON`} · ${fmtTime(g.created_at)}</div>
+          </div>
+          <div class="tx-right">
+            <div class="tx-amt pos num">+${Number(g.credited_ton).toFixed(4)} TON</div>
+            <div class="tx-usd num">${fmtUsd(g.credited_ton)}</div>
+          </div>
+        </div>`).join("")
+    : "";
+
+  openSheet(
+    LANG === "en" ? "Deposit with Telegram Gifts" : "Пополнение подарками Telegram",
+    `<div class="gift-hero">
+      <div class="row-between">
+        <div>
+          <div style="font-size:11px;color:var(--text-2);text-transform:uppercase;letter-spacing:0.04em">${LANG === "en" ? "Relayer Account" : "Аккаунт приёма"}</div>
+          <div class="mono" style="font-size:16px;font-weight:700;margin-top:2px">@${esc(relUser)}</div>
+        </div>
+        <span class="status-chip ${isOnline ? "" : "accent"}">${isOnline ? (LANG === "en" ? "Auto · Online" : "Авто · Онлайн") : (LANG === "en" ? "Auto-credit" : "Автоприём")}</span>
+      </div>
+      <div class="gift-rule">
+        <span class="gift-rule-dot"></span>
+        <div>${LANG === "en"
+          ? `<b>Collectible (NFT) Gifts:</b> credited at collection floor price; rare or expensive backdrops (Onyx Black, Black, Obsidian, Pure Gold, etc.) get up to <b>+45%</b> higher valuation. Service fee: <b>−${feePct}%</b>.`
+          : `<b>Коллекционные подарки (NFT):</b> зачисляется флорная стоимость коллекции; если дорогой или редкий фон (Onyx Black, Black, Obsidian, Pure Gold и др.) — оценка выше до <b>+45%</b>. Комиссия сервиса: <b>−${feePct}%</b>.`}</div>
+      </div>
+      <div class="gift-rule">
+        <span class="gift-rule-dot"></span>
+        <div>${LANG === "en"
+          ? "<b>Regular Telegram Gifts:</b> credited at exact Stars exchange value converted to TON."
+          : "<b>Обычные подарки Telegram:</b> зачисляется ровно столько, сколько дают при их обмене на Stars (в TON по курсу)."}</div>
+      </div>
+      <div class="gift-rule">
+        <span class="gift-rule-dot" style="background:var(--amber)"></span>
+        <div>${LANG === "en"
+          ? `Send the gift <b>non-anonymously</b> to <b>@${esc(relUser)}</b> — your balance updates automatically within ~15–25s.`
+          : `Отправляйте подарок <b>не анонимно</b> на <b>@${esc(relUser)}</b> — система определит ваш ID и зачислит баланс автоматически за ~15–25 сек.`}</div>
+      </div>
+    </div>
+
+    <button class="btn btn-primary btn-full" onclick="openTgLink('${esc(relUrl)}')">
+      ${LANG === "en" ? `Open @${esc(relUser)} to Send Gift` : `Отправить подарок на @${esc(relUser)}`}
+    </button>
+    <div class="adm-grid-2" style="margin-top:8px">
+      <button class="btn btn-sm" onclick="copyText('@${esc(relUser)}', '${LANG === "en" ? "Username copied" : "Юзернейм скопирован"}')">${LANG === "en" ? "Copy @" + esc(relUser) : "Скопировать @" + esc(relUser)}</button>
+      <button class="btn btn-green btn-sm" onclick="refreshGiftDepositStatus()">${LANG === "en" ? "Check Balance" : "Проверить баланс"}</button>
+    </div>
+
+    ${myGiftsHtml}
+
+    <div class="divider"></div>
+    <div class="row-between" style="margin-bottom:6px">
+      <span style="font-size:13px;font-weight:700">${LANG === "en" ? "Estimated Floor Payouts (−10%)" : "Ориентир выплат (флор − 10%)"}</span>
+    </div>
+    <div id="giftBackdropsChips" class="chips-row"></div>
+    <input class="input" id="giftSearchIn" placeholder="${LANG === "en" ? "Search collection..." : "Поиск коллекции (например Plush Pepe)..."}" oninput="filterGiftCatalog()">
+    <div class="gift-catalog-scroll" id="giftCatalogBox">
+      <div style="padding:14px;text-align:center"><div class="spinner" style="margin:0 auto"></div></div>
+    </div>`
+  );
+
+  try {
+    if (!giftCatalogCache) {
+      giftCatalogCache = await apiPost("/api/gifts/catalog");
+    }
+    renderGiftCatalogInsideSheet();
+  } catch(e) {
+    const b = $("giftCatalogBox");
+    if (b) b.innerHTML = `<div class="empty-box" style="padding:10px">${esc(e.message)}</div>`;
+  }
+}
+
+function renderGiftCatalogInsideSheet() {
+  if (!giftCatalogCache) return;
+  const bdBox = $("giftBackdropsChips");
+  if (bdBox && giftCatalogCache.top_backdrops) {
+    bdBox.innerHTML = giftCatalogCache.top_backdrops.slice(0, 6).map((b) =>
+      `<span class="status-chip accent" style="font-size:10.5px">${esc(b.name)} +${b.bonus_pct}%</span>`
+    ).join("");
+  }
+  filterGiftCatalog();
+}
+
+function filterGiftCatalog() {
+  const box = $("giftCatalogBox");
+  if (!box || !giftCatalogCache) return;
+  const q = ($("giftSearchIn") ? $("giftSearchIn").value : "").trim().toLowerCase();
+  const list = (giftCatalogCache.items || []).filter((it) => !q || it.name.toLowerCase().includes(q));
+  if (!list.length) {
+    box.innerHTML = `<div class="empty-box" style="padding:12px">${LANG === "en" ? "No matching collections" : "Коллекция не найдена"}</div>`;
+    return;
+  }
+  box.innerHTML = list.map((it) => `
+    <div class="tx-row" style="padding:8px 11px">
+      <div style="min-width:0">
+        <div class="tx-title">${esc(it.name)}</div>
+        <div class="tx-meta num">${LANG === "en" ? "Floor" : "Флор"}: ${it.floor_ton} TON</div>
+      </div>
+      <div class="tx-right">
+        <div class="tx-amt pos num">~${it.payout_ton} TON</div>
+        <div class="tx-usd num">≈ ${fmtUsd(it.payout_ton)}</div>
+      </div>
+    </div>`).join("");
+}
+
+async function refreshGiftDepositStatus() {
+  haptic("light");
+  try {
+    const prevBal = dispBalance;
+    const prevCnt = (S && S.gift_deposits) ? S.gift_deposits.length : 0;
+    const r = await apiPost("/api/init");
+    if (r && r.ok) {
+      S = r;
+      renderAll(prevBal);
+      if ((S.gift_deposits || []).length > prevCnt) {
+        haptic("success");
+        showToast(LANG === "en" ? "Gift credited to your balance!" : "Подарок зачислен на баланс!", "ok");
+        openGiftDeposit();
+      } else {
+        showToast(LANG === "en" ? "No new gifts yet — wait ~15s after sending" : "Новых подарков пока нет — подождите ~15 сек после отправки");
+      }
+    }
+  } catch(e) {
+    showToast(e.message, "err");
+  }
 }
 
 function openCheckout(orderType, itemId) {
@@ -2968,9 +3164,17 @@ async function openAdmin() {
   }
 }
 
-function setAdminSubTab(t) {
+async function setAdminSubTab(t) {
   adminSubTab = t;
   haptic("light");
+  if (t === "gifts") {
+    renderAdminBody();
+    try {
+      adminGiftsData = await apiPost("/api/admin/gifts/overview");
+      renderAdminBody();
+    } catch(e) { showToast(e.message, "err"); }
+    return;
+  }
   renderAdminBody();
 }
 
@@ -2982,6 +3186,7 @@ function renderAdminBody() {
     ["users", "Юзеры"],
     ["wds", `Выводы${st.pending_withdrawals_count ? " (" + st.pending_withdrawals_count + ")" : ""}`],
     ["promo", "Промо / UTM"],
+    ["gifts", "Подарки"],
     ["logs", "Логи"],
   ];
 
@@ -3218,6 +3423,85 @@ function renderAdminBody() {
       ${srcs || '<div class="empty-box" style="padding:10px">Пока нет данных</div>'}`;
   }
 
+
+  else if (adminSubTab === "gifts") {
+    if (!adminGiftsData) {
+      body = `<div style="padding:20px;text-align:center"><div class="spinner" style="margin:0 auto"></div></div>`;
+    } else {
+      const rel = adminGiftsData.relayer;
+      const gst = adminGiftsData.stats;
+      const ovList = (adminGiftsData.overrides || []).map((o) => `
+        <div class="tx-row" style="margin-bottom:5px;padding:8px 10px">
+          <div>
+            <div class="tx-title">${esc(o.collection_name)}</div>
+            <div class="tx-meta num">Флор: ${o.floor_ton} TON (выплата −10%: ${(o.floor_ton * 0.9).toFixed(2)} TON)</div>
+          </div>
+          <button class="btn btn-danger-ghost btn-xs" onclick="admSetGiftPrice('${esc(o.collection_name)}', 0)">Сброс</button>
+        </div>`).join("");
+
+      const recList = (adminGiftsData.recent_gifts || []).map((g) => `
+        <div class="tx-row" style="margin-bottom:5px;padding:8px 10px">
+          <div style="min-width:0">
+            <div class="tx-title">${esc(g.collection_name)}${g.gift_num ? " #" + g.gift_num : ""} ${g.backdrop_name ? `· <span style="color:var(--accent-hi)">${esc(g.backdrop_name)}</span>` : ""}</div>
+            <div class="tx-meta mono">${g.username ? "@" + esc(g.username) : "ID " + g.user_id} · ${fmtTime(g.created_at)}</div>
+          </div>
+          <div class="tx-right">
+            <div class="tx-amt pos num">+${Number(g.credited_ton).toFixed(4)} TON</div>
+            <div class="tx-usd num">${fmtUsd(g.credited_ton)}</div>
+          </div>
+        </div>`).join("");
+
+      body = `
+        <div class="adm-card">
+          <div class="row-between" style="margin-bottom:6px">
+            <span style="font-weight:700">@${esc(rel.username)}</span>
+            <span class="status-chip ${rel.connected ? "" : "warn"}">${rel.connected ? "Онлайн" : "Не подключён"}</span>
+          </div>
+          <div style="font-size:12px;color:var(--text-2)">${esc(rel.status_text)}</div>
+          <div style="font-size:11.5px;color:var(--text-3);margin-top:4px">Для входа в аккаунт релеера напиши боту команду <b class="mono">/relayer</b></div>
+        </div>
+
+        <div class="adm-grid-2">
+          <div class="adm-card" style="margin:0"><div class="tel-lbl">Принято подарков</div><div class="tel-val num">${gst.total_gifts}</div></div>
+          <div class="adm-card" style="margin:0"><div class="tel-lbl">Зачислено всего</div><div class="tel-val num" style="color:var(--green)">${gst.total_ton.toFixed(2)} TON <span style="color:var(--text-3);font-size:11px">${fmtUsd(gst.total_ton)}</span></div></div>
+        </div>
+
+        <div class="adm-card">
+          <div style="font-weight:600;margin-bottom:8px">Задать свой флор коллекции (TON)</div>
+          <input class="input" id="admGiftColIn" placeholder="Например: Plush Pepe" style="margin-bottom:7px">
+          <div class="input-row">
+            <input class="input num" id="admGiftFloorIn" type="number" step="0.1" placeholder="Флор TON (0 = сброс)">
+            <button class="btn btn-primary btn-sm" style="height:44px;flex-shrink:0" onclick="admSetGiftPrice()">Задать</button>
+          </div>
+        </div>
+
+        <div class="adm-card">
+          <div style="font-weight:600;margin-bottom:8px">Тест / ручное зачисление подарка</div>
+          <div class="adm-grid-2" style="margin-bottom:7px">
+            <input class="input mono" id="admManUid" type="number" value="${S.user.tg_id}" placeholder="TG ID">
+            <select class="select" id="admManType" onchange="admToggleManGiftMode()">
+              <option value="unique">NFT подарок (−10%)</option>
+              <option value="regular">Обычный (Stars)</option>
+            </select>
+          </div>
+          <div id="admManUniqueBox">
+            <div class="adm-grid-2" style="margin-bottom:7px">
+              <input class="input" id="admManCol" value="Swiss Watch" placeholder="Коллекция">
+              <input class="input" id="admManBg" placeholder="Фон (Onyx Black)">
+            </div>
+          </div>
+          <div id="admManRegBox" class="hidden" style="margin-bottom:7px">
+            <input class="input num" id="admManStars" type="number" value="85" placeholder="Stars при обмене">
+          </div>
+          <button class="btn btn-green btn-sm btn-full" onclick="admManualGiftCredit()">Зачислить подарок</button>
+        </div>
+
+        ${ovList ? `<div style="font-size:12px;color:var(--text-2);margin:8px 0 6px">Свои цены коллекций</div>${ovList}` : ""}
+        <div style="font-size:12px;color:var(--text-2);margin:10px 0 6px">Последние принятые подарки</div>
+        ${recList || '<div class="empty-box" style="padding:10px">Подарков пока нет</div>'}`;
+    }
+  }
+
   else if (adminSubTab === "logs") {
     const cats = [["all","Все"],["auth","Вход"],["pay","Оплаты"],["buy","Покупки"],["withdraw","Выводы"],["discount","Скидки"],["admin","Админ"]];
     const chips = `<div class="chips-row">` + cats.map(([k, lbl]) =>
@@ -3380,6 +3664,47 @@ async function admToggleLiveLogs() {
     adminOverview.stats.live_logs_tg = r.live_logs_tg;
     renderAdminBody();
     showToast(r.message);
+  } catch(e) { showToast(e.message, "err"); }
+}
+
+
+function admToggleManGiftMode() {
+  const isReg = $("admManType") && $("admManType").value === "regular";
+  if ($("admManUniqueBox")) $("admManUniqueBox").classList.toggle("hidden", isReg);
+  if ($("admManRegBox")) $("admManRegBox").classList.toggle("hidden", !isReg);
+}
+
+async function admSetGiftPrice(explicitName, explicitPrice) {
+  const collection_name = explicitName !== undefined ? explicitName : ($("admGiftColIn") ? $("admGiftColIn").value.trim() : "");
+  const floor_ton = explicitPrice !== undefined ? explicitPrice : parseFloat($("admGiftFloorIn") ? $("admGiftFloorIn").value : "0");
+  if (!collection_name) { showToast("Укажите коллекцию", "err"); return; }
+  try {
+    const r = await apiPost("/api/admin/gifts/set_price", { collection_name, floor_ton: isNaN(floor_ton) ? 0 : floor_ton });
+    adminGiftsData = r.gifts;
+    giftCatalogCache = null;
+    renderAdminBody();
+    haptic("success");
+    showToast(r.message, "ok");
+  } catch(e) { showToast(e.message, "err"); }
+}
+
+async function admManualGiftCredit() {
+  const target_id = parseInt($("admManUid").value || "0", 10);
+  const is_unique = $("admManType").value === "unique";
+  const collection_name = is_unique ? ($("admManCol").value || "").trim() : "Telegram Gift";
+  const backdrop_name = is_unique ? ($("admManBg").value || "").trim() : "";
+  const convert_stars = is_unique ? 0 : parseInt($("admManStars").value || "0", 10);
+  try {
+    const r = await apiPost("/api/admin/gifts/manual_credit", { target_id, is_unique, collection_name, backdrop_name, convert_stars });
+    adminGiftsData = r.gifts;
+    if (S && target_id === S.user.tg_id && r.target) {
+      const prevBal = dispBalance;
+      S = r.target;
+      renderAll(prevBal);
+    }
+    renderAdminBody();
+    haptic("success");
+    showToast(r.message, "ok");
   } catch(e) { showToast(e.message, "err"); }
 }
 
