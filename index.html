@@ -1,0 +1,2361 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<title>TonPain</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://unpkg.com/@tonconnect/ui@2.0.9/dist/tonconnect-ui.min.js"></script>
+<style>
+:root {
+  --bg: #000000;
+  --card: #141416;
+  --card-2: #1c1c1e;
+  --card-3: #242428;
+  --blue: #0a84ff;
+  --blue-dim: rgba(10, 132, 255, 0.16);
+  --green: #30d158;
+  --amber: #ff9f0a;
+  --red: #ff453a;
+  --purple: #7c3aed;
+  --text: #ffffff;
+  --text-2: #8e8e93;
+  --text-3: #636366;
+  --sep: rgba(255, 255, 255, 0.08);
+  --safe-top: 14px;
+  --safe-bottom: 14px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+input, textarea {
+  user-select: text;
+  font-family: inherit;
+}
+
+#app {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+}
+
+.scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding: calc(var(--safe-top) + 6px) 16px calc(98px + var(--safe-bottom));
+}
+.scroll-area::-webkit-scrollbar { display: none; }
+
+.tab-view { display: none; animation: fadeIn .18s ease; }
+.tab-view.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
+
+/* === TOP TOAST (1-в-1 как на видео) === */
+#toast {
+  position: fixed;
+  top: calc(var(--safe-top) + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(-80px);
+  background: rgba(30, 30, 34, 0.96);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 999px;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0;
+  transition: transform .28s cubic-bezier(.22,1,.36,1), opacity .22s ease;
+  white-space: nowrap;
+  max-width: calc(100vw - 32px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.65);
+}
+#toast.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+/* === HEADER === */
+.top-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.bal-label {
+  font-size: 13px;
+  color: var(--text-2);
+  margin-bottom: 2px;
+}
+.bal-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.bal-num {
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: -0.7px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.05;
+}
+.bal-unit {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+.top-controls {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding-top: 6px;
+  flex-shrink: 0;
+}
+.pill-badge {
+  background: var(--card-2);
+  color: #b0b0b8;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 7px 12px;
+  border-radius: 999px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.circle-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--card-2);
+  color: #d1d1d6;
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.circle-btn:active, .pill-badge:active { opacity: 0.7; }
+.circle-btn.admin-gear {
+  color: var(--blue);
+  border: 1px solid rgba(10,132,255,0.4);
+  display: none;
+}
+
+/* === ACTION ROW (Пополнить / Вывести / Чек) === */
+.action-row-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.btn {
+  height: 44px;
+  border-radius: 13px;
+  border: none;
+  font-size: 15px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  cursor: pointer;
+  transition: transform .1s ease, opacity .15s ease;
+  padding: 0 12px;
+}
+.btn:active { transform: scale(0.97); opacity: 0.88; }
+.btn-primary { background: var(--blue); color: #fff; }
+.btn-secondary { background: var(--card-2); color: var(--blue); }
+.btn-muted { background: var(--card-2); color: #43566b; }
+.btn-danger { background: rgba(255,69,58,0.16); color: var(--red); }
+.btn-success { background: rgba(48,209,88,0.18); color: var(--green); }
+.btn-full { width: 100%; height: 48px; border-radius: 14px; font-size: 16px; }
+.btn-sm { height: 34px; border-radius: 999px; font-size: 13px; padding: 0 14px; }
+
+/* === TURBINE === */
+.turbine-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 6px 0 14px;
+  position: relative;
+}
+#turbineCanvas {
+  width: 248px;
+  height: 248px;
+  display: block;
+}
+
+/* === LIVE COUNTER === */
+.mine-counter-block {
+  text-align: center;
+  margin-bottom: 18px;
+}
+.mine-num-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 6px;
+}
+.mine-num {
+  font-size: 33px;
+  font-weight: 700;
+  letter-spacing: -0.6px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+.mine-unit {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+.mine-sub1 {
+  margin-top: 6px;
+  font-size: 15px;
+  color: var(--text-2);
+}
+.mine-sub2 {
+  margin-top: 4px;
+  font-size: 13.5px;
+  color: var(--text-2);
+}
+.mine-sub2.idle { color: var(--text-3); }
+.mine-sub2.full { color: var(--amber); font-weight: 500; }
+
+/* === ONBOARDING CARD (Как начать майнить) === */
+.onboard-card {
+  background: var(--card);
+  border-radius: 18px;
+  padding: 15px;
+  margin-bottom: 16px;
+  border: 1px solid rgba(255,255,255,0.04);
+}
+.onboard-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+}
+.sq-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.sq-green { background: #26c255; color: #fff; }
+.sq-purple { background: #5e5ce6; color: #fff; }
+.sq-orange { background: #ff9500; color: #fff; }
+.sq-red { background: #ff453a; color: #fff; }
+.sq-blue { background: #0a84ff; color: #fff; }
+.sq-gray { background: #2c2c2e; color: #d1d1d6; }
+
+.onboard-title { font-size: 16px; font-weight: 600; color: #fff; }
+.onboard-sub { font-size: 13px; color: var(--text-2); margin-top: 2px; line-height: 1.3; }
+.onboard-steps {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--sep);
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+.onboard-steps.collapsed { display: none; }
+.step-row { display: flex; align-items: flex-start; gap: 12px; }
+.step-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(10, 132, 255, 0.18);
+  color: var(--blue);
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.step-title { font-size: 15px; font-weight: 600; color: #fff; }
+.step-desc { font-size: 13px; color: var(--text-2); margin-top: 2px; line-height: 1.35; }
+
+.action-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.footnote {
+  font-size: 12.5px;
+  color: var(--text-3);
+  line-height: 1.4;
+  margin-top: 10px;
+}
+.footnote.center { text-align: center; }
+
+/* === PAGE TITLES & GROUPED CARDS === */
+.page-title {
+  font-size: 31px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  margin-bottom: 6px;
+}
+.page-sub {
+  font-size: 14px;
+  color: var(--text-2);
+  line-height: 1.38;
+  margin-bottom: 16px;
+}
+.section-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--text-2);
+  margin: 18px 0 8px 4px;
+}
+.card {
+  background: var(--card);
+  border-radius: 16px;
+  overflow: hidden;
+}
+.card-pad { padding: 14px 15px; }
+.list-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 15px;
+  position: relative;
+}
+.list-row + .list-row::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 64px;
+  right: 0;
+  height: 1px;
+  background: var(--sep);
+}
+.list-row.full-sep + .list-row::before { left: 15px; }
+.row-left { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1; }
+.row-info { min-width: 0; flex: 1; }
+.row-title { font-size: 15.5px; font-weight: 600; color: #fff; line-height: 1.25; }
+.row-sub { font-size: 13px; color: var(--text-2); margin-top: 2px; line-height: 1.3; }
+.row-green { font-size: 13px; color: var(--green); font-weight: 500; margin-top: 2px; }
+.row-amber { color: var(--amber); }
+
+/* === SERVERS TAB CARDS === */
+.srv-card {
+  background: var(--card);
+  border-radius: 16px;
+  padding: 14px 15px;
+  margin-bottom: 10px;
+}
+.srv-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 11px;
+}
+.srv-days {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+}
+.srv-bar-bg {
+  width: 100%;
+  height: 4px;
+  border-radius: 99px;
+  background: rgba(255,255,255,0.08);
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+.srv-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, #ff375f 0%, #bf5af2 55%, #0a84ff 100%);
+}
+.srv-upg-hint {
+  font-size: 12.5px;
+  color: var(--text-2);
+  margin-bottom: 10px;
+}
+.srv-btn-row {
+  display: flex;
+  gap: 8px;
+}
+.srv-btn-row .btn {
+  flex: 1;
+  height: 38px;
+  font-size: 14px;
+  border-radius: 11px;
+  background: var(--card-2);
+  color: var(--blue);
+}
+
+/* === SHOP SERVER PRICE PILL === */
+.mini-fan-ico {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: radial-gradient(circle at 35% 35%, #a78bfa, #5b21b6 65%, #1e1b4b);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 12px rgba(124, 58, 237, 0.35);
+}
+.price-pill {
+  background: var(--card-2);
+  border: none;
+  border-radius: 999px;
+  padding: 7px 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.price-pill:active { opacity: 0.72; }
+.price-old {
+  font-size: 12.5px;
+  color: var(--text-3);
+  text-decoration: line-through;
+  font-weight: 500;
+}
+.price-new {
+  font-size: 13.5px;
+  color: var(--blue);
+  font-weight: 700;
+}
+.price-pill.equipped {
+  background: rgba(255,255,255,0.06);
+}
+.price-pill.equipped .price-new { color: var(--text-2); font-weight: 600; }
+
+.skin-dot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: inset 0 2px 6px rgba(255,255,255,0.35), 0 0 10px rgba(0,0,0,0.4);
+}
+
+.empty-box {
+  background: var(--card);
+  border-radius: 16px;
+  padding: 20px 16px;
+  text-align: center;
+  color: var(--text-2);
+  font-size: 14.5px;
+}
+
+/* === FLOATING GLASS BOTTOM NAV (1-в-1 как на видео) === */
+.bottom-nav-wrap {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(10px + var(--safe-bottom));
+  width: calc(100% - 24px);
+  max-width: 456px;
+  z-index: 100;
+}
+.bottom-nav {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  background: rgba(22, 22, 26, 0.88);
+  backdrop-filter: blur(26px);
+  -webkit-backdrop-filter: blur(26px);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 32px;
+  padding: 5px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.72);
+}
+.nav-item {
+  border: none;
+  background: transparent;
+  color: var(--text-2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 7px 2px;
+  border-radius: 26px;
+  cursor: pointer;
+  transition: background .18s ease, color .18s ease;
+}
+.nav-item svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.85; stroke-linecap: round; stroke-linejoin: round; }
+.nav-item span { font-size: 10.5px; font-weight: 500; letter-spacing: -0.1px; }
+.nav-item.active {
+  background: rgba(255, 255, 255, 0.085);
+  color: var(--blue);
+}
+
+/* === BOTTOM SHEET MODALS === */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.68);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 500;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+}
+.modal-backdrop.open { display: flex; }
+.sheet {
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  background: #0c0c0e;
+  border-top-left-radius: 22px;
+  border-top-right-radius: 22px;
+  border-top: 1px solid rgba(255,255,255,0.09);
+  padding: 16px 16px calc(22px + var(--safe-bottom));
+  overflow-y: auto;
+  animation: slideUp .24s cubic-bezier(.22,1,.36,1);
+}
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.sheet-header {
+  display: grid;
+  grid-template-columns: 76px 1fr 76px;
+  align-items: center;
+  margin-bottom: 18px;
+}
+.sheet-close {
+  background: none;
+  border: none;
+  color: var(--blue);
+  font-size: 16px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  padding: 4px 0;
+}
+.sheet-title {
+  text-align: center;
+  font-size: 17px;
+  font-weight: 700;
+  color: #fff;
+}
+.field-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #fff;
+  font-size: 16px;
+  padding: 0;
+}
+.field-input::placeholder { color: var(--text-3); }
+.mono-val {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 13.5px;
+  color: #e5e5ea;
+  word-break: break-all;
+  margin-top: 4px;
+  line-height: 1.35;
+}
+.tap-copy { cursor: pointer; }
+.tap-copy:active { background: rgba(255,255,255,0.05); }
+
+.preset-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.preset-btn {
+  background: var(--card-2);
+  color: #fff;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  height: 40px;
+  font-size: 14.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.preset-btn.sel {
+  border-color: var(--blue);
+  background: var(--blue-dim);
+  color: var(--blue);
+}
+
+.seg-ctrl {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: var(--card-2);
+  border-radius: 12px;
+  padding: 3px;
+  margin-bottom: 14px;
+}
+.seg-btn {
+  border: none;
+  background: transparent;
+  color: var(--text-2);
+  height: 34px;
+  border-radius: 9px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.seg-btn.active { background: #323236; color: #fff; }
+
+.status-tag {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 9px;
+  border-radius: 999px;
+}
+.st-pending { background: rgba(255,159,10,0.18); color: var(--amber); }
+.st-approved { background: rgba(48,209,88,0.18); color: var(--green); }
+.st-rejected { background: rgba(255,69,58,0.18); color: var(--red); }
+
+.admin-stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.admin-stat-box {
+  background: var(--card);
+  border-radius: 14px;
+  padding: 12px;
+}
+.admin-stat-lbl { font-size: 12px; color: var(--text-2); }
+.admin-stat-val { font-size: 19px; font-weight: 700; margin-top: 3px; }
+</style>
+</head>
+<body>
+<div id="toast"></div>
+
+<div id="app">
+  <div class="scroll-area" id="scrollArea">
+
+    <!-- ==================== TAB 1: МАЙНИНГ ==================== -->
+    <section class="tab-view active" id="tab-mining">
+      <div class="top-header">
+        <div>
+          <div class="bal-label" data-i18n="balance">Баланс</div>
+          <div class="bal-row">
+            <span class="bal-num" id="uiBalance">0.0000</span>
+            <span class="bal-unit">TON</span>
+          </div>
+        </div>
+        <div class="top-controls">
+          <div class="pill-badge" id="uiServersPill" onclick="switchTab('servers')">Нет серверов</div>
+          <button class="circle-btn" id="uiLangBtn" onclick="toggleLang()">EN</button>
+          <button class="circle-btn" onclick="openModal('modal-help')">?</button>
+          <button class="circle-btn admin-gear" id="uiAdminBtn" onclick="openAdminModal()" title="Admin">⚙</button>
+        </div>
+      </div>
+
+      <div class="action-row-3">
+        <button class="btn btn-primary" onclick="openDepositModal()" data-i18n="deposit">Пополнить</button>
+        <button class="btn btn-secondary" onclick="openWithdrawModal()" data-i18n="withdraw">Вывести</button>
+        <button class="btn btn-secondary" onclick="openCheckModal()" data-i18n="check">Чек</button>
+      </div>
+
+      <div class="turbine-wrap">
+        <canvas id="turbineCanvas" width="496" height="496"></canvas>
+      </div>
+
+      <div class="mine-counter-block">
+        <div class="mine-num-row">
+          <span class="mine-num" id="uiMinedNum">0.0000000000</span>
+          <span class="mine-unit">TON</span>
+        </div>
+        <div class="mine-sub1" id="uiMineSub1">Майнинг не запущен</div>
+        <div class="mine-sub2 idle" id="uiMineSub2">Арендуйте сервер, чтобы начать</div>
+      </div>
+
+      <!-- Карточка онбординга (показывается когда 0 серверов — 1-в-1 как на видео) -->
+      <div class="onboard-card" id="uiOnboardCard">
+        <div class="onboard-head" onclick="toggleOnboardSteps()">
+          <div class="sq-icon sq-green">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L4 14h7l-1 8 10-12h-7l0-8z"/></svg>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div class="onboard-title" data-i18n="howStart">Как начать майнить</div>
+            <div class="onboard-sub" data-i18n="howStartSub">Арендуйте сервер — первый со скидкой 50%, от 2 TON</div>
+          </div>
+        </div>
+        <div class="onboard-steps" id="uiOnboardSteps">
+          <div class="step-row">
+            <div class="step-num">1</div>
+            <div>
+              <div class="step-title" data-i18n="step1t">Арендуйте сервер</div>
+              <div class="step-desc" data-i18n="step1d">В магазине — выберите любой тариф на 30 дней</div>
+            </div>
+          </div>
+          <div class="step-row">
+            <div class="step-num">2</div>
+            <div>
+              <div class="step-title" data-i18n="step2t">Сервер майнит сам</div>
+              <div class="step-desc" data-i18n="step2d">Круглосуточно, даже когда приложение закрыто</div>
+            </div>
+          </div>
+          <div class="step-row">
+            <div class="step-num">3</div>
+            <div>
+              <div class="step-title" data-i18n="step3t">Забирайте раз в сутки</div>
+              <div class="step-desc" data-i18n="step3d">Хранилище копит монеты сутки — затем нажмите «Забрать», чтобы майнинг продолжился. Бот напомнит</div>
+            </div>
+          </div>
+          <div class="step-row">
+            <div class="step-num">4</div>
+            <div>
+              <div class="step-title" data-i18n="step4t">Выводите TON</div>
+              <div class="step-desc" data-i18n="step4d">Вывод на ваш TON-кошелёк</div>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-full" onclick="switchTab('shop')" data-i18n="chooseServer">Выбрать сервер</button>
+        </div>
+      </div>
+
+      <div class="action-row-2">
+        <button class="btn btn-muted" id="uiClaimBtn" onclick="claimMining()">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+          <span data-i18n="claim">Забрать</span>
+        </button>
+        <button class="btn btn-secondary" onclick="switchTab('servers')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="9"/><path d="M3.6 9h16.8M3.6 15h16.8M12 3a14.5 14.5 0 0 0 0 18M12 3a14.5 14.5 0 0 1 0 18"/></svg>
+          <span data-i18n="myServersBtn">Мои серверы</span>
+        </button>
+      </div>
+
+      <div class="footnote center" id="uiMiningFootnote" data-i18n="miningFoot">Аренда на 30 дней · продлевайте во вкладке «Серверы»</div>
+    </section>
+
+    <!-- ==================== TAB 2: СЕРВЕРЫ ==================== -->
+    <section class="tab-view" id="tab-servers">
+      <div class="page-title" data-i18n="myServersTitle">Мои серверы</div>
+      <div class="page-sub" data-i18n="myServersSub">Серверы майнят, пока действует аренда. Следите за сроком и продлевайте вовремя.</div>
+
+      <div class="card">
+        <div class="list-row">
+          <div class="row-left">
+            <div class="sq-icon sq-purple">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L4 14h7l-1 8 10-12h-7l0-8z"/></svg>
+            </div>
+            <div class="row-info">
+              <div class="row-title" id="uiSrvTotalGhs">0 GH/s</div>
+              <div class="row-sub" id="uiSrvActiveCount">Нет работающих серверов</div>
+            </div>
+          </div>
+        </div>
+        <div class="list-row">
+          <div class="row-left">
+            <div class="sq-icon sq-orange">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+            </div>
+            <div class="row-info">
+              <div class="row-title" data-i18n="serviceFee">Комиссия сервиса</div>
+              <div class="row-sub" id="uiFeeDesc">15% с майнинга · отключается навсегда</div>
+            </div>
+          </div>
+          <button class="price-pill" id="uiNoFeeBtn" onclick="openPaymentSelector('no_fee', '', 100, t('disableFeeTitle'))">
+            <span class="price-new">100 TON</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="section-label" data-i18n="leaseSection">АРЕНДА</div>
+      <div id="uiMyServersList"></div>
+
+      <button class="btn btn-secondary btn-full" style="margin-top:12px;" onclick="switchTab('shop')" data-i18n="rentMore">Арендовать ещё сервер</button>
+      <div class="footnote" data-i18n="upgradeFoot">Улучшение переводит сервер на тариф выше и не тратит склад. Срок аренды при улучшении сохраняется.</div>
+    </section>
+
+    <!-- ==================== TAB 3: ДРУЗЬЯ ==================== -->
+    <section class="tab-view" id="tab-friends">
+      <div class="page-title" data-i18n="friendsTitle">Друзья</div>
+
+      <div class="card card-pad" style="margin-bottom:14px;">
+        <div class="row-left">
+          <div class="sq-icon sq-orange">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+          </div>
+          <div class="row-info">
+            <div class="row-title" data-i18n="refPromoTitle">+0.5 TON за каждого друга</div>
+            <div class="row-sub" data-i18n="refPromoSub">когда друг арендует первый сервер</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="action-row-2" style="margin-bottom:8px;">
+        <button class="btn btn-primary" onclick="shareRefLink()">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+          <span data-i18n="invite">Пригласить</span>
+        </button>
+        <button class="btn btn-secondary" onclick="copyRefLink()" data-i18n="copy">Копировать</button>
+      </div>
+
+      <div class="section-label" id="uiRefCountLbl">ВАШИ ДРУЗЬЯ · 0</div>
+      <div id="uiRefList"></div>
+    </section>
+
+    <!-- ==================== TAB 4: МИССИИ ==================== -->
+    <section class="tab-view" id="tab-missions">
+      <div class="page-title" data-i18n="missionsTitle">Миссии</div>
+
+      <div class="card">
+        <div class="list-row">
+          <div class="row-left">
+            <div class="sq-icon sq-red">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+            </div>
+            <div class="row-info">
+              <div class="row-title" data-i18n="dailyBonus">Ежедневный бонус</div>
+              <div class="row-sub">+0.01 TON</div>
+            </div>
+          </div>
+          <button class="price-pill" id="uiDailyBtn" onclick="claimDaily()">
+            <span class="price-new" data-i18n="getBtn">Получить</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="footnote" data-i18n="missionsFoot">Награды зачисляются на баланс сразу после выполнения.</div>
+    </section>
+
+    <!-- ==================== TAB 5: МАГАЗИН ==================== -->
+    <section class="tab-view" id="tab-shop">
+      <div class="section-label" id="uiShopServersHeader" style="margin-top:2px;">СЕРВЕРЫ · ПЕРВЫЙ −50%</div>
+      <div class="card" id="uiShopServersList"></div>
+      <div class="footnote" id="uiShopStockFoot">Аренда на 30 дней. Склад пополняется каждый день в 12:00 МСК (через 16 ч). Доход указан с учётом комиссии 15%.</div>
+
+      <div class="section-label" data-i18n="skinsSection">СКИНЫ ВЕНТИЛЯТОРА</div>
+      <div class="card" id="uiShopSkinsList"></div>
+      <div class="footnote" data-i18n="skinsFoot">Любую покупку можно оплатить с баланса, TON-кошельком или Telegram Stars.</div>
+    </section>
+
+  </div>
+
+  <!-- ==================== FLOATING GLASS BOTTOM NAV ==================== -->
+  <div class="bottom-nav-wrap">
+    <nav class="bottom-nav">
+      <button class="nav-item active" data-tab="mining" onclick="switchTab('mining')">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3.6 9h16.8M3.6 15h16.8M12 3a14.5 14.5 0 0 0 0 18M12 3a14.5 14.5 0 0 1 0 18"/></svg>
+        <span data-i18n="navMining">Майнинг</span>
+      </button>
+      <button class="nav-item" data-tab="servers" onclick="switchTab('servers')">
+        <svg viewBox="0 0 24 24"><path d="M13 2L4 14h7l-1 8 10-12h-7z"/></svg>
+        <span data-i18n="navServers">Серверы</span>
+      </button>
+      <button class="nav-item" data-tab="friends" onclick="switchTab('friends')">
+        <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span data-i18n="navFriends">Друзья</span>
+      </button>
+      <button class="nav-item" data-tab="missions" onclick="switchTab('missions')">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg>
+        <span data-i18n="navMissions">Миссии</span>
+      </button>
+      <button class="nav-item" data-tab="shop" onclick="switchTab('shop')">
+        <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        <span data-i18n="navShop">Магазин</span>
+      </button>
+    </nav>
+  </div>
+</div>
+
+<!-- ==================== MODAL: ВЫВОД НА TON (1-в-1) ==================== -->
+<div class="modal-backdrop" id="modal-withdraw" onclick="backdropClose(event,'modal-withdraw')">
+  <div class="sheet">
+    <div class="sheet-header">
+      <button class="sheet-close" onclick="closeModal('modal-withdraw')" data-i18n="close">Закрыть</button>
+      <div class="sheet-title" data-i18n="withdrawTitle">Вывод на TON</div>
+      <div></div>
+    </div>
+
+    <div class="section-label" style="margin-top:0;" data-i18n="amountLbl">СУММА</div>
+    <div class="card">
+      <div class="list-row full-sep">
+        <input type="number" step="0.01" id="wdAmount" class="field-input" placeholder="Количество" />
+        <span style="color:var(--text-3);font-size:14px;white-space:nowrap;" data-i18n="from15">от 15</span>
+      </div>
+      <div class="list-row full-sep" style="cursor:pointer;" onclick="fillAllWithdraw()">
+        <span style="color:var(--blue);font-size:15px;font-weight:500;" data-i18n="withdrawAll">Вывести всё</span>
+        <span style="color:var(--text-2);font-size:14.5px;" id="wdAvailBal">0.0000 TON</span>
+      </div>
+    </div>
+
+    <div class="section-label" data-i18n="tonAddrLbl">TON-АДРЕС КОШЕЛЬКА</div>
+    <div class="card card-pad">
+      <input type="text" id="wdWallet" class="field-input" placeholder="UQ... или EQ..." />
+    </div>
+    <div class="footnote" data-i18n="wdFoot">Минимальная сумма — 15 TON. Заявки обрабатываются вручную, обычно в течение 24 часов.</div>
+
+    <button class="btn btn-primary btn-full" style="margin-top:16px;" onclick="submitWithdraw()" data-i18n="createReq">Создать заявку</button>
+
+    <div class="section-label" data-i18n="historyLbl">ИСТОРИЯ</div>
+    <div id="wdHistoryList"></div>
+  </div>
+</div>
+
+<!-- ==================== MODAL: ПОПОЛНЕНИЕ ==================== -->
+<div class="modal-backdrop" id="modal-deposit" onclick="backdropClose(event,'modal-deposit')">
+  <div class="sheet">
+    <div class="sheet-header">
+      <button class="sheet-close" onclick="closeModal('modal-deposit')" data-i18n="close">Закрыть</button>
+      <div class="sheet-title" data-i18n="depositTitle">Пополнение баланса</div>
+      <div></div>
+    </div>
+    <div class="preset-grid" id="depPresets">
+      <button class="preset-btn sel" onclick="selectDepPreset(2, this)">2 TON</button>
+      <button class="preset-btn" onclick="selectDepPreset(5, this)">5 TON</button>
+      <button class="preset-btn" onclick="selectDepPreset(10, this)">10 TON</button>
+      <button class="preset-btn" onclick="selectDepPreset(25, this)">25 TON</button>
+      <button class="preset-btn" onclick="selectDepPreset(50, this)">50 TON</button>
+      <button class="preset-btn" onclick="selectDepPreset(100, this)">100 TON</button>
+    </div>
+    <div class="card card-pad" style="margin-bottom:14px;">
+      <input type="number" step="0.1" id="depAmount" class="field-input" value="2" placeholder="Сумма в TON" />
+    </div>
+    <button class="btn btn-primary btn-full" onclick="proceedDeposit()" data-i18n="continueTon">Перейти к оплате в TON</button>
+  </div>
+</div>
+
+<!-- ==================== MODAL: ЧЕК ==================== -->
+<div class="modal-backdrop" id="modal-check" onclick="backdropClose(event,'modal-check')">
+  <div class="sheet">
+    <div class="sheet-header">
+      <button class="sheet-close" onclick="closeModal('modal-check')" data-i18n="close">Закрыть</button>
+      <div class="sheet-title" data-i18n="checkTitle">Чеки</div>
+      <div></div>
+    </div>
+    <div class="seg-ctrl">
+      <button class="seg-btn active" id="chkSegClaim" onclick="switchCheckTab('claim')" data-i18n="activateCheck">Активировать</button>
+      <button class="seg-btn" id="chkSegCreate" onclick="switchCheckTab('create')" data-i18n="createCheck">Создать чек</button>
+    </div>
+
+    <div id="chkClaimPane">
+      <div class="card card-pad" style="margin-bottom:12px;">
+        <input type="text" id="chkCodeInput" class="field-input" placeholder="Код чека (например TP...)" style="text-transform:uppercase;" />
+      </div>
+      <button class="btn btn-primary btn-full" onclick="claimCheck()" data-i18n="activateBtn">Активировать чек</button>
+    </div>
+
+    <div id="chkCreatePane" style="display:none;">
+      <div class="card card-pad" style="margin-bottom:12px;">
+        <input type="number" step="0.05" id="chkAmountInput" class="field-input" placeholder="Сумма в TON (от 0.05)" />
+      </div>
+      <button class="btn btn-primary btn-full" onclick="createCheck()" data-i18n="createCheckBtn">Создать чек с баланса</button>
+      <div class="section-label" data-i18n="myChecks">МОИ ЧЕКИ</div>
+      <div id="chkMyList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== MODAL: ВЫБОР ОПЛАТЫ (1-в-1 00:30) ==================== -->
+<div class="modal-backdrop" id="modal-pay-select" onclick="backdropClose(event,'modal-pay-select')">
+  <div class="sheet">
+    <div class="sheet-header">
+      <button class="sheet-close" onclick="closeModal('modal-pay-select')" data-i18n="close">Закрыть</button>
+      <div class="sheet-title" data-i18n="paymentTitle">Оплата</div>
+      <div></div>
+    </div>
+
+    <div class="section-label" style="margin-top:0;" id="paySelHeader">ПОКУПКА · 0 TON</div>
+    <div class="card">
+      <div class="list-row" style="cursor:pointer;" onclick="payWithBalance()">
+        <div class="row-left">
+          <div class="sq-icon sq-gray">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M16 12h2"/></svg>
+          </div>
+          <div class="row-info">
+            <div class="row-title" data-i18n="fromBalance">С баланса</div>
+            <div class="row-sub" id="paySelBalSub">Не хватает — пополните баланс</div>
+          </div>
+        </div>
+        <div style="font-size:14.5px;color:var(--text-2);font-weight:600;white-space:nowrap;" id="paySelBalPrice">0 TON</div>
+      </div>
+
+      <div class="list-row" style="cursor:pointer;" onclick="payWithTonWallet()">
+        <div class="row-left">
+          <div class="sq-icon sq-blue">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M5.5 6h13c1.2 0 2 1.3 1.4 2.3L13.4 19c-.6 1-2.2 1-2.8 0L4.1 8.3C3.5 7.3 4.3 6 5.5 6z"/><line x1="12" y1="6" x2="12" y2="19.5"/></svg>
+          </div>
+          <div class="row-info">
+            <div class="row-title" data-i18n="tonWallet">TON-кошелёк</div>
+            <div class="row-sub" data-i18n="tonWalletSub">Tonkeeper, Telegram Wallet и др.</div>
+          </div>
+        </div>
+        <div style="font-size:14.5px;color:var(--blue);font-weight:600;white-space:nowrap;" id="paySelTonPrice">0 TON</div>
+      </div>
+
+      <div class="list-row" style="cursor:pointer;" onclick="payWithStars()">
+        <div class="row-left">
+          <div class="sq-icon sq-orange">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          </div>
+          <div class="row-info">
+            <div class="row-title">Telegram Stars</div>
+            <div class="row-sub" data-i18n="starsSub">Оплата внутри Telegram</div>
+          </div>
+        </div>
+        <div style="font-size:14.5px;color:var(--amber);font-weight:700;white-space:nowrap;" id="paySelStarsPrice">★ 0</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== MODAL: ОПЛАТА В TON (1-в-1 00:52) ==================== -->
+<div class="modal-backdrop" id="modal-pay-ton" onclick="backdropClose(event,'modal-pay-ton')">
+  <div class="sheet">
+    <div class="sheet-header">
+      <button class="sheet-close" onclick="closeModal('modal-pay-ton')" data-i18n="close">Закрыть</button>
+      <div class="sheet-title" data-i18n="tonPayTitle">Оплата в TON</div>
+      <div></div>
+    </div>
+
+    <div class="section-label" style="margin-top:0;" id="tonPaySub">ПОКУПКА</div>
+    <div class="card">
+      <div class="list-row full-sep tap-copy" onclick="copyText(String(activeTonOrder.amount_ton))">
+        <span style="font-size:15.5px;font-weight:600;" data-i18n="sumWord">Сумма</span>
+        <span style="font-size:15.5px;color:var(--text-2);" id="tonPayAmt">0 TON</span>
+      </div>
+      <div class="list-row full-sep tap-copy" style="display:block;" onclick="copyText(activeTonOrder.wallet_address)">
+        <div style="font-size:15.5px;font-weight:600;" data-i18n="addrWord">Адрес</div>
+        <div class="mono-val" id="tonPayAddr">—</div>
+      </div>
+      <div class="list-row full-sep tap-copy" style="display:block;" onclick="copyText(activeTonOrder.comment)">
+        <div style="font-size:15.5px;font-weight:600;" data-i18n="commentWord">Комментарий</div>
+        <div class="mono-val" id="tonPayComment">—</div>
+      </div>
+    </div>
+
+    <div class="footnote" style="margin-bottom:16px;" data-i18n="tonPayNote">
+      Оплатите через TON Connect — сумма и комментарий подставятся сами. Или переведите вручную: обязательно укажите комментарий — по нему мы найдём платёж. Нажмите на строку, чтобы скопировать. Покупка активируется автоматически в течение минуты после поступления.
+    </div>
+
+    <button class="btn btn-primary btn-full" style="margin-bottom:10px;" onclick="sendTonConnectTx()" data-i18n="payViaWallet">Оплатить через кошелёк</button>
+    <button class="btn btn-secondary btn-full" style="margin-bottom:10px;color:#fff;" onclick="openTonDeepLink()" data-i18n="openByLink">Открыть по ссылке</button>
+    <button class="btn btn-secondary btn-full" style="color:#fff;" id="btnCheckTonPay" onclick="checkTonPaymentNow()" data-i18n="iPaidCheck">Я оплатил — проверить</button>
+  </div>
+</div>
+
+<!-- ==================== MODAL: СПРАВКА (?) ==================== -->
+<div class="modal-backdrop" id="modal-help" onclick="backdropClose(event,'modal-help')">
+  <div class="sheet">
+    <div class="sheet-header">
+      <button class="sheet-close" onclick="closeModal('modal-help')" data-i18n="close">Закрыть</button>
+      <div class="sheet-title">TonPain</div>
+      <div></div>
+    </div>
+    <div class="card card-pad" style="margin-bottom:12px;">
+      <div style="font-size:15px;font-weight:600;margin-bottom:6px;" data-i18n="helpWallet">Привязанный кошелёк TON</div>
+      <div class="mono-val" id="helpWalletVal" style="margin-bottom:12px;color:var(--text-2);">Не подключён</div>
+      <button class="btn btn-primary btn-full" style="height:42px;font-size:14.5px;" id="helpConnectBtn" onclick="handleConnectWallet()">Подключить TON-кошелёк</button>
+    </div>
+    <div class="card card-pad" style="font-size:14px;color:var(--text-2);line-height:1.5;">
+      <p style="margin-bottom:8px;"><b style="color:#fff;">TonPain</b> — облачная экосистема майнинга TON прямо в Telegram.</p>
+      <p style="margin-bottom:8px;">• Аренда серверов действует <b>30 дней</b>. Первый сервер — со скидкой <b>50%</b> (от 2 TON).</p>
+      <p style="margin-bottom:8px;">• Хранилище копит монеты <b>24 часа</b>. Нажимайте «Забрать», чтобы переводить доход на баланс.</p>
+      <p>• Минимальный вывод — <b>15 TON</b>. За каждого друга, арендовавшего сервер, вы получаете <b>+0.5 TON</b>.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== MODAL: АДМИН-ПАНЕЛЬ (только для админов) ==================== -->
+<div class="modal-backdrop" id="modal-admin" onclick="backdropClose(event,'modal-admin')">
+  <div class="sheet">
+    <div class="sheet-header">
+      <button class="sheet-close" onclick="closeModal('modal-admin')">Закрыть</button>
+      <div class="sheet-title">Админ-панель</div>
+      <div></div>
+    </div>
+
+    <div class="admin-stat-grid" id="admStatsGrid"></div>
+
+    <div style="display:flex;gap:8px;margin-bottom:14px;">
+      <button class="btn btn-secondary" style="flex:1;height:40px;font-size:13.5px;" onclick="adminResetStock()">📦 Пополнить склад</button>
+      <button class="btn btn-secondary" style="flex:1;height:40px;font-size:13.5px;" onclick="adminCreatePromoCheck()">🧾 Админ-чек</button>
+    </div>
+
+    <div class="section-label">ПОИСК ПОЛЬЗОВАТЕЛЯ (ID ИЛИ @USERNAME)</div>
+    <div style="display:flex;gap:8px;margin-bottom:10px;">
+      <div class="card card-pad" style="flex:1;padding:10px 12px;">
+        <input type="text" id="admSearchInput" class="field-input" placeholder="7799457418 или @user" />
+      </div>
+      <button class="btn btn-primary" style="height:42px;" onclick="adminSearchUser()">Найти</button>
+    </div>
+    <div id="admTargetCard" style="display:none;margin-bottom:14px;"></div>
+
+    <div class="section-label">ОЖИДАЮЩИЕ ЗАЯВКИ НА ВЫВОД</div>
+    <div id="admPendingWds"></div>
+  </div>
+</div>
+
+<script>
+// ==============================================================================
+// ИНИЦИАЛИЗАЦИЯ TELEGRAM WEBAPP + API BASE
+// ==============================================================================
+const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+const urlParams = new URLSearchParams(window.location.search);
+const API_BASE = (() => {
+  const fromQuery = urlParams.get("api");
+  if (fromQuery) {
+    const clean = fromQuery.replace(/\/+$/, "");
+    try { localStorage.setItem("tonpain_api", clean); } catch (_) {}
+    return clean;
+  }
+  if (location.hostname.endsWith("trycloudflare.com") || location.hostname.endsWith("lhr.life") || location.hostname.endsWith("serveo.net") || location.hostname === "localhost" || location.hostname === "127.0.0.1") {
+    return location.origin;
+  }
+  try { return (localStorage.getItem("tonpain_api") || "").replace(/\/+$/, ""); } catch (_) { return ""; }
+})();
+
+function applySafeArea() {
+  let top = 12, bottom = 12;
+  if (tg) {
+    try {
+      tg.ready();
+      tg.expand();
+      tg.setHeaderColor("#000000");
+      tg.setBackgroundColor("#000000");
+    } catch (_) {}
+    const sa = tg.safeAreaInset || {};
+    const csa = tg.contentSafeAreaInset || {};
+    top = Math.max(12, (sa.top || 0) + (csa.top || 0));
+    bottom = Math.max(12, (sa.bottom || 0));
+  }
+  document.documentElement.style.setProperty("--safe-top", top + "px");
+  document.documentElement.style.setProperty("--safe-bottom", bottom + "px");
+}
+applySafeArea();
+if (tg && tg.onEvent) {
+  tg.onEvent("safeAreaChanged", applySafeArea);
+  tg.onEvent("contentSafeAreaChanged", applySafeArea);
+}
+
+// ==============================================================================
+// ЛОКАЛИЗАЦИЯ RU / EN
+// ==============================================================================
+const I18N = {
+  ru: {
+    balance: "Баланс", deposit: "Пополнить", withdraw: "Вывести", check: "Чек",
+    noServers: "Нет серверов", miningStopped: "Майнинг не запущен",
+    rentToStart: "Арендуйте сервер, чтобы начать", howStart: "Как начать майнить",
+    howStartSub: "Арендуйте сервер — первый со скидкой 50%, от 2 TON",
+    step1t: "Арендуйте сервер", step1d: "В магазине — выберите любой тариф на 30 дней",
+    step2t: "Сервер майнит сам", step2d: "Круглосуточно, даже когда приложение закрыто",
+    step3t: "Забирайте раз в сутки", step3d: "Хранилище копит монеты сутки — затем нажмите «Забрать», чтобы майнинг продолжился. Бот напомнит",
+    step4t: "Выводите TON", step4d: "Вывод на ваш TON-кошелёк", chooseServer: "Выбрать сервер",
+    claim: "Забрать", myServersBtn: "Мои серверы",
+    miningFoot: "Аренда на 30 дней · продлевайте во вкладке «Серверы»",
+    myServersTitle: "Мои серверы",
+    myServersSub: "Серверы майнят, пока действует аренда. Следите за сроком и продлевайте вовремя.",
+    serviceFee: "Комиссия сервиса", feeActiveDesc: "15% с майнинга · отключается навсегда",
+    feeOffDesc: "Отключена навсегда · 0% комиссии", disableFeeTitle: "Отключение комиссии",
+    leaseSection: "АРЕНДА", noServersYet: "У вас пока нет серверов",
+    rentMore: "Арендовать ещё сервер",
+    upgradeFoot: "Улучшение переводит сервер на тариф выше и не тратит склад. Срок аренды при улучшении сохраняется.",
+    friendsTitle: "Друзья", refPromoTitle: "+0.5 TON за каждого друга",
+    refPromoSub: "когда друг арендует первый сервер", invite: "Пригласить", copy: "Копировать",
+    yourFriends: "ВАШИ ДРУЗЬЯ", inviteFirst: "Пригласите первого друга",
+    missionsTitle: "Миссии", dailyBonus: "Ежедневный бонус", getBtn: "Получить", doneBtn: "Готово",
+    missionsFoot: "Награды зачисляются на баланс сразу после выполнения.",
+    skinsSection: "СКИНЫ ВЕНТИЛЯТОРА",
+    skinsFoot: "Любую покупку можно оплатить с баланса, TON-кошельком или Telegram Stars.",
+    navMining: "Майнинг", navServers: "Серверы", navFriends: "Друзья", navMissions: "Миссии", navShop: "Магазин",
+    close: "Закрыть", withdrawTitle: "Вывод на TON", amountLbl: "СУММА", from15: "от 15",
+    withdrawAll: "Вывести всё", tonAddrLbl: "TON-АДРЕС КОШЕЛЬКА",
+    wdFoot: "Минимальная сумма — 15 TON. Заявки обрабатываются вручную, обычно в течение 24 часов.",
+    createReq: "Создать заявку", historyLbl: "ИСТОРИЯ", noReqs: "Заявок пока нет",
+    depositTitle: "Пополнение баланса", continueTon: "Перейти к оплате в TON",
+    checkTitle: "Чеки", activateCheck: "Активировать", createCheck: "Создать чек",
+    activateBtn: "Активировать чек", createCheckBtn: "Создать чек с баланса", myChecks: "МОИ ЧЕКИ",
+    paymentTitle: "Оплата", fromBalance: "С баланса", tonWallet: "TON-кошелёк",
+    tonWalletSub: "Tonkeeper, Telegram Wallet и др.", starsSub: "Оплата внутри Telegram",
+    tonPayTitle: "Оплата в TON", sumWord: "Сумма", addrWord: "Адрес", commentWord: "Комментарий",
+    tonPayNote: "Оплатите через TON Connect — сумма и комментарий подставятся сами. Или переведите вручную: обязательно укажите комментарий — по нему мы найдём платёж. Нажмите на строку, чтобы скопировать. Покупка активируется автоматически в течение минуты после поступления.",
+    payViaWallet: "Оплатить через кошелёк", openByLink: "Открыть по ссылке", iPaidCheck: "Я оплатил — проверить",
+    helpWallet: "Привязанный кошелёк TON",
+    linkCopied: "Ссылка скопирована", copied: "Скопировано",
+    rewardGot: "Награда получена", min15: "Минимум 15 TON",
+    payNotFound: "Платёж пока не найден, попробуйте через минуту",
+    equipped: "Надет", equip: "Надеть", perDay: "TON в день", leftPcs: "осталось", pcs: "шт",
+    renew: "Продлить", upgrade: "Улучшить", upgradeArrow: "Улучшение →",
+    feeWord: "комиссия 15%", noFeeWord: "без комиссии",
+    fillsIn: "заполнится через", storageFull: "Хранилище заполнено — нажмите «Забрать»",
+    notEnoughBal: "Не хватает", topUpBal: "пополните баланс", enoughBal: "Достаточно средств",
+    pending: "На проверке", approved: "Выплачено", rejected: "Отклонено",
+    daysWord: "дней", workingSrvs: "серверов работают", noWorkingSrvs: "Нет работающих серверов",
+  },
+  en: {
+    balance: "Balance", deposit: "Deposit", withdraw: "Withdraw", check: "Check",
+    noServers: "No servers", miningStopped: "Mining stopped",
+    rentToStart: "Rent a server to start", howStart: "How to start mining",
+    howStartSub: "Rent a server — first one 50% off, from 2 TON",
+    step1t: "Rent a server", step1d: "In Shop — choose any 30-day plan",
+    step2t: "Server mines 24/7", step2d: "Automatically, even when the app is closed",
+    step3t: "Claim once a day", step3d: "Storage fills in 24h — tap «Claim» to keep mining. Bot will remind you",
+    step4t: "Withdraw TON", step4d: "Withdraw to your TON wallet", chooseServer: "Choose server",
+    claim: "Claim", myServersBtn: "My servers",
+    miningFoot: "30-day rental · extend in «Servers» tab",
+    myServersTitle: "My servers",
+    myServersSub: "Servers mine while rental is active. Watch expiration and renew on time.",
+    serviceFee: "Service fee", feeActiveDesc: "15% of mining · disable forever",
+    feeOffDesc: "Disabled forever · 0% fee", disableFeeTitle: "Disable service fee",
+    leaseSection: "RENTALS", noServersYet: "You have no servers yet",
+    rentMore: "Rent another server",
+    upgradeFoot: "Upgrading moves the server to the next tier without using shop stock. Lease duration is kept.",
+    friendsTitle: "Friends", refPromoTitle: "+0.5 TON per friend",
+    refPromoSub: "when a friend rents their first server", invite: "Invite", copy: "Copy",
+    yourFriends: "YOUR FRIENDS", inviteFirst: "Invite your first friend",
+    missionsTitle: "Missions", dailyBonus: "Daily bonus", getBtn: "Claim", doneBtn: "Done",
+    missionsFoot: "Rewards are credited to your balance immediately.",
+    skinsSection: "FAN SKINS",
+    skinsFoot: "Pay with balance, TON wallet, or Telegram Stars.",
+    navMining: "Mining", navServers: "Servers", navFriends: "Friends", navMissions: "Missions", navShop: "Shop",
+    close: "Close", withdrawTitle: "Withdraw TON", amountLbl: "AMOUNT", from15: "from 15",
+    withdrawAll: "Withdraw all", tonAddrLbl: "TON WALLET ADDRESS",
+    wdFoot: "Minimum amount is 15 TON. Requests are processed manually, usually within 24 hours.",
+    createReq: "Create request", historyLbl: "HISTORY", noReqs: "No requests yet",
+    depositTitle: "Top up balance", continueTon: "Continue with TON",
+    checkTitle: "Checks", activateCheck: "Activate", createCheck: "Create check",
+    activateBtn: "Activate check", createCheckBtn: "Create from balance", myChecks: "MY CHECKS",
+    paymentTitle: "Payment", fromBalance: "From balance", tonWallet: "TON Wallet",
+    tonWalletSub: "Tonkeeper, Telegram Wallet etc.", starsSub: "Pay inside Telegram",
+    tonPayTitle: "Pay in TON", sumWord: "Amount", addrWord: "Address", commentWord: "Comment",
+    tonPayNote: "Pay via TON Connect — amount and comment auto-fill. Or send manually with the exact comment. Tap any row to copy. Activates automatically within a minute.",
+    payViaWallet: "Pay via wallet", openByLink: "Open link", iPaidCheck: "I paid — check",
+    helpWallet: "Connected TON wallet",
+    linkCopied: "Link copied", copied: "Copied",
+    rewardGot: "Reward received", min15: "Minimum 15 TON",
+    payNotFound: "Payment not found yet, try again in a minute",
+    equipped: "Active", equip: "Equip", perDay: "TON/day", leftPcs: "left", pcs: "pcs",
+    renew: "Renew", upgrade: "Upgrade", upgradeArrow: "Upgrade →",
+    feeWord: "15% fee", noFeeWord: "0% fee",
+    fillsIn: "fills in", storageFull: "Storage full — tap «Claim»",
+    notEnoughBal: "Need", topUpBal: "more — deposit", enoughBal: "Sufficient balance",
+    pending: "Pending", approved: "Paid", rejected: "Rejected",
+    daysWord: "days", workingSrvs: "servers running", noWorkingSrvs: "No running servers",
+  }
+};
+
+let LANG = "ru";
+function t(key) { return (I18N[LANG] && I18N[LANG][key]) || I18N.ru[key] || key; }
+function applyTranslations() {
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    const k = el.getAttribute("data-i18n");
+    if (I18N[LANG][k]) el.textContent = I18N[LANG][k];
+  });
+  document.getElementById("uiLangBtn").textContent = LANG === "ru" ? "EN" : "RU";
+}
+
+// ==============================================================================
+// СОСТОЯНИЕ ПРИЛОЖЕНИЯ
+// ==============================================================================
+let APP = null;
+let mineSyncAtMs = Date.now();
+let pendingPaymentSelect = null; // {order_type, item_id, price, title}
+let activeTonOrder = null;       // {payment_id, wallet_address, amount_ton, amount_nano, comment, payload_boc}
+let tonConnectUI = null;
+let toastTimer = null;
+
+function showToast(msg) {
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("show"), 2600);
+}
+
+function haptic(type = "light") {
+  try {
+    if (tg && tg.HapticFeedback) {
+      if (type === "success" || type === "error") tg.HapticFeedback.notificationOccurred(type);
+      else tg.HapticFeedback.impactOccurred(type);
+    }
+  } catch (_) {}
+}
+
+function fmtNum(n) {
+  return Number(n).toLocaleString("ru-RU").replace(/,/g, " ");
+}
+function fmtPrice(p) {
+  return Number(p) % 1 === 0 ? String(Number(p)) : Number(p).toFixed(2).replace(/0+$/, "").replace(/\.$/, "");
+}
+
+async function apiFetch(path, body = null, method = "POST") {
+  if (!API_BASE) throw new Error("API URL не подключён. Откройте через @TonPain_bot");
+  const headers = { "Content-Type": "application/json" };
+  if (tg && tg.initData) headers["X-Telegram-Init-Data"] = tg.initData;
+  const opts = { method, headers };
+  if (method !== "GET" && body !== null) opts.body = JSON.stringify(body);
+  const resp = await fetch(API_BASE + path, opts);
+  const data = await resp.json();
+  if (!resp.ok || data.ok === false) {
+    throw new Error(data.error || "Ошибка сервера");
+  }
+  return data;
+}
+
+// ==============================================================================
+// TON CONNECT 2.0
+// ==============================================================================
+function initTonConnect() {
+  if (!window.TON_CONNECT_UI || !API_BASE) return;
+  try {
+    tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+      manifestUrl: API_BASE + "/tonconnect-manifest.json",
+    });
+    tonConnectUI.onStatusChange(async (wallet) => {
+      const addr = wallet && wallet.account ? wallet.account.address : "";
+      if (addr) {
+        updateWalletUI(addr);
+        try { await apiFetch("/api/wallet/connect", { wallet_address: addr }); } catch (_) {}
+      }
+    });
+  } catch (e) {
+    console.warn("TonConnect init:", e);
+  }
+}
+
+function updateWalletUI(addr) {
+  const el = document.getElementById("helpWalletVal");
+  const btn = document.getElementById("helpConnectBtn");
+  const wdInput = document.getElementById("wdWallet");
+  if (addr) {
+    el.textContent = addr;
+    btn.textContent = LANG === "ru" ? "Отключить кошелёк" : "Disconnect wallet";
+    if (wdInput && !wdInput.value) wdInput.value = addr;
+  } else {
+    el.textContent = LANG === "ru" ? "Не подключён" : "Not connected";
+    btn.textContent = LANG === "ru" ? "Подключить TON-кошелёк" : "Connect TON wallet";
+  }
+}
+
+async function handleConnectWallet() {
+  if (!tonConnectUI) { showToast("TON Connect недоступен"); return; }
+  if (tonConnectUI.connected) {
+    await tonConnectUI.disconnect();
+    updateWalletUI("");
+    try { await apiFetch("/api/wallet/connect", { wallet_address: "" }); } catch (_) {}
+  } else {
+    await tonConnectUI.openModal();
+  }
+}
+
+// ==============================================================================
+// РЕНДЕР ВСЕХ ВКЛАДОК
+// ==============================================================================
+function pluralServersRu(n) {
+  if (n === 0) return t("noServers");
+  if (LANG === "en") return n === 1 ? "1 server" : `${n} servers`;
+  const m10 = n % 10, m100 = n % 100;
+  if (m10 === 1 && m100 !== 11) return `${n} сервер`;
+  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return `${n} сервера`;
+  return `${n} серверов`;
+}
+
+function renderAll(state) {
+  APP = state;
+  mineSyncAtMs = Date.now();
+  LANG = state.user.lang || "ru";
+  applyTranslations();
+
+  // Header
+  document.getElementById("uiBalance").textContent = Number(state.user.balance).toFixed(4);
+  document.getElementById("uiServersPill").textContent = pluralServersRu(state.servers.length);
+  document.getElementById("uiAdminBtn").style.display = state.user.is_admin ? "inline-flex" : "none";
+  updateWalletUI(state.user.wallet_address || "");
+
+  // Mining tab
+  const hasServers = state.servers.length > 0;
+  document.getElementById("uiOnboardCard").style.display = hasServers ? "none" : "block";
+  document.getElementById("uiMiningFootnote").style.display = hasServers ? "block" : "none";
+
+  const claimBtn = document.getElementById("uiClaimBtn");
+  if (hasServers) {
+    claimBtn.classList.remove("btn-muted");
+    claimBtn.classList.add("btn-primary");
+  } else {
+    claimBtn.classList.remove("btn-primary");
+    claimBtn.classList.add("btn-muted");
+  }
+
+  // Servers tab
+  document.getElementById("uiSrvTotalGhs").textContent = `${fmtNum(state.mining.total_ghs)} GH/s`;
+  document.getElementById("uiSrvActiveCount").textContent = hasServers
+    ? `${state.servers.length} ${t("workingSrvs")}`
+    : t("noWorkingSrvs");
+
+  const feeBtn = document.getElementById("uiNoFeeBtn");
+  if (state.user.fee_disabled) {
+    document.getElementById("uiFeeDesc").textContent = t("feeOffDesc");
+    feeBtn.classList.add("equipped");
+    feeBtn.innerHTML = `<span class="price-new">0%</span>`;
+    feeBtn.onclick = null;
+  } else {
+    document.getElementById("uiFeeDesc").textContent = t("feeActiveDesc");
+    feeBtn.classList.remove("equipped");
+    feeBtn.innerHTML = `<span class="price-new">100 TON</span>`;
+    feeBtn.onclick = () => openPaymentSelector("no_fee", "", state.config.no_fee_price, t("disableFeeTitle"));
+  }
+
+  const srvListEl = document.getElementById("uiMyServersList");
+  if (!hasServers) {
+    srvListEl.innerHTML = `<div class="empty-box">${t("noServersYet")}</div>`;
+  } else {
+    srvListEl.innerHTML = state.servers.map(s => {
+      const sName = LANG === "en" ? s.name_en : s.name;
+      const upgName = LANG === "en" ? s.upgrade_to_en : s.upgrade_to;
+      const upgBlock = s.upgrade_to ? `
+        <div class="srv-upg-hint">${t("upgradeArrow")} ${upgName} · ${fmtNum(s.upgrade_ghs)} GH/s</div>
+        <div class="srv-btn-row">
+          <button class="btn" onclick="openPaymentSelector('upgrade','${s.id}',${s.upgrade_price},'${t("upgrade")} · ${upgName}')">${t("upgrade")} · ${fmtPrice(s.upgrade_price)} TON</button>
+          <button class="btn" onclick="openPaymentSelector('renew','${s.id}',${s.renew_price},'${t("renew")} · ${sName}')">${t("renew")} · ${fmtPrice(s.renew_price)} TON</button>
+        </div>
+      ` : `
+        <div class="srv-btn-row">
+          <button class="btn" onclick="openPaymentSelector('renew','${s.id}',${s.renew_price},'${t("renew")} · ${sName}')">${t("renew")} · ${fmtPrice(s.renew_price)} TON</button>
+        </div>
+      `;
+      return `
+        <div class="srv-card">
+          <div class="srv-head">
+            <div class="row-left">
+              <div class="mini-fan-ico">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M5.5 6h13c1.2 0 2 1.3 1.4 2.3L13.4 19c-.6 1-2.2 1-2.8 0L4.1 8.3C3.5 7.3 4.3 6 5.5 6z"/><line x1="12" y1="6" x2="12" y2="19.5"/></svg>
+              </div>
+              <div class="row-info">
+                <div class="row-title">${sName}</div>
+                <div class="row-sub">${fmtNum(s.ghs)} GH/s · ≈ ${s.daily_ton.toFixed(2)} ${t("perDay")}</div>
+              </div>
+            </div>
+            <div class="srv-days">${s.days_left} ${t("daysWord")}</div>
+          </div>
+          <div class="srv-bar-bg"><div class="srv-bar-fill" style="width:${Math.max(4, s.progress*100)}%"></div></div>
+          ${upgBlock}
+        </div>
+      `;
+    }).join("");
+  }
+
+  // Friends tab
+  document.getElementById("uiRefCountLbl").textContent = `${t("yourFriends")} · ${state.referrals.length}`;
+  const refListEl = document.getElementById("uiRefList");
+  if (!state.referrals.length) {
+    refListEl.innerHTML = `<div class="empty-box">${t("inviteFirst")}</div>`;
+  } else {
+    refListEl.innerHTML = `<div class="card">` + state.referrals.map(r => `
+      <div class="list-row full-sep">
+        <div class="row-info">
+          <div class="row-title">${escapeHtml(r.name)}</div>
+          <div class="row-sub">${r.username ? "@" + escapeHtml(r.username) : "ID " + r.tg_id}</div>
+        </div>
+        <span class="status-tag ${r.rewarded ? 'st-approved' : 'st-pending'}">${r.rewarded ? '+0.5 TON' : (LANG==='ru'?'Ожидает сервер':'Waiting server')}</span>
+      </div>
+    `).join("") + `</div>`;
+  }
+
+  // Missions tab
+  const dailyBtn = document.getElementById("uiDailyBtn");
+  if (state.daily.ready) {
+    dailyBtn.classList.remove("equipped");
+    dailyBtn.innerHTML = `<span class="price-new">${t("getBtn")}</span>`;
+    dailyBtn.disabled = false;
+  } else {
+    dailyBtn.classList.add("equipped");
+    dailyBtn.innerHTML = `<span class="price-new">${t("doneBtn")}</span>`;
+    dailyBtn.disabled = true;
+  }
+
+  // Shop tab
+  const hasDisc = !state.user.first_server_bought;
+  document.getElementById("uiShopServersHeader").textContent = hasDisc
+    ? (LANG === "ru" ? "СЕРВЕРЫ · ПЕРВЫЙ −50%" : "SERVERS · FIRST −50%")
+    : (LANG === "ru" ? "СЕРВЕРЫ" : "SERVERS");
+
+  document.getElementById("uiShopStockFoot").textContent = LANG === "ru"
+    ? `Аренда на 30 дней. Склад пополняется каждый день в 12:00 МСК (через ${state.config.stock_reset_hours} ч). Доход указан с учётом комиссии 15%.`
+    : `30-day rental. Stock refills daily at 12:00 MSK (in ${state.config.stock_reset_hours}h). Income includes 15% fee.`;
+
+  document.getElementById("uiShopServersList").innerHTML = state.catalog.map(item => {
+    const sName = LANG === "en" ? item.name_en : item.name;
+    const lowStock = item.stock <= 5;
+    const priceHtml = item.has_discount
+      ? `<span class="price-old">${fmtPrice(item.base_price)}</span><span class="price-new">${fmtPrice(item.effective_price)} TON</span>`
+      : `<span class="price-new">${fmtPrice(item.effective_price)} TON</span>`;
+    return `
+      <div class="list-row">
+        <div class="row-left">
+          <div class="mini-fan-ico">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M5.5 6h13c1.2 0 2 1.3 1.4 2.3L13.4 19c-.6 1-2.2 1-2.8 0L4.1 8.3C3.5 7.3 4.3 6 5.5 6z"/><line x1="12" y1="6" x2="12" y2="19.5"/></svg>
+          </div>
+          <div class="row-info">
+            <div class="row-title">${sName}</div>
+            <div class="row-green">≈ ${item.daily_net.toFixed(2)} ${t("perDay")}</div>
+            <div class="row-sub ${lowStock ? 'row-amber' : ''}">${fmtNum(item.ghs)} GH/s · ${t("leftPcs")} ${item.stock} ${t("pcs")}</div>
+          </div>
+        </div>
+        <button class="price-pill" onclick="openPaymentSelector('server','${item.id}',${item.effective_price},'${sName}')">
+          ${priceHtml}
+        </button>
+      </div>
+    `;
+  }).join("");
+
+  document.getElementById("uiShopSkinsList").innerHTML = state.skins.map(sk => {
+    const owned = state.user.owned_skins.includes(sk.id);
+    const active = state.user.active_skin === sk.id;
+    const skName = LANG === "en" ? sk.name_en : sk.name;
+    const skDesc = LANG === "en" ? sk.desc_en : sk.desc;
+    let btnHtml = "";
+    if (active) {
+      btnHtml = `<button class="price-pill equipped"><span class="price-new">${t("equipped")}</span></button>`;
+    } else if (owned) {
+      btnHtml = `<button class="price-pill" onclick="equipSkin('${sk.id}')"><span class="price-new">${t("equip")}</span></button>`;
+    } else {
+      btnHtml = `<button class="price-pill" onclick="openPaymentSelector('skin','${sk.id}',${sk.price},'${skName}')"><span class="price-new">${fmtPrice(sk.price)} TON</span></button>`;
+    }
+    return `
+      <div class="list-row">
+        <div class="row-left">
+          <div class="skin-dot" style="background:${sk.color};"></div>
+          <div class="row-info">
+            <div class="row-title">${skName}</div>
+            <div class="row-sub">${skDesc}</div>
+          </div>
+        </div>
+        ${btnHtml}
+      </div>
+    `;
+  }).join("");
+
+  renderWithdrawHistory();
+  renderMyChecks();
+}
+
+function escapeHtml(s) {
+  return String(s || "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+// ==============================================================================
+// 3D TURBINE CANVAS (1-в-1 с видео TonCry + 6 живых скинов)
+// ==============================================================================
+const canvas = document.getElementById("turbineCanvas");
+const ctx = canvas.getContext("2d");
+let fanAngle = 0;
+let lastFrameMs = performance.now();
+
+const SKIN_THEMES = {
+  standard: { c1: "#3b1786", c2: "#7c3aed", c3: "#c4b5fd", rim: "#9d6cff", hub1: "#8b5cf6", hub2: "#4c1d95", glow: "rgba(124,58,237,0.45)" },
+  gold:     { c1: "#78350f", c2: "#eab308", c3: "#fef08a", rim: "#facc15", hub1: "#fbbf24", hub2: "#92400e", glow: "rgba(250,204,21,0.45)" },
+  emerald:  { c1: "#064e3b", c2: "#10b981", c3: "#a7f3d0", rim: "#34d399", hub1: "#34d399", hub2: "#065f46", glow: "rgba(16,185,129,0.45)" },
+  ruby:     { c1: "#7f1d1d", c2: "#ef4444", c3: "#fecaca", rim: "#ff453a", hub1: "#f87171", hub2: "#991b1b", glow: "rgba(239,68,68,0.52)" },
+  ice:      { c1: "#0c4a6e", c2: "#38bdf8", c3: "#f0f9ff", rim: "#7dd3fc", hub1: "#bae6fd", hub2: "#0284c7", glow: "rgba(56,189,248,0.48)" },
+  carbon:   { c1: "#141418", c2: "#2e2e36", c3: "#71717a", rim: "#00f0ff", hub1: "#3f3f46", hub2: "#18181b", glow: "rgba(0,240,255,0.42)" },
+};
+
+const particles = Array.from({length: 18}, () => ({
+  a: Math.random() * Math.PI * 2,
+  r: 80 + Math.random() * 145,
+  sp: 0.4 + Math.random() * 1.1,
+  sz: 1.8 + Math.random() * 2.5,
+  ph: Math.random() * Math.PI * 2,
+}));
+
+function drawTurbineFrame(nowMs) {
+  const dt = Math.min(0.08, (nowMs - lastFrameMs) / 1000);
+  lastFrameMs = nowMs;
+
+  const skinId = (APP && APP.user && APP.user.active_skin) || "standard";
+  const th = SKIN_THEMES[skinId] || SKIN_THEMES.standard;
+
+  // Вычисляем текущее значение майнинга и прогресс 24ч
+  let minedLive = 0;
+  let fillRatio = 0;
+  let isActive = false;
+  if (APP && APP.servers && APP.servers.length > 0) {
+    isActive = true;
+    const elapsedSec = Math.max(0, (Date.now() - mineSyncAtMs) / 1000);
+    const m = APP.mining;
+    minedLive = Math.min(m.cap_ton, m.mined_now + m.per_second * elapsedSec);
+    fillRatio = m.cap_ton > 0 ? Math.min(1, minedLive / m.cap_ton) : 0;
+
+    // Обновляем живой 10-значный счётчик
+    document.getElementById("uiMinedNum").textContent = minedLive.toFixed(10);
+    const feeTxt = APP.user.fee_disabled ? t("noFeeWord") : t("feeWord");
+    document.getElementById("uiMineSub1").textContent = `${fmtNum(m.total_ghs)} GH/s · ${feeTxt}`;
+    const remTon = Math.max(0, m.cap_ton - minedLive);
+    const remSec = m.per_second > 0 ? Math.floor(remTon / m.per_second) : 0;
+    const sub2 = document.getElementById("uiMineSub2");
+    if (remSec <= 0) {
+      sub2.className = "mine-sub2 full";
+      sub2.textContent = t("storageFull");
+    } else {
+      const hh = Math.floor(remSec / 3600);
+      const mm = Math.floor((remSec % 3600) / 60);
+      const timeStr = LANG === "ru" ? `${hh} ч ${mm} мин` : `${hh}h ${mm}m`;
+      sub2.className = "mine-sub2";
+      sub2.textContent = `≈ ${m.daily_ton.toFixed(3)} ${t("perDay")} · ${t("fillsIn")} ${timeStr}`;
+    }
+  } else {
+    document.getElementById("uiMinedNum").textContent = "0.0000000000";
+    document.getElementById("uiMineSub1").textContent = t("miningStopped");
+    const sub2 = document.getElementById("uiMineSub2");
+    sub2.className = "mine-sub2 idle";
+    sub2.textContent = t("rentToStart");
+  }
+
+  // Скорость вращения лопастей
+  const speed = isActive ? (fillRatio >= 1 ? 0.35 : 2.35) : 0.25;
+  fanAngle = (fanAngle + dt * speed) % (Math.PI * 2);
+
+  const W = canvas.width, H = canvas.height;
+  const cx = W / 2, cy = H / 2;
+  ctx.clearRect(0, 0, W, H);
+
+  // 1. Внешнее свечение скина
+  let pulse = 1.0;
+  if (skinId === "emerald") pulse = 0.85 + 0.28 * Math.sin(nowMs * 0.004);
+  if (skinId === "ruby") pulse = 0.9 + 0.2 * Math.sin(nowMs * 0.011);
+  const aura = ctx.createRadialGradient(cx, cy, 140, cx, cy, 244);
+  aura.addColorStop(0, th.glow);
+  aura.addColorStop(1, "rgba(0,0,0,0)");
+  ctx.save();
+  ctx.globalAlpha = 0.72 * pulse;
+  ctx.fillStyle = aura;
+  ctx.beginPath();
+  ctx.arc(cx, cy, 244, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  // 2. Тёмный корпус турбины (внешнее кольцо как на видео)
+  const housingGrad = ctx.createLinearGradient(cx - 210, cy - 210, cx + 210, cy + 210);
+  housingGrad.addColorStop(0, "#24242b");
+  housingGrad.addColorStop(0.5, "#111115");
+  housingGrad.addColorStop(1, "#1c1c22");
+  ctx.beginPath();
+  ctx.arc(cx, cy, 224, 0, Math.PI * 2);
+  ctx.fillStyle = housingGrad;
+  ctx.fill();
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = "rgba(255,255,255,0.06)";
+  ctx.stroke();
+
+  // 3. Кольцо прогресса 24ч по краю корпуса
+  const progR = 212;
+  ctx.beginPath();
+  ctx.arc(cx, cy, progR, 0, Math.PI * 2);
+  ctx.lineWidth = 8;
+  ctx.strokeStyle = "rgba(255,255,255,0.055)";
+  ctx.stroke();
+
+  if (skinId === "carbon") {
+    // Неоновое вращающееся кольцо для Карбона
+    ctx.save();
+    const ng = ctx.createConicGradient(nowMs * 0.002, cx, cy);
+    ng.addColorStop(0, "#00f0ff");
+    ng.addColorStop(0.5, "#a855f7");
+    ng.addColorStop(1, "#00f0ff");
+    ctx.beginPath();
+    ctx.arc(cx, cy, progR, 0, Math.PI * 2);
+    ctx.lineWidth = 6;
+    ctx.strokeStyle = ng;
+    ctx.shadowColor = "#00f0ff";
+    ctx.shadowBlur = 14;
+    ctx.stroke();
+    ctx.restore();
+  } else if (skinId === "ruby") {
+    // Огненный обод для Рубина
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx, cy, progR, 0, Math.PI * 2);
+    ctx.lineWidth = 6;
+    ctx.strokeStyle = "#ff453a";
+    ctx.shadowColor = "#ff6b00";
+    ctx.shadowBlur = 18 * pulse;
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  if (isActive && fillRatio > 0.002) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx, cy, progR, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * fillRatio);
+    ctx.lineWidth = 8.5;
+    ctx.lineCap = "round";
+    ctx.strokeStyle = th.rim;
+    ctx.shadowColor = th.rim;
+    ctx.shadowBlur = 14;
+    ctx.stroke();
+    ctx.restore();
+  } else {
+    // Маленькая декоративная метка на 12 часов (как на скрине)
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx, cy, progR, -Math.PI / 2 - 0.04, -Math.PI / 2 + 0.04);
+    ctx.lineWidth = 8;
+    ctx.lineCap = "round";
+    ctx.strokeStyle = th.rim;
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // 4. Внутренняя чаша вентилятора + 9 широких изогнутых перекрывающихся лопастей
+  const bladeOuterR = 194;
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, bladeOuterR, 0, Math.PI * 2);
+  ctx.fillStyle = "#0f091f";
+  ctx.fill();
+  ctx.clip();
+
+  ctx.translate(cx, cy);
+  ctx.rotate(fanAngle);
+
+  const BLADES = 9;
+  for (let i = 0; i < BLADES; i++) {
+    ctx.save();
+    ctx.rotate((i * Math.PI * 2) / BLADES);
+
+    // Тень от каждой лопасти на соседнюю
+    ctx.shadowColor = "rgba(8, 3, 24, 0.72)";
+    ctx.shadowBlur = 16;
+    ctx.shadowOffsetX = -6;
+    ctx.shadowOffsetY = 8;
+
+    // Широкая серповидная лопасть турбины (как на видео TonCry!)
+    ctx.beginPath();
+    ctx.moveTo(40, -14);
+    ctx.bezierCurveTo(108, -56, 174, -28, 198, 34);
+    ctx.arc(0, 0, 198, 0.17, 0.88, false);
+    ctx.bezierCurveTo(132, 92, 74, 58, 36, 20);
+    ctx.closePath();
+
+    const bg = ctx.createLinearGradient(35, -35, 185, 110);
+    bg.addColorStop(0, th.c1);
+    bg.addColorStop(0.42, th.c2);
+    bg.addColorStop(0.86, th.c3);
+    bg.addColorStop(1, th.c2);
+    ctx.fillStyle = bg;
+    ctx.fill();
+
+    // Яркий рельефный блик на ведущей кромке лопасти
+    ctx.shadowBlur = 0;
+    ctx.beginPath();
+    ctx.moveTo(44, -12);
+    ctx.bezierCurveTo(106, -50, 168, -24, 192, 32);
+    ctx.lineWidth = 3.2;
+    ctx.strokeStyle = "rgba(255,255,255,0.42)";
+    ctx.stroke();
+
+    ctx.restore();
+  }
+  ctx.restore();
+
+  // Внутренний теневой обод чаши для 3D-глубины
+  ctx.save();
+  const rimShade = ctx.createRadialGradient(cx, cy, bladeOuterR - 26, cx, cy, bladeOuterR);
+  rimShade.addColorStop(0, "rgba(0,0,0,0)");
+  rimShade.addColorStop(1, "rgba(0,0,0,0.58)");
+  ctx.beginPath();
+  ctx.arc(cx, cy, bladeOuterR, 0, Math.PI * 2);
+  ctx.fillStyle = rimShade;
+  ctx.fill();
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = "rgba(255,255,255,0.16)";
+  ctx.stroke();
+  ctx.restore();
+
+  // 5. Эффекты скинов поверх лопастей (блик золота / искры / снежинки льда)
+  if (skinId === "gold") {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx, cy, bladeOuterR, 0, Math.PI * 2);
+    ctx.clip();
+    const sweep = ((nowMs * 0.14) % 560) - 280;
+    const sg = ctx.createLinearGradient(cx + sweep - 55, cy - 200, cx + sweep + 55, cy + 200);
+    sg.addColorStop(0, "rgba(255,255,255,0)");
+    sg.addColorStop(0.5, "rgba(255,250,210,0.28)");
+    sg.addColorStop(1, "rgba(255,255,255,0)");
+    ctx.fillStyle = sg;
+    ctx.fillRect(0, 0, W, H);
+    ctx.restore();
+  }
+
+  if (skinId === "gold" || skinId === "ice") {
+    ctx.save();
+    for (const p of particles) {
+      p.a += dt * p.sp * (skinId === "ice" ? 0.55 : 0.9);
+      const px = cx + Math.cos(p.a) * p.r;
+      const py = cy + Math.sin(p.a) * p.r;
+      const alpha = 0.35 + 0.55 * Math.abs(Math.sin(nowMs * 0.003 + p.ph));
+      ctx.fillStyle = skinId === "gold" ? `rgba(254,240,138,${alpha})` : `rgba(224,242,254,${alpha})`;
+      ctx.beginPath();
+      ctx.arc(px, py, p.sz, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  // 6. Центральная металлическая ступица + НЕПОДВИЖНЫЙ логотип TON (как на видео!)
+  ctx.save();
+  ctx.shadowColor = "rgba(0,0,0,0.6)";
+  ctx.shadowBlur = 18;
+  const hubOuter = ctx.createLinearGradient(cx - 56, cy - 56, cx + 56, cy + 56);
+  hubOuter.addColorStop(0, th.c3);
+  hubOuter.addColorStop(0.5, th.hub1);
+  hubOuter.addColorStop(1, th.c1);
+  ctx.beginPath();
+  ctx.arc(cx, cy, 62, 0, Math.PI * 2);
+  ctx.fillStyle = hubOuter;
+  ctx.fill();
+
+  ctx.shadowBlur = 0;
+  const hubInner = ctx.createRadialGradient(cx - 14, cy - 16, 6, cx, cy, 54);
+  hubInner.addColorStop(0, th.hub1);
+  hubInner.addColorStop(1, th.hub2);
+  ctx.beginPath();
+  ctx.arc(cx, cy, 54, 0, Math.PI * 2);
+  ctx.fillStyle = hubInner;
+  ctx.fill();
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = "rgba(255,255,255,0.28)";
+  ctx.stroke();
+
+  // Чёткий белый символ TON в центре (не крутится, ровно как на видео 2!)
+  ctx.strokeStyle = "#ffffff";
+  ctx.lineWidth = 5.2;
+  ctx.lineJoin = "round";
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.moveTo(cx - 22, cy - 16);
+  ctx.lineTo(cx + 22, cy - 16);
+  ctx.quadraticCurveTo(cx + 27, cy - 16, cx + 24, cy - 10);
+  ctx.lineTo(cx + 3, cy + 25);
+  ctx.quadraticCurveTo(cx, cy + 29, cx - 3, cy + 25);
+  ctx.lineTo(cx - 24, cy - 10);
+  ctx.quadraticCurveTo(cx - 27, cy - 16, cx - 22, cy - 16);
+  ctx.closePath();
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - 16);
+  ctx.lineTo(cx, cy + 26);
+  ctx.stroke();
+  ctx.restore();
+
+  requestAnimationFrame(drawTurbineFrame);
+}
+requestAnimationFrame(drawTurbineFrame);
+
+// ==============================================================================
+// НАВИГАЦИЯ И ДЕЙСТВИЯ ПОЛЬЗОВАТЕЛЯ
+// ==============================================================================
+function switchTab(tabName) {
+  haptic("light");
+  document.querySelectorAll(".tab-view").forEach(v => v.classList.remove("active"));
+  document.getElementById("tab-" + tabName).classList.add("active");
+  document.querySelectorAll(".nav-item").forEach(b => {
+    b.classList.toggle("active", b.getAttribute("data-tab") === tabName);
+  });
+  document.getElementById("scrollArea").scrollTop = 0;
+}
+
+function toggleOnboardSteps() {
+  document.getElementById("uiOnboardSteps").classList.toggle("collapsed");
+}
+
+function openModal(id) {
+  haptic("light");
+  document.getElementById(id).classList.add("open");
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove("open");
+}
+function backdropClose(e, id) {
+  if (e.target.id === id) closeModal(id);
+}
+
+async function toggleLang() {
+  haptic("light");
+  LANG = LANG === "ru" ? "en" : "ru";
+  if (APP) APP.user.lang = LANG;
+  applyTranslations();
+  if (APP) renderAll(APP);
+  try { await apiFetch("/api/lang", { lang: LANG }); } catch (_) {}
+}
+
+async function claimMining() {
+  if (!APP || !APP.servers.length) {
+    showToast(t("rentToStart"));
+    return;
+  }
+  try {
+    haptic("medium");
+    const res = await apiFetch("/api/mining/claim", {});
+    renderAll(res);
+    haptic("success");
+    showToast(`+${Number(res.claimed).toFixed(6)} TON`);
+  } catch (e) {
+    showToast(e.message);
+  }
+}
+
+async function claimDaily() {
+  try {
+    haptic("medium");
+    const res = await apiFetch("/api/mission/daily", {});
+    renderAll(res);
+    haptic("success");
+    showToast(t("rewardGot"));
+  } catch (e) {
+    showToast(e.message);
+  }
+}
+
+async function equipSkin(skinId) {
+  try {
+    haptic("light");
+    const res = await apiFetch("/api/skin/equip", { skin_id: skinId });
+    renderAll(res);
+  } catch (e) {
+    showToast(e.message);
+  }
+}
+
+function getRefLink() {
+  const uid = (APP && APP.user && APP.user.tg_id) || 0;
+  const bot = (APP && APP.config && APP.config.bot_username) || "TonPain_bot";
+  return `https://t.me/${bot}?start=ref${uid}`;
+}
+
+function copyText(txt, toastMsg = null) {
+  navigator.clipboard?.writeText(txt).catch(() => {
+    const ta = document.createElement("textarea");
+    ta.value = txt; document.body.appendChild(ta); ta.select();
+    document.execCommand("copy"); document.body.removeChild(ta);
+  });
+  haptic("light");
+  showToast(toastMsg || t("copied"));
+}
+
+function copyRefLink() {
+  copyText(getRefLink(), t("linkCopied"));
+}
+
+function shareRefLink() {
+  const link = getRefLink();
+  const txt = LANG === "ru"
+    ? "Майни TON на облачных серверах в TonPain — первый сервер со скидкой 50%!"
+    : "Mine TON on cloud servers in TonPain — 50% off your first server!";
+  const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(txt)}`;
+  if (tg && tg.openTelegramLink) tg.openTelegramLink(shareUrl);
+  else window.open(shareUrl, "_blank");
+}
+
+// ==============================================================================
+// ОПЛАТА: БАЛАНС / TON WALLET / TELEGRAM STARS
+// ==============================================================================
+function openPaymentSelector(order_type, item_id, price, title) {
+  pendingPaymentSelect = { order_type, item_id, price: Number(price), title };
+  const bal = APP ? Number(APP.user.balance) : 0;
+  const starsRate = (APP && APP.config && APP.config.stars_per_ton) || 69;
+  const stars = Math.max(1, Math.round(price * starsRate));
+
+  document.getElementById("paySelHeader").textContent = `${String(title).toUpperCase()} · ${fmtPrice(price)} TON`;
+  document.getElementById("paySelBalPrice").textContent = `${fmtPrice(price)} TON`;
+  document.getElementById("paySelTonPrice").textContent = `${fmtPrice(price)} TON`;
+  document.getElementById("paySelStarsPrice").textContent = `★ ${stars}`;
+
+  const balSub = document.getElementById("paySelBalSub");
+  if (bal + 1e-9 >= price) {
+    balSub.textContent = t("enoughBal");
+    balSub.style.color = "var(--green)";
+  } else {
+    balSub.textContent = `${t("notEnoughBal")} ${(price - bal).toFixed(4)} — ${t("topUpBal")}`;
+    balSub.style.color = "var(--text-2)";
+  }
+  openModal("modal-pay-select");
+}
+
+async function payWithBalance() {
+  if (!pendingPaymentSelect) return;
+  try {
+    const res = await apiFetch("/api/buy/balance", {
+      order_type: pendingPaymentSelect.order_type,
+      item_id: pendingPaymentSelect.item_id,
+    });
+    closeModal("modal-pay-select");
+    renderAll(res);
+    haptic("success");
+    showToast(res.message || "Успешно!");
+  } catch (e) {
+    haptic("error");
+    showToast(e.message);
+  }
+}
+
+async function payWithTonWallet() {
+  if (!pendingPaymentSelect) return;
+  closeModal("modal-pay-select");
+  await startTonOrder(pendingPaymentSelect.order_type, pendingPaymentSelect.item_id, pendingPaymentSelect.price);
+}
+
+async function payWithStars() {
+  if (!pendingPaymentSelect) return;
+  try {
+    const res = await apiFetch("/api/payments/stars", {
+      order_type: pendingPaymentSelect.order_type,
+      item_id: pendingPaymentSelect.item_id,
+    });
+    closeModal("modal-pay-select");
+    if (tg && tg.openInvoice) {
+      tg.openInvoice(res.invoice_url, async (status) => {
+        if (status === "paid") {
+          haptic("success");
+          showToast("Оплата Stars подтверждена!");
+          await refreshState();
+        }
+      });
+    } else {
+      window.open(res.invoice_url, "_blank");
+    }
+  } catch (e) {
+    showToast(e.message);
+  }
+}
+
+async function startTonOrder(order_type, item_id, amount = 0) {
+  try {
+    const res = await apiFetch("/api/payments/create", { order_type, item_id, amount });
+    activeTonOrder = res;
+    document.getElementById("tonPaySub").textContent = (LANG === "en" ? res.title_en : res.title_ru).toUpperCase();
+    document.getElementById("tonPayAmt").textContent = `${fmtPrice(res.amount_ton)} TON`;
+    document.getElementById("tonPayAddr").textContent = res.wallet_address;
+    document.getElementById("tonPayComment").textContent = res.comment;
+    openModal("modal-pay-ton");
+  } catch (e) {
+    showToast(e.message);
+  }
+}
+
+async function sendTonConnectTx() {
+  if (!activeTonOrder) return;
+  if (!tonConnectUI) { openTonDeepLink(); return; }
+  try {
+    if (!tonConnectUI.connected) {
+      await tonConnectUI.openModal();
+      return;
+    }
+    const tx = {
+      validUntil: Math.floor(Date.now() / 1000) + 600,
+      messages: [
+        {
+          address: activeTonOrder.wallet_address,
+          amount: String(activeTonOrder.amount_nano),
+          payload: activeTonOrder.payload_boc,
+        },
+      ],
+    };
+    await tonConnectUI.sendTransaction(tx);
+    haptic("success");
+    showToast(LANG === "ru" ? "Транзакция отправлена, проверяем..." : "Transaction sent, verifying...");
+    setTimeout(checkTonPaymentNow, 6000);
+  } catch (e) {
+    console.warn("TON Connect send:", e);
+  }
+}
+
+function openTonDeepLink() {
+  if (!activeTonOrder) return;
+  const link = `ton://transfer/${activeTonOrder.wallet_address}?amount=${activeTonOrder.amount_nano}&text=${encodeURIComponent(activeTonOrder.comment)}`;
+  if (tg && tg.openLink) tg.openLink(link);
+  else window.open(link, "_blank");
+}
+
+async function checkTonPaymentNow() {
+  if (!activeTonOrder) return;
+  const btn = document.getElementById("btnCheckTonPay");
+  btn.disabled = true;
+  try {
+    const res = await apiFetch("/api/payments/check", { comment: activeTonOrder.comment });
+    if (res.paid) {
+      closeModal("modal-pay-ton");
+      renderAll(res);
+      haptic("success");
+      showToast(res.message || "Оплата получена!");
+    } else {
+      haptic("error");
+      showToast(t("payNotFound"));
+    }
+  } catch (e) {
+    showToast(e.message);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ==============================================================================
+// ПОПОЛНЕНИЕ / ВЫВОД / ЧЕКИ
+// ==============================================================================
+function openDepositModal() { openModal("modal-deposit"); }
+function selectDepPreset(val, btn) {
+  document.querySelectorAll("#depPresets .preset-btn").forEach(b => b.classList.remove("sel"));
+  btn.classList.add("sel");
+  document.getElementById("depAmount").value = val;
+}
+async function proceedDeposit() {
+  const amt = parseFloat(document.getElementById("depAmount").value || "0");
+  if (!amt || amt < 0.1) { showToast("Минимум 0.1 TON"); return; }
+  closeModal("modal-deposit");
+  await startTonOrder("deposit", "", amt);
+}
+
+function openWithdrawModal() {
+  const bal = APP ? Number(APP.user.balance) : 0;
+  document.getElementById("wdAvailBal").textContent = `${bal.toFixed(4)} TON`;
+  renderWithdrawHistory();
+  openModal("modal-withdraw");
+}
+function fillAllWithdraw() {
+  const bal = APP ? Number(APP.user.balance) : 0;
+  if (bal < 15) { showToast(t("min15")); return; }
+  document.getElementById("wdAmount").value = bal.toFixed(4);
+}
+async function submitWithdraw() {
+  const amt = parseFloat(document.getElementById("wdAmount").value || "0");
+  const wallet = (document.getElementById("wdWallet").value || "").trim();
+  if (amt < 15) { showToast(t("min15")); return; }
+  try {
+    const res = await apiFetch("/api/withdraw/create", { amount: amt, wallet_address: wallet });
+    document.getElementById("wdAmount").value = "";
+    renderAll(res);
+    haptic("success");
+    showToast(res.message || "Заявка создана");
+  } catch (e) {
+    haptic("error");
+    showToast(e.message);
+  }
+}
+function renderWithdrawHistory() {
+  const el = document.getElementById("wdHistoryList");
+  if (!APP || !APP.withdrawals || !APP.withdrawals.length) {
+    el.innerHTML = `<div class="empty-box">${t("noReqs")}</div>`;
+    return;
+  }
+  el.innerHTML = `<div class="card">` + APP.withdrawals.map(w => `
+    <div class="list-row full-sep">
+      <div class="row-info">
+        <div class="row-title">${Number(w.amount_ton).toFixed(4)} TON</div>
+        <div class="row-sub" style="font-family:monospace;font-size:11.5px;">${escapeHtml(w.wallet_address.slice(0,18))}…</div>
+      </div>
+      <span class="status-tag st-${w.status}">${t(w.status)}</span>
+    </div>
+  `).join("") + `</div>`;
+}
+
+function openCheckModal() { renderMyChecks(); openModal("modal-check"); }
+function switchCheckTab(tab) {
+  document.getElementById("chkSegClaim").classList.toggle("active", tab === "claim");
+  document.getElementById("chkSegCreate").classList.toggle("active", tab === "create");
+  document.getElementById("chkClaimPane").style.display = tab === "claim" ? "block" : "none";
+  document.getElementById("chkCreatePane").style.display = tab === "create" ? "block" : "none";
+}
+async function claimCheck() {
+  const code = (document.getElementById("chkCodeInput").value || "").trim().toUpperCase();
+  try {
+    const res = await apiFetch("/api/check/claim", { code });
+    document.getElementById("chkCodeInput").value = "";
+    renderAll(res);
+    haptic("success");
+    showToast(res.message);
+    closeModal("modal-check");
+  } catch (e) {
+    showToast(e.message);
+  }
+}
+async function createCheck() {
+  const amt = parseFloat(document.getElementById("chkAmountInput").value || "0");
+  try {
+    const res = await apiFetch("/api/check/create", { amount: amt });
+    document.getElementById("chkAmountInput").value = "";
+    renderAll(res);
+    copyText(res.share_link, `Чек создан! Ссылка скопирована`);
+  } catch (e) {
+    showToast(e.message);
+  }
+}
+function renderMyChecks() {
+  const el = document.getElementById("chkMyList");
+  if (!APP || !APP.checks || !APP.checks.length) {
+    el.innerHTML = `<div class="empty-box">—</div>`;
+    return;
+  }
+  const bot = (APP.config && APP.config.bot_username) || "TonPain_bot";
+  el.innerHTML = `<div class="card">` + APP.checks.map(c => {
+    const link = `https://t.me/${bot}?start=check_${c.code}`;
+    return `
+      <div class="list-row full-sep tap-copy" onclick="copyText('${link}','Ссылка на чек скопирована')">
+        <div class="row-info">
+          <div class="row-title">${c.code} · ${c.amount_ton} TON</div>
+          <div class="row-sub">${c.activations}/${c.max_activations} активаций</div>
+        </div>
+        <span style="color:var(--blue);font-size:13px;font-weight:600;">Копировать</span>
+      </div>
+    `;
+  }).join("") + `</div>`;
+}
+
+// ==============================================================================
+// ВСТРОЕННАЯ АДМИН-ПАНЕЛЬ (только для ID 7799457418 и 6508223425)
+// ==============================================================================
+async function openAdminModal() {
+  openModal("modal-admin");
+  await loadAdminOverview();
+}
+async function loadAdminOverview() {
+  try {
+    const ov = await apiFetch("/api/admin/overview", null, "GET");
+    const s = ov.stats;
+    document.getElementById("admStatsGrid").innerHTML = `
+      <div class="admin-stat-box"><div class="admin-stat-lbl">Пользователи</div><div class="admin-stat-val">${s.total_users} <span style="font-size:12px;color:var(--green)">(24ч: ${s.active_24h})</span></div></div>
+      <div class="admin-stat-box"><div class="admin-stat-lbl">Серверы</div><div class="admin-stat-val">${s.active_servers}</div></div>
+      <div class="admin-stat-box"><div class="admin-stat-lbl">Оплачено TON</div><div class="admin-stat-val">${s.paid_ton}</div></div>
+      <div class="admin-stat-box"><div class="admin-stat-lbl">Общий баланс</div><div class="admin-stat-val">${s.total_balance}</div></div>
+    `;
+    const wdEl = document.getElementById("admPendingWds");
+    if (!ov.pending_withdrawals.length) {
+      wdEl.innerHTML = `<div class="empty-box">Нет заявок на вывод</div>`;
+    } else {
+      wdEl.innerHTML = ov.pending_withdrawals.map(w => `
+        <div class="srv-card">
+          <div style="font-size:14.5px;font-weight:600;">#${w.id} · ${Number(w.amount_ton).toFixed(4)} TON</div>
+          <div class="row-sub">ID ${w.user_id} (@${escapeHtml(w.username || "-")})</div>
+          <div class="mono-val" style="margin-bottom:10px;">${escapeHtml(w.wallet_address)}</div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-success" style="flex:1;height:36px;font-size:13.5px;" onclick="adminWdAction(${w.id},'approve')">✅ Одобрить</button>
+            <button class="btn btn-danger" style="flex:1;height:36px;font-size:13.5px;" onclick="adminWdAction(${w.id},'reject')">❌ Отклонить</button>
+          </div>
+        </div>
+      `).join("");
+    }
+  } catch (e) {
+    showToast(e.message);
+  }
+}
+async function adminWdAction(id, action) {
+  try {
+    const res = await apiFetch("/api/admin/withdraw/action", { id, action });
+    showToast(res.message);
+    await loadAdminOverview();
+  } catch (e) { showToast(e.message); }
+}
+async function adminResetStock() {
+  try {
+    const res = await apiFetch("/api/admin/stock/reset", {});
+    showToast(res.message);
+    await refreshState();
+  } catch (e) { showToast(e.message); }
+}
+async function adminCreatePromoCheck() {
+  const amt = prompt("Сумма чека в TON:", "5");
+  if (!amt) return;
+  const cnt = prompt("Количество активаций:", "1");
+  try {
+    const res = await apiFetch("/api/admin/check/create", { amount: parseFloat(amt), activations: parseInt(cnt || "1") });
+    copyText(res.link, `Чек ${res.code} создан и скопирован!`);
+  } catch (e) { showToast(e.message); }
+}
+async function adminSearchUser() {
+  const q = document.getElementById("admSearchInput").value.trim();
+  if (!q) return;
+  try {
+    const res = await apiFetch("/api/admin/user/lookup", { query: q });
+    renderAdminTarget(res.target);
+  } catch (e) { showToast(e.message); }
+}
+function renderAdminTarget(target) {
+  const u = target.user;
+  const card = document.getElementById("admTargetCard");
+  card.style.display = "block";
+  card.innerHTML = `
+    <div class="srv-card">
+      <div style="font-size:16px;font-weight:700;">${escapeHtml(u.first_name || "User")} (@${escapeHtml(u.username || "-")})</div>
+      <div class="row-sub">ID: ${u.tg_id} · Баланс: <b style="color:#fff;">${u.balance.toFixed(4)} TON</b> · Серверов: ${target.servers.length}</div>
+      <div class="row-sub" style="margin-bottom:10px;">Комиссия: ${u.fee_disabled ? "0%" : "15%"} · Бан: ${u.is_banned ? "Да" : "Нет"}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;">
+        <button class="btn btn-secondary" style="height:36px;font-size:13px;" onclick="adminUserAct(${u.tg_id},'add_balance',10)">+10 TON</button>
+        <button class="btn btn-secondary" style="height:36px;font-size:13px;" onclick="adminUserAct(${u.tg_id},'add_balance',100)">+100 TON</button>
+        <button class="btn btn-secondary" style="height:36px;font-size:13px;" onclick="adminUserAct(${u.tg_id},'grant_server',0)">+Серв 1 (463)</button>
+        <button class="btn btn-secondary" style="height:36px;font-size:13px;" onclick="adminUserAct(${u.tg_id},'grant_server',9)">+Серв 10 (32c)</button>
+        <button class="btn btn-secondary" style="height:36px;font-size:13px;" onclick="adminUserAct(${u.tg_id},'toggle_fee',0)">Комиссия 0/15%</button>
+        <button class="btn btn-secondary" style="height:36px;font-size:13px;" onclick="adminUserAct(${u.tg_id},'grant_all_skins',0)">Все скины</button>
+        <button class="btn btn-danger" style="height:36px;font-size:13px;grid-column:span 2;" onclick="adminUserAct(${u.tg_id},'toggle_ban',0)">${u.is_banned ? "Разбанить" : "Забанить"}</button>
+      </div>
+    </div>
+  `;
+}
+async function adminUserAct(target_id, action, value) {
+  try {
+    const res = await apiFetch("/api/admin/user/action", { target_id, action, value });
+    showToast(res.message);
+    renderAdminTarget(res.target);
+    if (APP && APP.user.tg_id === target_id) renderAll(res.target);
+  } catch (e) { showToast(e.message); }
+}
+
+// ==============================================================================
+// СТАРТ ПРИЛОЖЕНИЯ
+// ==============================================================================
+async function refreshState() {
+  const startParam = (tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param) || urlParams.get("start") || "";
+  const data = await apiFetch("/api/init", { start_param: startParam });
+  renderAll(data);
+  if (data.toast) showToast(data.toast);
+}
+
+(async function boot() {
+  initTonConnect();
+  try {
+    await refreshState();
+  } catch (e) {
+    console.error("Boot error:", e);
+    showToast(e.message || "Нет связи с сервером");
+  }
+})();
+</script>
+</body>
+</html>
