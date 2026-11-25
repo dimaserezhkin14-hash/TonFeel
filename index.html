@@ -3,35 +3,47 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<meta name="theme-color" content="#050811">
-<title>TonPain · Cloud Cluster</title>
+<meta name="theme-color" content="#000000">
+<title>TonPain</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="https://unpkg.com/@tonconnect/ui@2.0.9/dist/tonconnect-ui.min.js"></script>
 <style>
 :root {
-  --bg: #050811;
-  --glass-bg: linear-gradient(155deg, rgba(255,255,255,0.085) 0%, rgba(255,255,255,0.025) 100%);
-  --glass-bg-strong: linear-gradient(160deg, rgba(28,36,56,0.78) 0%, rgba(12,16,28,0.88) 100%);
-  --glass-border: rgba(255,255,255,0.10);
-  --glass-border-hi: rgba(255,255,255,0.18);
-  --glass-highlight: inset 0 1px 0 rgba(255,255,255,0.18);
-  --shadow-card: 0 14px 36px rgba(0,0,0,0.44), inset 0 1px 0 rgba(255,255,255,0.14);
-  --text: #f3f6fc;
-  --text-2: #9ba7be;
-  --text-3: #64718a;
-  --accent: #0098ea;
-  --accent-hi: #38bdf8;
-  --accent-soft: rgba(0,152,234,0.16);
-  --green: #34d399;
-  --green-soft: rgba(52,211,153,0.14);
-  --amber: #fbbf24;
-  --amber-soft: rgba(251,191,36,0.14);
-  --red: #f87171;
-  --red-soft: rgba(248,113,113,0.14);
-  --radius-xl: 26px;
-  --radius-lg: 20px;
-  --radius-md: 15px;
-  --radius-sm: 11px;
+  /* Apple OLED Black + Achromatic Liquid Glass Tokens */
+  --bg: #000000;
+  --surface: rgba(28, 28, 30, 0.72);
+  --surface-elevated: rgba(44, 44, 46, 0.64);
+  --surface-solid: #161618;
+  --surface-inset: rgba(255, 255, 255, 0.045);
+
+  /* Optical Glass Rim & Specular Reflections */
+  --hairline: rgba(255, 255, 255, 0.09);
+  --hairline-strong: rgba(255, 255, 255, 0.16);
+  --specular-top: inset 0 0.5px 0 rgba(255, 255, 255, 0.26);
+  --specular-soft: inset 0 0.5px 0 rgba(255, 255, 255, 0.16);
+  --shadow-glass: 0 12px 32px rgba(0, 0, 0, 0.55);
+
+  /* Typography */
+  --text: #ffffff;
+  --text-2: rgba(235, 235, 245, 0.62);
+  --text-3: rgba(235, 235, 245, 0.36);
+
+  /* Apple System Accents (used sparingly) */
+  --blue: #0a84ff;
+  --blue-soft: rgba(10, 132, 255, 0.16);
+  --green: #30d158;
+  --green-soft: rgba(48, 209, 88, 0.15);
+  --amber: #ff9f0a;
+  --amber-soft: rgba(255, 159, 10, 0.16);
+  --red: #ff453a;
+  --red-soft: rgba(255, 69, 58, 0.15);
+
+  /* Geometry & Physics */
+  --r-2xl: 28px;
+  --r-xl: 22px;
+  --r-lg: 18px;
+  --r-md: 14px;
+  --r-sm: 10px;
   --spring: cubic-bezier(0.22, 1, 0.36, 1);
   --safe-b: env(safe-area-inset-bottom, 0px);
   --safe-t: env(safe-area-inset-top, 0px);
@@ -48,87 +60,57 @@ html, body {
   height: 100%;
   background: var(--bg);
   color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", system-ui, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
   font-size: 14px;
-  line-height: 1.42;
+  line-height: 1.4;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
 }
 
 body.modal-open { overflow: hidden; }
 
 .mono {
-  font-family: "SF Mono", ui-monospace, "JetBrains Mono", Menlo, monospace;
+  font-family: "SF Mono", ui-monospace, Menlo, monospace;
   font-variant-numeric: tabular-nums;
 }
 .num { font-variant-numeric: tabular-nums; }
 
-/* ====== LIQUID AMBIENT BACKDROP ====== */
-.ambient {
+/* ====== PURE OLED CANVAS (ZERO NEON ORBS) ====== */
+.canvas-bg {
   position: fixed;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  overflow: hidden;
   background:
-    radial-gradient(120% 80% at 50% -10%, rgba(16, 42, 86, 0.55) 0%, transparent 62%),
-    linear-gradient(180deg, #060a15 0%, #050811 55%, #04060c 100%);
-}
-.orb {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(72px);
-  will-change: transform;
-  opacity: 0.55;
-}
-.orb-1 {
-  width: 300px;
-  height: 300px;
-  top: -90px;
-  right: -70px;
-  background: radial-gradient(circle, rgba(0, 152, 234, 0.42), transparent 70%);
-  animation: orbFloat1 16s ease-in-out infinite alternate;
-}
-.orb-2 {
-  width: 280px;
-  height: 280px;
-  bottom: 110px;
-  left: -95px;
-  background: radial-gradient(circle, rgba(56, 108, 244, 0.30), transparent 72%);
-  animation: orbFloat2 20s ease-in-out infinite alternate;
-}
-@keyframes orbFloat1 {
-  0% { transform: translate3d(0, 0, 0) scale(1); }
-  100% { transform: translate3d(-26px, 34px, 0) scale(1.12); }
-}
-@keyframes orbFloat2 {
-  0% { transform: translate3d(0, 0, 0) scale(1); }
-  100% { transform: translate3d(32px, -28px, 0) scale(1.08); }
+    radial-gradient(90% 42% at 50% -6%, rgba(255, 255, 255, 0.055) 0%, transparent 72%),
+    #000000;
 }
 
 /* ====== APP SHELL ====== */
 .app {
   position: relative;
   z-index: 1;
-  max-width: 460px;
+  max-width: 440px;
   margin: 0 auto;
   min-height: 100%;
-  padding: calc(10px + var(--safe-t)) 14px calc(104px + var(--safe-b));
-  transition: transform 0.36s var(--spring), filter 0.36s var(--spring);
+  padding: calc(10px + var(--safe-t)) 16px calc(108px + var(--safe-b));
+  transition: transform 0.38s var(--spring), opacity 0.32s ease;
+  transform-origin: center top;
 }
 body.modal-open .app {
-  transform: scale(0.975);
-  filter: brightness(0.76);
+  transform: scale(0.965);
+  opacity: 0.62;
 }
 
-/* ====== LIQUID GLASS SURFACES ====== */
+/* ====== TRUE iOS 26 ACHROMATIC LIQUID GLASS ====== */
 .glass {
-  background: var(--glass-bg);
-  backdrop-filter: blur(22px) saturate(160%);
-  -webkit-backdrop-filter: blur(22px) saturate(160%);
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--shadow-card);
-  border-radius: var(--radius-lg);
+  background: linear-gradient(165deg, rgba(44, 44, 48, 0.54) 0%, rgba(22, 22, 24, 0.68) 100%);
+  backdrop-filter: blur(32px) saturate(180%);
+  -webkit-backdrop-filter: blur(32px) saturate(180%);
+  border: 0.5px solid var(--hairline);
+  box-shadow: var(--specular-soft), var(--shadow-glass);
+  border-radius: var(--r-xl);
   position: relative;
 }
 .glass::before {
@@ -136,36 +118,47 @@ body.modal-open .app {
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  padding: 1px;
-  background: linear-gradient(160deg, rgba(255,255,255,0.22), rgba(255,255,255,0.03) 38%, rgba(0,152,234,0.08) 100%);
+  padding: 0.75px;
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.28) 0%,
+    rgba(255, 255, 255, 0.06) 28%,
+    rgba(255, 255, 255, 0.02) 68%,
+    rgba(255, 255, 255, 0.12) 100%
+  );
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   pointer-events: none;
 }
 
-.glass-hero {
-  background: linear-gradient(155deg, rgba(18, 34, 60, 0.72) 0%, rgba(10, 15, 28, 0.62) 100%);
-  backdrop-filter: blur(28px) saturate(180%);
-  -webkit-backdrop-filter: blur(28px) saturate(180%);
-  border: 1px solid rgba(255,255,255,0.13);
-  box-shadow:
-    0 20px 44px rgba(0,0,0,0.52),
-    inset 0 1px 0 rgba(255,255,255,0.24),
-    inset 0 -1px 0 rgba(0,152,234,0.12);
-  border-radius: var(--radius-xl);
-  position: relative;
+/* iOS Grouped Inset Surface */
+.ios-group {
+  background: rgba(28, 28, 30, 0.74);
+  backdrop-filter: blur(28px) saturate(170%);
+  -webkit-backdrop-filter: blur(28px) saturate(170%);
+  border: 0.5px solid var(--hairline);
+  box-shadow: var(--specular-soft);
+  border-radius: var(--r-xl);
   overflow: hidden;
+  margin-bottom: 14px;
 }
-.glass-hero::after {
+.ios-cell {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 16px;
+  position: relative;
+}
+.ios-cell + .ios-cell::before {
   content: "";
   position: absolute;
-  top: -60%;
-  left: -20%;
-  width: 140%;
-  height: 110%;
-  background: radial-gradient(ellipse at 50% 0%, rgba(56,189,248,0.14), transparent 65%);
-  pointer-events: none;
+  top: 0;
+  left: 16px;
+  right: 0;
+  height: 0.5px;
+  background: rgba(255, 255, 255, 0.09);
 }
 
 /* ====== TOP BAR ====== */
@@ -174,55 +167,52 @@ body.modal-open .app {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 .user-chip {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 9px;
-  padding: 5px 12px 5px 5px;
+  height: 40px;
+  padding: 4px 14px 4px 4px;
   border-radius: 999px;
-  background: rgba(255,255,255,0.06);
-  backdrop-filter: blur(18px) saturate(150%);
-  -webkit-backdrop-filter: blur(18px) saturate(150%);
-  border: 1px solid rgba(255,255,255,0.10);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.16);
+  background: rgba(44, 44, 48, 0.56);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border: 0.5px solid rgba(255, 255, 255, 0.14);
+  box-shadow: var(--specular-top);
   cursor: pointer;
   min-width: 0;
-  transition: transform 0.2s var(--spring), background 0.2s;
+  transition: transform 0.22s var(--spring), background 0.2s;
 }
-.user-chip:active { transform: scale(0.97); }
+.user-chip:active { transform: scale(0.96); background: rgba(58, 58, 62, 0.68); }
 
 .avatar {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: linear-gradient(140deg, #0098ea, #3b82f6);
+  background: #2c2c2e;
+  border: 0.5px solid rgba(255, 255, 255, 0.16);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 13px;
   color: #fff;
   overflow: hidden;
   flex-shrink: 0;
-  position: relative;
 }
-.avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
+.avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .user-chip-meta { min-width: 0; }
 .user-chip-name {
   font-size: 13px;
   font-weight: 600;
+  letter-spacing: -0.01em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 150px;
-  line-height: 1.2;
+  max-width: 148px;
+  line-height: 1.18;
 }
 .user-chip-sub {
   display: flex;
@@ -230,76 +220,66 @@ body.modal-open .app {
   gap: 5px;
   font-size: 11px;
   color: var(--text-2);
-  line-height: 1.2;
+  line-height: 1.18;
 }
 .dot-live {
   width: 6px;
   height: 6px;
   border-radius: 50%;
   background: var(--green);
-  box-shadow: 0 0 8px rgba(52,211,153,0.7);
   flex-shrink: 0;
 }
-.dot-live.warn { background: var(--amber); box-shadow: 0 0 8px rgba(251,191,36,0.7); }
+.dot-live.warn { background: var(--amber); }
 
 .top-right {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
   flex-shrink: 0;
 }
 .pill-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 36px;
-  padding: 0 12px;
+  height: 40px;
+  padding: 0 13px;
   border-radius: 999px;
-  background: rgba(255,255,255,0.06);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  border: 1px solid rgba(255,255,255,0.10);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.15);
+  background: rgba(44, 44, 48, 0.56);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border: 0.5px solid rgba(255, 255, 255, 0.14);
+  box-shadow: var(--specular-top);
   color: var(--text);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.2s var(--spring), background 0.2s;
+  transition: transform 0.22s var(--spring), background 0.2s;
 }
-.pill-btn:active { transform: scale(0.94); }
-.pill-icon {
-  width: 36px;
-  padding: 0;
-  justify-content: center;
-}
+.pill-btn:active { transform: scale(0.94); background: rgba(64, 64, 68, 0.7); }
+.pill-icon { width: 40px; padding: 0; justify-content: center; }
 
 /* ====== TABS ====== */
 .tab { display: none; }
 .tab.active {
   display: block;
-  animation: tabEnter 0.34s var(--spring) both;
+  animation: tabIn 0.32s var(--spring) both;
 }
-@keyframes tabEnter {
-  from { opacity: 0; transform: translate3d(0, 10px, 0) scale(0.99); }
-  to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+@keyframes tabIn {
+  from { opacity: 0; transform: translate3d(0, 8px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 
-/* ====== WALLET HERO ====== */
-.wallet-card {
-  padding: 20px 18px 18px;
-  margin-bottom: 12px;
+/* ====== APPLE WALLET OPEN HERO (NO HEAVY BOX) ====== */
+.wallet-hero {
+  padding: 14px 4px 22px;
   text-align: center;
 }
 .wallet-kicker {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 500;
   color: var(--text-2);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  margin-bottom: 6px;
+  letter-spacing: 0.01em;
+  margin-bottom: 4px;
 }
 .wallet-bal-wrap {
   position: relative;
@@ -309,96 +289,102 @@ body.modal-open .app {
   gap: 7px;
 }
 .wallet-bal {
-  font-size: 38px;
+  font-size: 46px;
   font-weight: 700;
-  letter-spacing: -0.03em;
-  line-height: 1.08;
-  transition: color 0.3s;
+  letter-spacing: -0.035em;
+  line-height: 1.06;
+  color: #fff;
+  transition: color 0.3s ease;
 }
-.wallet-bal.flash {
-  color: var(--green);
-}
+.wallet-bal.flash { color: var(--green); }
 .wallet-unit {
-  font-size: 17px;
+  font-size: 20px;
   font-weight: 600;
-  color: var(--accent-hi);
+  color: var(--text-2);
+  letter-spacing: -0.01em;
 }
 .float-delta {
   position: absolute;
-  top: -14px;
-  right: -12px;
+  top: -16px;
+  right: -14px;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--green);
-  background: rgba(52,211,153,0.16);
-  border: 1px solid rgba(52,211,153,0.3);
+  background: rgba(48, 209, 88, 0.16);
+  border: 0.5px solid rgba(48, 209, 88, 0.34);
   padding: 2px 8px;
   border-radius: 999px;
   pointer-events: none;
-  animation: deltaRise 1.35s var(--spring) forwards;
+  animation: deltaRise 1.3s var(--spring) forwards;
 }
 @keyframes deltaRise {
-  0% { opacity: 0; transform: translate3d(0, 8px, 0) scale(0.86); }
-  20% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
-  100% { opacity: 0; transform: translate3d(0, -18px, 0) scale(0.96); }
+  0% { opacity: 0; transform: translate3d(0, 8px, 0) scale(0.88); }
+  22% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+  100% { opacity: 0; transform: translate3d(0, -18px, 0); }
 }
 
 .wallet-usd {
-  margin-top: 4px;
-  font-size: 14px;
+  margin-top: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
   font-weight: 500;
   color: var(--text-2);
 }
 .wallet-rate-pill {
-  display: inline-block;
-  margin-left: 6px;
-  font-size: 11px;
+  font-size: 11.5px;
   color: var(--text-3);
-  padding: 1px 7px;
+  padding: 2px 8px;
   border-radius: 999px;
-  background: rgba(255,255,255,0.05);
+  background: rgba(255, 255, 255, 0.06);
+  border: 0.5px solid rgba(255, 255, 255, 0.08);
 }
 
+/* Circular Liquid Glass Actions (Apple Pay / TON Space style) */
 .wallet-actions {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin-top: 18px;
+  gap: 12px;
+  margin-top: 22px;
+  padding: 0 10px;
 }
 .w-act {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   background: none;
   border: none;
-  color: var(--text);
+  color: var(--text-2);
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;
-  transition: transform 0.2s var(--spring);
+  transition: transform 0.22s var(--spring), color 0.2s;
 }
-.w-act:active { transform: scale(0.93); }
+.w-act:active { transform: scale(0.92); color: var(--text); }
 .w-act-ico {
-  width: 48px;
-  height: 48px;
-  border-radius: 17px;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255,255,255,0.075);
-  border: 1px solid rgba(255,255,255,0.11);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.18), 0 6px 16px rgba(0,0,0,0.28);
-  color: var(--text);
-}
-.w-act.primary .w-act-ico {
-  background: linear-gradient(155deg, #16a8f5, #0077cc);
-  border-color: rgba(125,211,252,0.4);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.36), 0 8px 22px rgba(0,152,234,0.38);
+  background: rgba(44, 44, 48, 0.62);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 0.5px solid rgba(255, 255, 255, 0.16);
+  box-shadow: var(--specular-top), 0 8px 20px rgba(0, 0, 0, 0.42);
   color: #fff;
 }
+.w-act.primary { color: #fff; }
+.w-act.primary .w-act-ico {
+  background: var(--blue);
+  border-color: rgba(255, 255, 255, 0.26);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.34), 0 8px 22px rgba(10, 132, 255, 0.30);
+}
 
-/* ====== POOL / BUFFER CARD ====== */
+/* ====== POOL / CLUSTER GLASS CARD ====== */
 .pool-card {
   padding: 16px;
   margin-bottom: 12px;
@@ -408,61 +394,38 @@ body.modal-open .app {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
-.pool-title-wrap {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.pool-title {
-  font-size: 14px;
-  font-weight: 600;
-}
+.pool-title-wrap { display: flex; align-items: center; gap: 8px; }
+.pool-title { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
+
 .status-chip {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   font-size: 11px;
   font-weight: 600;
   padding: 3px 9px;
   border-radius: 999px;
   background: var(--green-soft);
   color: var(--green);
-  border: 1px solid rgba(52,211,153,0.22);
 }
-.status-chip.warn {
-  background: var(--amber-soft);
-  color: var(--amber);
-  border-color: rgba(251,191,36,0.24);
-}
-.status-chip.muted {
-  background: rgba(255,255,255,0.06);
-  color: var(--text-2);
-  border-color: rgba(255,255,255,0.1);
-}
-.status-chip.accent {
-  background: var(--accent-soft);
-  color: var(--accent-hi);
-  border-color: rgba(56,189,248,0.24);
-}
-.status-chip.danger {
-  background: var(--red-soft);
-  color: var(--red);
-  border-color: rgba(248,113,113,0.25);
-}
+.status-chip.warn { background: var(--amber-soft); color: var(--amber); }
+.status-chip.muted { background: rgba(255, 255, 255, 0.08); color: var(--text-2); }
+.status-chip.accent { background: var(--blue-soft); color: var(--blue); }
+.status-chip.danger { background: var(--red-soft); color: var(--red); }
 
 .buffer-row {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
 }
 .buffer-val {
-  font-size: 26px;
+  font-size: 28px;
   font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.1;
+  letter-spacing: -0.025em;
+  line-height: 1.08;
   transition: color 0.25s;
 }
 .buffer-val.hit { color: var(--green); }
@@ -473,53 +436,51 @@ body.modal-open .app {
 }
 
 .claim-btn {
-  height: 40px;
+  height: 38px;
   padding: 0 18px;
-  border-radius: 14px;
-  border: 1px solid rgba(255,255,255,0.18);
-  background: linear-gradient(160deg, rgba(255,255,255,0.16), rgba(255,255,255,0.06));
-  color: var(--text);
+  border-radius: 999px;
+  border: 0.5px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.11);
+  color: #fff;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   flex-shrink: 0;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.25);
-  transition: transform 0.2s var(--spring), opacity 0.2s, background 0.2s;
+  box-shadow: var(--specular-soft);
+  transition: transform 0.2s var(--spring), background 0.2s, opacity 0.2s;
 }
 .claim-btn.ready {
-  background: linear-gradient(155deg, #16a8f5, #0077cc);
-  border-color: rgba(125,211,252,0.42);
-  color: #fff;
-  box-shadow: 0 8px 20px rgba(0,152,234,0.34), inset 0 1px 0 rgba(255,255,255,0.35);
+  background: #ffffff;
+  color: #000000;
+  border-color: #ffffff;
 }
-.claim-btn:active { transform: scale(0.95); }
-.claim-btn:disabled { opacity: 0.45; cursor: default; }
+.claim-btn:active { transform: scale(0.94); }
+.claim-btn:disabled { opacity: 0.34; cursor: default; }
 
 .bar-track {
-  height: 6px;
+  height: 4px;
   border-radius: 999px;
-  background: rgba(255,255,255,0.08);
+  background: rgba(255, 255, 255, 0.10);
   overflow: hidden;
-  margin-top: 13px;
+  margin-top: 14px;
   position: relative;
 }
 .bar-fill {
   height: 100%;
   border-radius: 999px;
-  background: linear-gradient(90deg, #0098ea, #38bdf8);
+  background: #ffffff;
   transition: width 0.55s var(--spring);
 }
 .bar-indeterminate {
   position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 38%;
+  top: 0; bottom: 0;
+  width: 36%;
   border-radius: 999px;
-  background: linear-gradient(90deg, transparent, #fbbf24, transparent);
+  background: linear-gradient(90deg, transparent, var(--amber), transparent);
   animation: slideBar 1.4s ease-in-out infinite;
 }
 @keyframes slideBar {
-  0% { left: -40%; }
+  0% { left: -38%; }
   100% { left: 105%; }
 }
 
@@ -528,22 +489,22 @@ body.modal-open .app {
   align-items: center;
   justify-content: space-between;
   font-size: 11.5px;
-  color: var(--text-2);
-  margin-top: 8px;
+  color: var(--text-3);
+  margin-top: 7px;
 }
 
 /* Compact Preview Stream */
 .mini-stream {
   margin-top: 12px;
   padding-top: 10px;
-  border-top: 1px solid rgba(255,255,255,0.07);
+  border-top: 0.5px solid rgba(255, 255, 255, 0.08);
 }
 .mini-stream-lines {
   display: flex;
   flex-direction: column;
   gap: 5px;
   font-size: 11px;
-  color: var(--text-2);
+  color: var(--text-3);
 }
 .ms-line {
   display: flex;
@@ -552,58 +513,44 @@ body.modal-open .app {
   gap: 8px;
   white-space: nowrap;
   overflow: hidden;
-  animation: fadeLine 0.28s var(--spring);
+  animation: fadeLine 0.26s var(--spring);
 }
 @keyframes fadeLine {
-  from { opacity: 0; transform: translateY(-4px); }
+  from { opacity: 0; transform: translateY(-3px); }
   to { opacity: 1; transform: translateY(0); }
 }
-.ms-addr {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  color: var(--text-2);
-}
+.ms-addr { overflow: hidden; text-overflow: ellipsis; color: var(--text-2); }
 .ms-hit { color: var(--green); font-weight: 600; }
 
-/* Collapsible Console Accordion */
+/* Disclosure Console */
 .console-toggle {
   width: 100%;
-  margin-top: 11px;
-  padding: 9px 12px;
+  margin-top: 12px;
+  padding: 10px 12px;
   border-radius: 13px;
-  border: 1px solid rgba(255,255,255,0.08);
-  background: rgba(255,255,255,0.04);
+  border: 0.5px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.045);
   color: var(--text-2);
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 12.5px;
+  font-weight: 500;
   display: flex;
   align-items: center;
   justify-content: space-between;
   cursor: pointer;
-  transition: background 0.2s, color 0.2s;
+  transition: background 0.2s;
 }
-.console-toggle:active { background: rgba(255,255,255,0.08); }
-.console-toggle svg {
-  transition: transform 0.34s var(--spring);
-}
-.console-toggle.open svg {
-  transform: rotate(180deg);
-}
+.console-toggle:active { background: rgba(255, 255, 255, 0.09); }
+.console-toggle svg { transition: transform 0.34s var(--spring); }
+.console-toggle.open svg { transform: rotate(180deg); }
 
 .accordion-wrap {
   display: grid;
   grid-template-rows: 0fr;
   transition: grid-template-rows 0.38s var(--spring);
 }
-.accordion-wrap.open {
-  grid-template-rows: 1fr;
-}
-.accordion-inner {
-  overflow: hidden;
-}
-.console-body {
-  padding-top: 12px;
-}
+.accordion-wrap.open { grid-template-rows: 1fr; }
+.accordion-inner { overflow: hidden; }
+.console-body { padding-top: 12px; }
 
 .net-telemetry {
   display: grid;
@@ -612,28 +559,24 @@ body.modal-open .app {
   margin-bottom: 10px;
 }
 .tel-box {
-  padding: 9px 11px;
-  border-radius: 13px;
-  background: rgba(0,0,0,0.24);
-  border: 1px solid rgba(255,255,255,0.06);
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 0.5px solid rgba(255, 255, 255, 0.07);
 }
-.tel-lbl { font-size: 10.5px; color: var(--text-3); }
-.tel-val { font-size: 13.5px; font-weight: 600; margin-top: 2px; }
+.tel-lbl { font-size: 11px; color: var(--text-3); }
+.tel-val { font-size: 14px; font-weight: 600; margin-top: 2px; }
 
 .chart-box {
   height: 112px;
   border-radius: 14px;
-  background: rgba(0,0,0,0.26);
-  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(0, 0, 0, 0.42);
+  border: 0.5px solid rgba(255, 255, 255, 0.07);
   padding: 8px;
   margin-bottom: 10px;
-  position: relative;
 }
-.chart-box canvas {
-  width: 100%;
-  height: 100%;
-  display: block;
-}
+.chart-box canvas { width: 100%; height: 100%; display: block; }
+
 .hits-log {
   max-height: 150px;
   overflow-y: auto;
@@ -645,14 +588,14 @@ body.modal-open .app {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 10px;
+  padding: 8px 11px;
   border-radius: 12px;
-  background: rgba(52,211,153,0.07);
-  border: 1px solid rgba(52,211,153,0.16);
+  background: rgba(48, 209, 88, 0.08);
+  border: 0.5px solid rgba(48, 209, 88, 0.18);
   font-size: 11.5px;
 }
 
-/* ====== PROMO / UPSELL STRIP ====== */
+/* ====== PROMO / BANNER STRIP ====== */
 .promo-strip {
   display: flex;
   align-items: center;
@@ -664,39 +607,57 @@ body.modal-open .app {
   transition: transform 0.2s var(--spring);
 }
 .promo-strip:active { transform: scale(0.98); }
-.promo-strip-title { font-size: 13.5px; font-weight: 600; }
+.promo-strip-title { font-size: 14px; font-weight: 600; letter-spacing: -0.01em; }
 .promo-strip-sub { font-size: 12px; color: var(--text-2); margin-top: 2px; }
 
-/* ====== SECTION HEADERS & LIST CARDS ====== */
+/* ====== HEADINGS & UNIFIED STATS BAR ====== */
 .sec-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: 14px 2px 9px;
+  margin: 16px 4px 10px;
 }
 .sec-title {
-  font-size: 15px;
+  font-size: 20px;
   font-weight: 700;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.025em;
 }
-.sec-sub { font-size: 12px; color: var(--text-2); }
+.sec-title-sm {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-2);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.sec-sub { font-size: 12.5px; color: var(--text-2); }
 
-.stats-3 {
+/* Single unified 3-column metrics bar with hairlines */
+.stats-bar {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
+  overflow: hidden;
 }
-.stat-tile {
-  padding: 12px 10px;
+.stat-cell {
+  padding: 13px 8px;
   text-align: center;
+  position: relative;
 }
-.stat-tile-v { font-size: 15px; font-weight: 700; }
+.stat-cell + .stat-cell::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 20%;
+  bottom: 20%;
+  width: 0.5px;
+  background: rgba(255, 255, 255, 0.10);
+}
+.stat-tile-v { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; }
 .stat-tile-l { font-size: 11px; color: var(--text-2); margin-top: 2px; }
 
-/* Server / Catalog Cards */
+/* ====== SERVER / STORE CARDS ====== */
 .node-card {
-  padding: 15px;
+  padding: 15px 16px;
   margin-bottom: 10px;
 }
 .node-top {
@@ -705,67 +666,76 @@ body.modal-open .app {
   justify-content: space-between;
   gap: 10px;
 }
-.node-name { font-size: 14.5px; font-weight: 700; letter-spacing: -0.01em; }
-.node-specs { font-size: 11.5px; color: var(--text-2); margin-top: 2px; }
+.node-name { font-size: 15px; font-weight: 600; letter-spacing: -0.015em; }
+.node-specs { font-size: 12px; color: var(--text-2); margin-top: 2px; }
 .node-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-top: 11px;
-  padding-top: 10px;
-  border-top: 1px solid rgba(255,255,255,0.07);
+  gap: 10px;
+  margin-top: 12px;
+  padding-top: 11px;
+  border-top: 0.5px solid rgba(255, 255, 255, 0.08);
 }
 .ng-lbl { font-size: 11px; color: var(--text-3); }
-.ng-val { font-size: 13px; font-weight: 600; margin-top: 1px; }
+.ng-val { font-size: 13.5px; font-weight: 600; margin-top: 2px; }
 .node-foot {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 12px;
+  margin-top: 13px;
   gap: 10px;
 }
 .price-wrap { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
-.price-now { font-size: 16px; font-weight: 700; }
+.price-now { font-size: 16.5px; font-weight: 700; letter-spacing: -0.01em; }
 .price-old { font-size: 12px; color: var(--text-3); text-decoration: line-through; }
-.price-usd { font-size: 11.5px; color: var(--text-2); }
+.price-usd { font-size: 12px; color: var(--text-2); }
 
-/* ====== BUTTONS & INPUTS ====== */
+/* ====== BUTTONS & INPUTS (iOS 26 PILLS) ====== */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 7px;
-  height: 44px;
+  height: 46px;
   padding: 0 18px;
-  border-radius: 15px;
-  border: 1px solid rgba(255,255,255,0.12);
-  background: rgba(255,255,255,0.08);
-  color: var(--text);
-  font-size: 13.5px;
+  border-radius: 999px;
+  border: 0.5px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.10);
+  color: #fff;
+  font-size: 14px;
   font-weight: 600;
+  letter-spacing: -0.01em;
   cursor: pointer;
-  transition: transform 0.2s var(--spring), opacity 0.2s, background 0.2s;
+  box-shadow: var(--specular-soft);
+  transition: transform 0.2s var(--spring), background 0.2s, opacity 0.2s;
 }
-.btn:active { transform: scale(0.96); }
-.btn:disabled { opacity: 0.42; pointer-events: none; }
+.btn:active { transform: scale(0.96); background: rgba(255, 255, 255, 0.16); }
+.btn:disabled { opacity: 0.36; pointer-events: none; }
 .btn-full { width: 100%; }
-.btn-sm { height: 35px; padding: 0 13px; font-size: 12.5px; border-radius: 12px; }
-.btn-xs { height: 30px; padding: 0 10px; font-size: 11.5px; border-radius: 10px; }
+.btn-sm { height: 34px; padding: 0 14px; font-size: 12.5px; }
+.btn-xs { height: 29px; padding: 0 11px; font-size: 11.5px; }
 
 .btn-primary {
-  background: linear-gradient(155deg, #18abfa, #0077cc);
-  border-color: rgba(125,211,252,0.4);
+  background: var(--blue);
+  border-color: rgba(255, 255, 255, 0.22);
   color: #fff;
-  box-shadow: 0 8px 22px rgba(0,152,234,0.32), inset 0 1px 0 rgba(255,255,255,0.34);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+.btn-primary:active { background: #0070e0; }
+
+.btn-white {
+  background: #ffffff;
+  border-color: #ffffff;
+  color: #000000;
 }
 .btn-green {
-  background: linear-gradient(155deg, rgba(52,211,153,0.24), rgba(16,185,129,0.14));
-  border-color: rgba(52,211,153,0.35);
+  background: var(--green-soft);
+  border-color: rgba(48, 209, 88, 0.32);
   color: var(--green);
 }
 .btn-danger-ghost {
-  background: rgba(248,113,113,0.09);
-  border-color: rgba(248,113,113,0.22);
+  background: var(--red-soft);
+  border-color: rgba(255, 69, 58, 0.26);
   color: var(--red);
 }
 
@@ -773,111 +743,127 @@ body.modal-open .app {
   width: 100%;
   height: 44px;
   padding: 0 14px;
-  border-radius: 14px;
-  border: 1px solid rgba(255,255,255,0.11);
-  background: rgba(0,0,0,0.32);
-  color: var(--text);
+  border-radius: 13px;
+  border: 0.5px solid rgba(255, 255, 255, 0.13);
+  background: rgba(118, 118, 128, 0.18);
+  color: #fff;
   font-size: 14px;
   font-family: inherit;
   outline: none;
   transition: border-color 0.2s, background 0.2s;
 }
 .input:focus, .select:focus {
-  border-color: rgba(56,189,248,0.55);
-  background: rgba(0,0,0,0.46);
+  border-color: rgba(255, 255, 255, 0.38);
+  background: rgba(118, 118, 128, 0.26);
 }
-.select option { background: #0c1220; color: #f3f6fc; }
-.input-row {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
+.select option { background: #1c1c1e; color: #fff; }
+.input-row { display: flex; gap: 8px; align-items: center; }
 .field-lbl {
   display: block;
   font-size: 12px;
+  font-weight: 500;
   color: var(--text-2);
-  margin: 10px 0 6px;
+  margin: 11px 0 6px;
 }
 
-/* ====== TRANSACTIONS / LEDGER ====== */
-.tx-list { display: flex; flex-direction: column; gap: 7px; }
+/* ====== TRANSACTIONS / LIST ROWS (APPLE WALLET STYLE) ====== */
+.tx-list { display: flex; flex-direction: column; }
 .tx-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  padding: 11px 13px;
-  border-radius: 15px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.07);
+  gap: 11px;
+  padding: 12px 14px;
+  position: relative;
 }
-.tx-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.tx-list .tx-row + .tx-row::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 58px;
+  right: 0;
+  height: 0.5px;
+  background: rgba(255, 255, 255, 0.08);
+}
+.tx-list.no-ico .tx-row + .tx-row::before { left: 14px; }
+.tx-row-card {
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 0.5px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 6px;
+}
+.tx-left { display: flex; align-items: center; gap: 11px; min-width: 0; }
 .tx-ico {
-  width: 34px;
-  height: 34px;
-  border-radius: 12px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  background: rgba(255,255,255,0.07);
+  background: rgba(255, 255, 255, 0.09);
   color: var(--text-2);
 }
 .tx-ico.in { background: var(--green-soft); color: var(--green); }
-.tx-ico.out { background: var(--accent-soft); color: var(--accent-hi); }
+.tx-ico.out { background: rgba(255, 255, 255, 0.09); color: #fff; }
 .tx-ico.pend { background: var(--amber-soft); color: var(--amber); }
 .tx-title {
-  font-size: 13px;
+  font-size: 13.5px;
   font-weight: 600;
+  letter-spacing: -0.01em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.tx-meta { font-size: 11px; color: var(--text-3); margin-top: 1px; }
+.tx-meta { font-size: 11.5px; color: var(--text-3); margin-top: 1px; }
 .tx-right { text-align: right; flex-shrink: 0; }
-.tx-amt { font-size: 13px; font-weight: 700; }
+.tx-amt { font-size: 13.5px; font-weight: 600; }
 .tx-amt.pos { color: var(--green); }
-.tx-usd { font-size: 11px; color: var(--text-3); }
+.tx-usd { font-size: 11.5px; color: var(--text-3); }
 
-/* ====== FLOATING LIQUID DOCK ====== */
+/* ====== FLOATING iOS 26 LIQUID GLASS TAB BAR ====== */
 .dock-wrap {
   position: fixed;
   left: 0;
   right: 0;
-  bottom: calc(12px + var(--safe-b));
+  bottom: calc(14px + var(--safe-b));
   z-index: 40;
   display: flex;
   justify-content: center;
-  padding: 0 14px;
+  padding: 0 16px;
   pointer-events: none;
 }
 .dock {
   pointer-events: auto;
   width: 100%;
-  max-width: 432px;
+  max-width: 408px;
   height: 62px;
-  padding: 5px;
-  border-radius: 24px;
-  background: linear-gradient(160deg, rgba(22, 30, 48, 0.78), rgba(10, 14, 24, 0.86));
-  backdrop-filter: blur(28px) saturate(190%);
-  -webkit-backdrop-filter: blur(28px) saturate(190%);
-  border: 1px solid rgba(255,255,255,0.14);
-  box-shadow: 0 18px 42px rgba(0,0,0,0.58), inset 0 1px 0 rgba(255,255,255,0.22);
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(34, 34, 38, 0.60);
+  backdrop-filter: blur(40px) saturate(210%);
+  -webkit-backdrop-filter: blur(40px) saturate(210%);
+  border: 0.5px solid rgba(255, 255, 255, 0.18);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    inset 0 -0.5px 0 rgba(255, 255, 255, 0.08),
+    0 20px 44px rgba(0, 0, 0, 0.68);
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   position: relative;
 }
+/* Pure Achromatic Optical Lens Pill */
 .dock-pill {
   position: absolute;
-  top: 5px;
-  bottom: 5px;
-  left: 5px;
-  width: calc((100% - 10px) / 5);
-  border-radius: 19px;
-  background: linear-gradient(160deg, rgba(56,189,248,0.24), rgba(0,152,234,0.14));
-  border: 1px solid rgba(125,211,252,0.28);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.28), 0 4px 14px rgba(0,152,234,0.22);
-  transition: transform 0.38s var(--spring);
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc((100% - 8px) / 5);
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.19) 0%, rgba(255, 255, 255, 0.09) 100%);
+  border: 0.5px solid rgba(255, 255, 255, 0.22);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.34), 0 4px 12px rgba(0, 0, 0, 0.26);
+  transition: transform 0.42s var(--spring);
   pointer-events: none;
 }
 .dock-btn {
@@ -885,85 +871,83 @@ body.modal-open .app {
   z-index: 1;
   background: none;
   border: none;
-  color: var(--text-2);
+  color: rgba(235, 235, 245, 0.52);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
-  font-size: 10.5px;
+  gap: 2.5px;
+  font-size: 10px;
   font-weight: 600;
   cursor: pointer;
-  transition: color 0.25s, transform 0.2s var(--spring);
+  transition: color 0.24s, transform 0.22s var(--spring);
 }
-.dock-btn:active { transform: scale(0.92); }
-.dock-btn.active { color: #fff; }
+.dock-btn:active { transform: scale(0.90); }
+.dock-btn.active { color: #ffffff; }
 .dock-btn svg { width: 20px; height: 20px; }
 
-/* ====== BOTTOM SHEETS (MODALS) ====== */
+/* ====== iOS 26 LIQUID GLASS BOTTOM SHEETS ====== */
 .sheet-backdrop {
   position: fixed;
   inset: 0;
   z-index: 80;
-  background: rgba(2, 5, 12, 0.62);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.58);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   display: flex;
   align-items: flex-end;
   justify-content: center;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.28s ease;
+  transition: opacity 0.26s ease;
 }
-.sheet-backdrop.open {
-  opacity: 1;
-  pointer-events: auto;
-}
+.sheet-backdrop.open { opacity: 1; pointer-events: auto; }
+
 .sheet {
   width: 100%;
-  max-width: 460px;
-  max-height: 88vh;
+  max-width: 440px;
+  max-height: 89vh;
   overflow-y: auto;
-  border-radius: 28px 28px 0 0;
-  background: linear-gradient(170deg, rgba(20, 28, 46, 0.94), rgba(8, 12, 22, 0.97));
-  backdrop-filter: blur(32px) saturate(180%);
-  -webkit-backdrop-filter: blur(32px) saturate(180%);
-  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 32px 32px 0 0;
+  background: rgba(24, 24, 27, 0.86);
+  backdrop-filter: blur(42px) saturate(200%);
+  -webkit-backdrop-filter: blur(42px) saturate(200%);
+  border: 0.5px solid rgba(255, 255, 255, 0.18);
   border-bottom: none;
-  box-shadow: 0 -16px 48px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.22);
-  padding: 10px 18px calc(22px + var(--safe-b));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.24), 0 -18px 50px rgba(0, 0, 0, 0.72);
+  padding: 9px 18px calc(24px + var(--safe-b));
   transform: translate3d(0, 100%, 0);
-  transition: transform 0.36s var(--spring);
+  transition: transform 0.38s var(--spring);
 }
-.sheet-backdrop.open .sheet {
-  transform: translate3d(0, 0, 0);
-}
+.sheet-backdrop.open .sheet { transform: translate3d(0, 0, 0); }
+
 .sheet-grab {
-  width: 38px;
-  height: 4px;
+  width: 36px;
+  height: 4.5px;
   border-radius: 999px;
-  background: rgba(255,255,255,0.22);
+  background: rgba(255, 255, 255, 0.24);
   margin: 0 auto 12px;
 }
 .sheet-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
-.sheet-title { font-size: 17px; font-weight: 700; letter-spacing: -0.01em; }
+.sheet-title { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; }
 .sheet-close {
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
-  border: 1px solid rgba(255,255,255,0.10);
-  background: rgba(255,255,255,0.07);
+  border: none;
+  background: rgba(118, 118, 128, 0.28);
   color: var(--text-2);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
 }
+.sheet-close:active { transform: scale(0.9); }
 
 /* ====== iOS SWITCH ====== */
 .switch-row {
@@ -971,19 +955,19 @@ body.modal-open .app {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 11px 13px;
-  border-radius: 14px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
+  padding: 12px 14px;
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 0.5px solid rgba(255, 255, 255, 0.08);
   margin-bottom: 8px;
 }
-.switch-title { font-size: 13px; font-weight: 600; }
-.switch-sub { font-size: 11px; color: var(--text-3); margin-top: 1px; }
+.switch-title { font-size: 13.5px; font-weight: 600; }
+.switch-sub { font-size: 11.5px; color: var(--text-3); margin-top: 1px; }
 .ios-switch {
-  width: 46px;
-  height: 26px;
+  width: 48px;
+  height: 28px;
   border-radius: 999px;
-  background: rgba(255,255,255,0.16);
+  background: rgba(120, 120, 128, 0.36);
   position: relative;
   cursor: pointer;
   border: none;
@@ -993,78 +977,35 @@ body.modal-open .app {
 .ios-switch::after {
   content: "";
   position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 20px;
-  height: 20px;
+  top: 2px;
+  left: 2px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   background: #fff;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
   transition: transform 0.28s var(--spring);
 }
-.ios-switch.on { background: var(--accent); }
-.ios-switch.on.green { background: #10b981; }
-.ios-switch.on.red { background: #ef4444; }
+.ios-switch.on { background: var(--green); }
+.ios-switch.on.blue { background: var(--blue); }
+.ios-switch.on.red { background: var(--red); }
 .ios-switch.on::after { transform: translateX(20px); }
 
-/* ====== RECEIPT ANIMATION ====== */
-.receipt-box { text-align: center; padding: 8px 0 4px; }
-.receipt-check {
-  width: 66px;
-  height: 66px;
-  margin: 0 auto 12px;
-  border-radius: 50%;
-  background: rgba(52,211,153,0.14);
-  border: 1px solid rgba(52,211,153,0.34);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.receipt-check path {
-  stroke-dasharray: 48;
-  stroke-dashoffset: 48;
-  animation: drawCheck 0.55s 0.12s var(--spring) forwards;
-}
-@keyframes drawCheck {
-  to { stroke-dashoffset: 0; }
-}
-.receipt-rows {
-  margin-top: 16px;
-  padding: 12px 14px;
-  border-radius: 16px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
-  text-align: left;
-  display: flex;
-  flex-direction: column;
-  gap: 9px;
-}
-.r-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-  font-size: 12.5px;
-}
-.r-k { color: var(--text-2); }
-.r-v { font-weight: 600; text-align: right; word-break: break-all; }
-
-/* ====== SEGMENTED TABS (Admin / Modals) ====== */
+/* ====== iOS SEGMENTED CONTROL ====== */
 .seg-tabs {
   display: flex;
-  gap: 4px;
-  padding: 4px;
-  border-radius: 14px;
-  background: rgba(0,0,0,0.34);
-  border: 1px solid rgba(255,255,255,0.07);
+  gap: 2px;
+  padding: 3px;
+  border-radius: 12px;
+  background: rgba(118, 118, 128, 0.22);
   margin-bottom: 14px;
   overflow-x: auto;
 }
 .seg-btn {
   flex: 1;
   min-width: fit-content;
-  padding: 7px 10px;
-  border-radius: 10px;
+  padding: 6px 10px;
+  border-radius: 9px;
   border: none;
   background: transparent;
   color: var(--text-2);
@@ -1075,74 +1016,52 @@ body.modal-open .app {
   transition: background 0.2s, color 0.2s;
 }
 .seg-btn.active {
-  background: rgba(255,255,255,0.12);
+  background: rgba(255, 255, 255, 0.16);
   color: #fff;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.28), inset 0 0.5px 0 rgba(255, 255, 255, 0.2);
 }
 
-/* ====== TOAST ====== */
-.toast {
-  position: fixed;
-  top: calc(12px + var(--safe-t));
-  left: 50%;
-  z-index: 120;
-  max-width: calc(100% - 28px);
-  padding: 11px 16px;
-  border-radius: 16px;
-  background: rgba(18, 26, 44, 0.90);
-  backdrop-filter: blur(22px) saturate(170%);
-  -webkit-backdrop-filter: blur(22px) saturate(170%);
-  border: 1px solid rgba(255,255,255,0.16);
-  box-shadow: 0 12px 32px rgba(0,0,0,0.52), inset 0 1px 0 rgba(255,255,255,0.22);
-  color: #fff;
-  font-size: 13px;
-  font-weight: 600;
-  transform: translate3d(-50%, -140%, 0);
-  opacity: 0;
-  pointer-events: none;
-  transition: transform 0.36s var(--spring), opacity 0.25s;
-}
-.toast.show {
-  transform: translate3d(-50%, 0, 0);
-  opacity: 1;
-}
-.toast.err { border-color: rgba(248,113,113,0.42); color: #fecaca; }
-.toast.ok { border-color: rgba(52,211,153,0.42); }
-
-/* ====== LOADER / ERROR OVERLAY ====== */
-.splash {
-  position: fixed;
-  inset: 0;
-  z-index: 100;
-  background: #050811;
+/* ====== RECEIPT ====== */
+.receipt-box { text-align: center; padding: 6px 0 4px; }
+.receipt-check {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 12px;
+  border-radius: 50%;
+  background: var(--green-soft);
+  border: 0.5px solid rgba(48, 209, 88, 0.34);
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 14px;
-  padding: 24px;
-  text-align: center;
-  transition: opacity 0.35s ease;
 }
-.splash.hide { opacity: 0; pointer-events: none; }
-.spinner {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  border: 2.5px solid rgba(255,255,255,0.12);
-  border-top-color: var(--accent-hi);
-  animation: spin 0.78s linear infinite;
+.receipt-check path {
+  stroke-dasharray: 48;
+  stroke-dashoffset: 48;
+  animation: drawCheck 0.52s 0.12s var(--spring) forwards;
 }
-@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes drawCheck { to { stroke-dashoffset: 0; } }
+.receipt-rows {
+  margin-top: 16px;
+  padding: 13px 15px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 0.5px solid rgba(255, 255, 255, 0.08);
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.r-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 13px; }
+.r-k { color: var(--text-2); }
+.r-v { font-weight: 600; text-align: right; word-break: break-all; }
 
-
-/* ====== GIFT DEPOSIT STYLES ====== */
+/* ====== GIFT DEPOSIT (CLEAN MONOCHROME GLASS) ====== */
 .gift-hero {
   padding: 15px;
   border-radius: 18px;
-  background: linear-gradient(155deg, rgba(56,189,248,0.14) 0%, rgba(168,85,247,0.10) 100%);
-  border: 1px solid rgba(125,211,252,0.24);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);
+  background: rgba(255, 255, 255, 0.055);
+  border: 0.5px solid rgba(255, 255, 255, 0.12);
+  box-shadow: var(--specular-soft);
   margin-bottom: 12px;
 }
 .gift-rule {
@@ -1153,51 +1072,92 @@ body.modal-open .app {
   color: var(--text-2);
   margin-top: 8px;
 }
-.gift-rule b { color: var(--text); }
+.gift-rule b { color: #fff; font-weight: 600; }
 .gift-rule-dot {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
-  background: var(--accent-hi);
-  margin-top: 6px;
+  background: rgba(255, 255, 255, 0.55);
+  margin-top: 7px;
   flex-shrink: 0;
-}
-.gift-btn-special {
-  background: linear-gradient(155deg, rgba(168,85,247,0.24), rgba(56,189,248,0.18));
-  border-color: rgba(192,132,252,0.36);
-  color: #f5f3ff;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.26);
 }
 .gift-catalog-scroll {
   max-height: 210px;
   overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
   margin-top: 8px;
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 0.5px solid rgba(255, 255, 255, 0.08);
 }
 
-/* Helpers */
+/* ====== TOAST (iOS DYNAMIC PILL) ====== */
+.toast {
+  position: fixed;
+  top: calc(12px + var(--safe-t));
+  left: 50%;
+  z-index: 120;
+  max-width: calc(100% - 32px);
+  padding: 11px 18px;
+  border-radius: 999px;
+  background: rgba(36, 36, 40, 0.88);
+  backdrop-filter: blur(28px) saturate(190%);
+  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  border: 0.5px solid rgba(255, 255, 255, 0.18);
+  box-shadow: var(--specular-top), 0 14px 34px rgba(0, 0, 0, 0.62);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  transform: translate3d(-50%, -140%, 0);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.36s var(--spring), opacity 0.25s;
+}
+.toast.show { transform: translate3d(-50%, 0, 0); opacity: 1; }
+.toast.err { border-color: rgba(255, 69, 58, 0.45); color: #ffd6d4; }
+.toast.ok { border-color: rgba(48, 209, 88, 0.42); }
+
+/* ====== SPLASH ====== */
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: #000000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 24px;
+  text-align: center;
+  transition: opacity 0.32s ease;
+}
+.splash.hide { opacity: 0; pointer-events: none; }
+.spinner {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2.5px solid rgba(255, 255, 255, 0.14);
+  border-top-color: #ffffff;
+  animation: spin 0.72s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ====== UTILITIES ====== */
 .row-between { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .chips-row { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
 .chip {
-  padding: 6px 11px;
-  border-radius: 10px;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.09);
-  color: var(--text);
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 0.5px solid rgba(255, 255, 255, 0.12);
+  color: #fff;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
 }
 .chip:active { transform: scale(0.95); }
-.divider { height: 1px; background: rgba(255,255,255,0.08); margin: 12px 0; }
-.empty-box {
-  padding: 22px 14px;
-  text-align: center;
-  color: var(--text-3);
-  font-size: 13px;
-}
+.divider { height: 0.5px; background: rgba(255, 255, 255, 0.09); margin: 14px 0; }
+.empty-box { padding: 24px 14px; text-align: center; color: var(--text-3); font-size: 13px; }
 .copy-box {
   display: flex;
   align-items: center;
@@ -1205,18 +1165,18 @@ body.modal-open .app {
   gap: 8px;
   padding: 10px 12px;
   border-radius: 13px;
-  background: rgba(0,0,0,0.34);
-  border: 1px solid rgba(255,255,255,0.09);
+  background: rgba(118, 118, 128, 0.18);
+  border: 0.5px solid rgba(255, 255, 255, 0.10);
   font-size: 12px;
   word-break: break-all;
 }
 .adm-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
 .adm-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 7px; }
 .adm-card {
-  padding: 12px;
-  border-radius: 15px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
+  padding: 13px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 0.5px solid rgba(255, 255, 255, 0.09);
   margin-bottom: 10px;
 }
 .hidden { display: none !important; }
@@ -1224,16 +1184,13 @@ body.modal-open .app {
 </head>
 <body>
 
-<div class="ambient">
-  <div class="orb orb-1"></div>
-  <div class="orb orb-2"></div>
-</div>
+<div class="canvas-bg"></div>
 
 <div class="splash" id="splash">
   <div class="spinner" id="splashSpin"></div>
-  <div style="font-weight:700;font-size:17px;letter-spacing:-0.01em">TonPain</div>
-  <div id="splashMsg" style="font-size:12.5px;color:var(--text-2);max-width:280px">Подключение к кластеру...</div>
-  <button id="splashRetry" class="btn btn-primary btn-sm hidden" onclick="boot()">Повторить</button>
+  <div style="font-weight:700;font-size:18px;letter-spacing:-0.02em">TonPain</div>
+  <div id="splashMsg" style="font-size:13px;color:var(--text-2);max-width:260px">Подключение к кластеру...</div>
+  <button id="splashRetry" class="btn btn-white btn-sm hidden" onclick="boot()">Повторить</button>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -1253,31 +1210,34 @@ body.modal-open .app {
     </div>
     <div class="top-right">
       <button class="pill-btn" onclick="switchTab(1)">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="7" rx="2"/><rect x="2" y="14" width="20" height="7" rx="2"/><circle cx="7" cy="6.5" r="1"/><circle cx="7" cy="17.5" r="1"/></svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="7" rx="2"/><rect x="2" y="14" width="20" height="7" rx="2"/><circle cx="7" cy="6.5" r="1"/><circle cx="7" cy="17.5" r="1"/></svg>
         <span class="num" id="topNodesCount">1</span>
       </button>
       <button class="pill-btn pill-icon hidden" id="adminGearBtn" onclick="openAdmin()" aria-label="Admin">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.6.85 1 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.6.85 1 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
       </button>
     </div>
   </header>
 
   <!-- ==================== TAB 0: MINING / WALLET ==================== -->
   <section class="tab active" id="tab0">
-    <div class="glass-hero wallet-card">
+    <!-- Open OLED Wallet Balance -->
+    <div class="wallet-hero">
       <div class="wallet-kicker" data-i18n="wallet_kicker">Общий баланс</div>
       <div class="wallet-bal-wrap" id="balWrap">
         <span class="wallet-bal num" id="balanceVal">0.0000</span>
         <span class="wallet-unit">TON</span>
       </div>
-      <div class="wallet-usd num">
-        <span id="balanceUsd">≈ $0.00</span>
-        <span class="wallet-rate-pill" id="tonRatePill">$5.35 / TON</span>
+      <div>
+        <div class="wallet-usd num">
+          <span id="balanceUsd">≈ $0.00</span>
+          <span class="wallet-rate-pill" id="tonRatePill">$5.35 / TON</span>
+        </div>
       </div>
       <div class="wallet-actions">
         <button class="w-act primary" onclick="openDeposit()">
           <span class="w-act-ico">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
           </span>
           <span data-i18n="act_deposit">Пополнить</span>
         </button>
@@ -1289,21 +1249,21 @@ body.modal-open .app {
         </button>
         <button class="w-act" onclick="openChecks()">
           <span class="w-act-ico">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="12" rx="2.5"/><path d="M7 10h6"/><path d="M7 14h4"/><circle cx="16.5" cy="12" r="1.5"/></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="12" rx="2.5"/><path d="M7 10h6"/><path d="M7 14h4"/><circle cx="16.5" cy="12" r="1.4"/></svg>
           </span>
           <span data-i18n="act_checks">Чеки</span>
         </button>
       </div>
     </div>
 
-    <!-- POOL BUFFER CARD -->
+    <!-- PPS+ CLUSTER GLASS CARD -->
     <div class="glass pool-card">
       <div class="pool-head">
         <div class="pool-title-wrap">
           <span class="pool-title" data-i18n="pool_title">Кластер PPS+</span>
           <span class="status-chip" id="poolBadge">Активен</span>
         </div>
-        <span class="mono" style="font-size:12px;color:var(--accent-hi)" id="poolRateText">0 kKeys/s</span>
+        <span class="mono" style="font-size:12px;color:var(--text-2)" id="poolRateText">0 kKeys/s</span>
       </div>
 
       <div class="buffer-row">
@@ -1328,7 +1288,7 @@ body.modal-open .app {
 
       <button class="console-toggle" id="consoleToggleBtn" onclick="toggleConsole()">
         <span data-i18n="console_toggle">Консоль, график и журнал находок</span>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
       </button>
 
       <div class="accordion-wrap" id="consoleAccordion">
@@ -1347,7 +1307,7 @@ body.modal-open .app {
             <div class="chart-box">
               <canvas id="hashChart"></canvas>
             </div>
-            <div class="sec-head" style="margin:6px 2px 6px">
+            <div class="row-between" style="margin:6px 2px 6px">
               <span style="font-size:12px;font-weight:600;color:var(--text-2)" data-i18n="hits_title">Журнал находок</span>
               <span class="mono" style="font-size:11px;color:var(--text-3)" id="hitsCount">0</span>
             </div>
@@ -1359,11 +1319,11 @@ body.modal-open .app {
       </div>
     </div>
 
-    <!-- CONTEXTUAL PROMO STRIP -->
+    <!-- SUBTLE DISCOUNT STRIP -->
     <div class="glass promo-strip hidden" id="firstDiscountBanner" onclick="switchTab(2)">
       <div>
         <div class="promo-strip-title" id="bannerTitle">Скидка −50% на первый сервер</div>
-        <div class="promo-strip-sub" id="bannerSub">Подключите выделенную ноду EPYC и увеличьте доходность</div>
+        <div class="promo-strip-sub" id="bannerSub">Выделенные ноды EPYC доступны в Магазине</div>
       </div>
       <span class="status-chip accent">−50%</span>
     </div>
@@ -1373,19 +1333,19 @@ body.modal-open .app {
   <section class="tab" id="tab1">
     <div class="sec-head" style="margin-top:2px">
       <div class="sec-title" data-i18n="tab_servers">Мои серверы</div>
-      <button class="btn btn-primary btn-xs" onclick="switchTab(2)" data-i18n="btn_add_node">+ Добавить</button>
+      <button class="btn btn-white btn-xs" onclick="switchTab(2)" data-i18n="btn_add_node">+ Добавить</button>
     </div>
 
-    <div class="stats-3">
-      <div class="glass stat-tile">
+    <div class="glass stats-bar">
+      <div class="stat-cell">
         <div class="stat-tile-v mono" id="srvTotalSpeed">0</div>
         <div class="stat-tile-l">kKeys/s</div>
       </div>
-      <div class="glass stat-tile">
+      <div class="stat-cell">
         <div class="stat-tile-v num" id="srvTotalDaily">0</div>
         <div class="stat-tile-l" id="srvTotalDailyUsd">$0.00 / сут</div>
       </div>
-      <div class="glass stat-tile">
+      <div class="stat-cell">
         <div class="stat-tile-v num" id="srvFeeVal">15%</div>
         <div class="stat-tile-l" data-i18n="pool_fee_lbl">Комиссия</div>
       </div>
@@ -1424,54 +1384,55 @@ body.modal-open .app {
           <span class="price-now num" id="noFeePrice">100 TON</span>
           <span class="price-usd num" id="noFeeUsd">≈ $535</span>
         </div>
-        <button class="btn btn-primary btn-sm" id="noFeeBuyBtn" onclick="openCheckout('no_fee', '0')" data-i18n="btn_buy">Подключить</button>
+        <button class="btn btn-white btn-sm" id="noFeeBuyBtn" onclick="openCheckout('no_fee', '0')" data-i18n="btn_buy">Подключить</button>
       </div>
     </div>
   </section>
 
   <!-- ==================== TAB 3: FRIENDS & PROMO ==================== -->
   <section class="tab" id="tab3">
-    <div class="glass-hero" style="padding:18px;margin-bottom:12px">
-      <div class="row-between" style="margin-bottom:8px">
-        <div style="font-size:16px;font-weight:700" data-i18n="ref_title">Приглашайте друзей</div>
-        <span class="status-chip accent">+0.5 TON</span>
-      </div>
-      <div style="font-size:12.5px;color:var(--text-2);margin-bottom:14px" data-i18n="ref_desc">
+    <div class="sec-head" style="margin-top:2px">
+      <div class="sec-title" data-i18n="ref_title">Приглашайте друзей</div>
+      <span class="status-chip">+0.5 TON</span>
+    </div>
+
+    <div class="glass node-card" style="padding:16px">
+      <div style="font-size:13px;color:var(--text-2);margin-bottom:13px" data-i18n="ref_desc">
         За каждого друга, арендовавшего первый сервер, на ваш баланс автоматически начисляется 0.5 TON.
       </div>
-      <div class="copy-box mono" style="margin-bottom:10px">
+      <div class="copy-box mono" style="margin-bottom:11px">
         <span id="refLinkText" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">https://t.me/TonPain_bot</span>
         <button class="btn btn-xs" onclick="copyRefLink()" data-i18n="btn_copy">Копировать</button>
       </div>
       <button class="btn btn-primary btn-full" onclick="shareRefLink()" data-i18n="btn_share">Отправить приглашение в Telegram</button>
     </div>
 
-    <!-- DAILY BONUS -->
-    <div class="glass node-card">
-      <div class="row-between">
+    <!-- iOS Grouped Bonus & Promocode -->
+    <div class="ios-group">
+      <div class="ios-cell">
         <div>
-          <div class="node-name" data-i18n="daily_title">Ежедневный бонус</div>
+          <div class="node-name" style="font-size:14.5px" data-i18n="daily_title">Ежедневный бонус</div>
           <div class="node-specs" id="dailySub">+0.01 TON каждые 24 часа</div>
         </div>
-        <button class="btn btn-primary btn-sm" id="dailyBtn" onclick="claimDaily()">Забрать</button>
+        <button class="btn btn-white btn-sm" id="dailyBtn" onclick="claimDaily()">Забрать</button>
       </div>
-    </div>
-
-    <!-- PROMOCODE CARD -->
-    <div class="glass node-card">
-      <div class="node-name" style="margin-bottom:4px" data-i18n="promo_title">Промокод</div>
-      <div class="node-specs" style="margin-bottom:10px" data-i18n="promo_sub">Введите код на бонус в TON или персональную скидку</div>
-      <div class="input-row">
-        <input class="input mono" id="promoInput" placeholder="START26" autocomplete="off" autocapitalize="characters">
-        <button class="btn btn-primary btn-sm" style="height:44px;flex-shrink:0" onclick="claimPromo()" data-i18n="btn_apply">Применить</button>
+      <div class="ios-cell" style="flex-direction:column;align-items:stretch;gap:8px">
+        <div>
+          <div class="node-name" style="font-size:14.5px" data-i18n="promo_title">Промокод</div>
+          <div class="node-specs" data-i18n="promo_sub">Введите код на бонус в TON или персональную скидку</div>
+        </div>
+        <div class="input-row">
+          <input class="input mono" id="promoInput" placeholder="START26" autocomplete="off" autocapitalize="characters">
+          <button class="btn btn-white btn-sm" style="height:44px;flex-shrink:0;border-radius:13px" onclick="claimPromo()" data-i18n="btn_apply">Применить</button>
+        </div>
       </div>
     </div>
 
     <div class="sec-head">
-      <div class="sec-title" data-i18n="ref_list_title">Приглашённые</div>
+      <div class="sec-title-sm" data-i18n="ref_list_title">Приглашённые</div>
       <div class="sec-sub num" id="refCountLbl">0</div>
     </div>
-    <div class="glass" style="padding:12px" id="refList"></div>
+    <div class="ios-group" id="refList"></div>
   </section>
 
   <!-- ==================== TAB 4: PROFILE & HISTORY ==================== -->
@@ -1479,9 +1440,9 @@ body.modal-open .app {
     <div class="glass node-card" style="padding:16px">
       <div class="row-between">
         <div style="display:flex;align-items:center;gap:12px;min-width:0">
-          <div class="avatar" id="profAvatar" style="width:46px;height:46px;font-size:17px">T</div>
+          <div class="avatar" id="profAvatar" style="width:48px;height:48px;font-size:18px">T</div>
           <div style="min-width:0">
-            <div style="font-size:16px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="profName">—</div>
+            <div style="font-size:17px;font-weight:700;letter-spacing:-0.015em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="profName">—</div>
             <div class="mono" style="font-size:12px;color:var(--text-2)" id="profMeta">ID —</div>
           </div>
         </div>
@@ -1489,25 +1450,21 @@ body.modal-open .app {
       </div>
     </div>
 
-    <!-- TON WALLET -->
-    <div class="glass node-card">
-      <div class="row-between" style="margin-bottom:8px">
-        <div>
-          <div class="node-name" data-i18n="wallet_conn_title">Кошелёк TON</div>
+    <!-- iOS Settings Inset Group -->
+    <div class="ios-group">
+      <div class="ios-cell">
+        <div style="min-width:0">
+          <div class="node-name" style="font-size:14.5px" data-i18n="wallet_conn_title">Кошелёк TON</div>
           <div class="node-specs mono" id="profWalletAddr">Не подключён</div>
         </div>
         <button class="btn btn-primary btn-sm" id="walletBtn" onclick="toggleWallet()">Подключить</button>
       </div>
-    </div>
-
-    <!-- LANGUAGE -->
-    <div class="glass node-card">
-      <div class="row-between">
+      <div class="ios-cell">
         <div>
-          <div class="node-name" data-i18n="lang_title">Язык интерфейса</div>
+          <div class="node-name" style="font-size:14.5px" data-i18n="lang_title">Язык интерфейса</div>
           <div class="node-specs">Русский / English</div>
         </div>
-        <div class="seg-tabs" style="margin:0;width:116px">
+        <div class="seg-tabs" style="margin:0;width:110px">
           <button class="seg-btn active" id="langRuBtn" onclick="setLang('ru')">RU</button>
           <button class="seg-btn" id="langEnBtn" onclick="setLang('en')">EN</button>
         </div>
@@ -1516,40 +1473,40 @@ body.modal-open .app {
 
     <!-- TRANSACTIONS HISTORY -->
     <div class="sec-head">
-      <div class="sec-title" data-i18n="tx_title">История операций</div>
+      <div class="sec-title-sm" data-i18n="tx_title">История операций</div>
       <div class="sec-sub num" id="txCountLbl">0</div>
     </div>
-    <div class="glass" style="padding:10px" id="txList"></div>
+    <div class="ios-group" id="txList"></div>
 
     <!-- VERSION FOOTER (5x tap hidden admin trigger) -->
-    <div style="text-align:center;margin:20px 0 8px;user-select:none">
-      <span id="appVersionTap" onclick="onVersionTap()" style="font-size:11.5px;color:var(--text-3);padding:6px 14px;cursor:pointer">TonPain v6.1 · TON Mainnet</span>
+    <div style="text-align:center;margin:22px 0 8px;user-select:none">
+      <span id="appVersionTap" onclick="onVersionTap()" style="font-size:11.5px;color:var(--text-3);padding:6px 14px;cursor:pointer">TonPain v6.2 · TON Mainnet</span>
     </div>
   </section>
 </div>
 
-<!-- FLOATING LIQUID DOCK -->
+<!-- FLOATING iOS 26 LIQUID GLASS DOCK -->
 <nav class="dock-wrap">
   <div class="dock" id="dock">
     <div class="dock-pill" id="dockPill"></div>
     <button class="dock-btn active" data-tab="0" onclick="switchTab(0)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
       <span data-i18n="nav_mining">Майнинг</span>
     </button>
     <button class="dock-btn" data-tab="1" onclick="switchTab(1)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="7" rx="2"/><rect x="2" y="14" width="20" height="7" rx="2"/><circle cx="7" cy="6.5" r="1"/><circle cx="7" cy="17.5" r="1"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="7" rx="2"/><rect x="2" y="14" width="20" height="7" rx="2"/><circle cx="7" cy="6.5" r="1"/><circle cx="7" cy="17.5" r="1"/></svg>
       <span data-i18n="nav_servers">Серверы</span>
     </button>
     <button class="dock-btn" data-tab="2" onclick="switchTab(2)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
       <span data-i18n="nav_shop">Магазин</span>
     </button>
     <button class="dock-btn" data-tab="3" onclick="switchTab(3)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
       <span data-i18n="nav_friends">Друзья</span>
     </button>
     <button class="dock-btn" data-tab="4" onclick="switchTab(4)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       <span data-i18n="nav_profile">Профиль</span>
     </button>
   </div>
@@ -1562,7 +1519,7 @@ body.modal-open .app {
     <div class="sheet-head">
       <div class="sheet-title" id="sheetTitle"></div>
       <button class="sheet-close" onclick="closeSheet()" aria-label="Close">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>
     <div id="sheetBody"></div>
@@ -1572,7 +1529,7 @@ body.modal-open .app {
 <script>
 const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
 if (tg) {
-  try { tg.ready(); tg.expand(); tg.setHeaderColor("#050811"); tg.setBackgroundColor("#050811"); } catch(_) {}
+  try { tg.ready(); tg.expand(); tg.setHeaderColor("#000000"); tg.setBackgroundColor("#000000"); } catch(_) {}
 }
 
 const API_BASE = (() => {
@@ -2202,7 +2159,7 @@ function renderShop() {
             ${oldHtml}
             <span class="price-usd num">≈ ${fmtUsd(t.effective_price)}</span>
           </div>
-          <button class="btn btn-primary btn-sm" ${disabled ? "disabled" : ""} onclick="openCheckout('server', '${t.id}')">
+          <button class="btn btn-white btn-sm" ${disabled ? "disabled" : ""} onclick="openCheckout('server', '${t.id}')">
             ${isMaint ? (LANG === "en" ? "Paused" : "ТО") : (outOfStock ? "—" : (LANG === "en" ? "Rent" : "Арендовать"))}
           </button>
         </div>
@@ -2453,8 +2410,8 @@ function drawChart() {
   }));
 
   const grad = ctx.createLinearGradient(0, 0, 0, h);
-  grad.addColorStop(0, "rgba(56, 189, 248, 0.32)");
-  grad.addColorStop(1, "rgba(56, 189, 248, 0.0)");
+  grad.addColorStop(0, "rgba(255, 255, 255, 0.20)");
+  grad.addColorStop(1, "rgba(255, 255, 255, 0.0)");
 
   ctx.beginPath();
   ctx.moveTo(pts[0].x, h);
@@ -2480,7 +2437,7 @@ function drawChart() {
       ctx.bezierCurveTo(cx, prev.y, cx, p.y, p.x, p.y);
     }
   });
-  ctx.strokeStyle = "#38bdf8";
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.92)";
   ctx.lineWidth = 2;
   ctx.stroke();
 
@@ -2624,7 +2581,7 @@ function openDeposit() {
     <div style="display:flex;flex-direction:column;gap:8px;margin-top:14px">
       <button class="btn btn-primary btn-full" onclick="startPayment('deposit', '', 'ton')">${LANG === "en" ? "Pay with TON" : "Оплатить через TON"}</button>
       <button class="btn btn-full" onclick="startPayment('deposit', '', 'stars')">${LANG === "en" ? "Pay with Telegram Stars" : "Оплатить Telegram Stars ★"}</button>
-      <button class="btn gift-btn-special btn-full" onclick="openGiftDeposit()">
+      <button class="btn btn-full" onclick="openGiftDeposit()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
         <span>${LANG === "en" ? "Deposit with Telegram Gifts" : "Пополнить подарками Telegram"}</span>
       </button>
@@ -2658,7 +2615,7 @@ async function openGiftDeposit() {
   const myGiftsHtml = (S && S.gift_deposits && S.gift_deposits.length)
     ? `<div style="font-size:12px;color:var(--text-2);margin:12px 0 6px">${LANG === "en" ? "Your recent gift deposits" : "Ваши принятые подарки"}</div>`
       + S.gift_deposits.slice(0, 6).map((g) => `
-        <div class="tx-row" style="margin-bottom:6px;padding:9px 11px">
+        <div class="tx-row tx-row-card" style="padding:10px 12px">
           <div style="min-width:0">
             <div class="tx-title">${esc(g.collection_name)}${g.gift_num ? " #" + g.gift_num : ""}</div>
             <div class="tx-meta">${g.is_unique ? (g.backdrop_name ? esc(g.backdrop_name) + " · " : "") + `−${g.fee_pct}%` : `${g.stars_value} ★ → TON`} · ${fmtTime(g.created_at)}</div>
@@ -2752,8 +2709,8 @@ function filterGiftCatalog() {
     box.innerHTML = `<div class="empty-box" style="padding:12px">${LANG === "en" ? "No matching collections" : "Коллекция не найдена"}</div>`;
     return;
   }
-  box.innerHTML = list.map((it) => `
-    <div class="tx-row" style="padding:8px 11px">
+  box.innerHTML = `<div class="tx-list no-ico">` + list.map((it) => `
+    <div class="tx-row" style="padding:9px 13px">
       <div style="min-width:0">
         <div class="tx-title">${esc(it.name)}</div>
         <div class="tx-meta num">${LANG === "en" ? "Floor" : "Флор"}: ${it.floor_ton} TON</div>
@@ -2762,7 +2719,7 @@ function filterGiftCatalog() {
         <div class="tx-amt pos num">~${it.payout_ton} TON</div>
         <div class="tx-usd num">≈ ${fmtUsd(it.payout_ton)}</div>
       </div>
-    </div>`).join("");
+    </div>`).join("") + `</div>`;
 }
 
 async function refreshGiftDepositStatus() {
@@ -2904,7 +2861,7 @@ function renderTonInvoiceSheet(inv) {
     </div>
     <label class="field-lbl">${LANG === "en" ? "Comment (Memo)" : "Комментарий (Memo)"}</label>
     <div class="copy-box mono">
-      <span style="color:var(--accent-hi);font-weight:700">${esc(inv.comment)}</span>
+      <span style="color:#fff;font-weight:700">${esc(inv.comment)}</span>
       <button class="btn btn-xs" onclick="copyText('${esc(inv.comment)}')">${LANG === "en" ? "Copy" : "Коп."}</button>
     </div>
     <button class="btn btn-green btn-full" style="margin-top:14px" onclick="checkPaymentNow()">
@@ -3071,7 +3028,7 @@ function renderReceiptSheet(rec) {
     LANG === "en" ? "Withdrawal Receipt" : "Квитанция вывода",
     `<div class="receipt-box">
       <div class="receipt-check">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#30d158" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>
       </div>
       <div class="num" style="font-size:26px;font-weight:700">−${fmtTon(rec.amount_ton, 4)} TON</div>
       <div class="num" style="font-size:14px;color:var(--text-2);margin-top:2px">≈ ${fmtUsd(rec.amount_ton)}</div>
@@ -3092,7 +3049,7 @@ function openChecks() {
   const listHtml = (S.checks && S.checks.length)
     ? S.checks.map((c) => {
         const lnk = `https://t.me/${S.config.bot_username}?start=check_${c.code}`;
-        return `<div class="tx-row" style="margin-top:6px">
+        return `<div class="tx-row tx-row-card" style="margin-top:6px;margin-bottom:0">
           <div style="min-width:0">
             <div class="tx-title mono">${esc(c.code)} · ${c.amount_ton} TON</div>
             <div class="tx-meta">${c.activations}/${c.max_activations} · ${fmtUsd(c.amount_ton)}</div>
@@ -3243,7 +3200,7 @@ function renderAdminBody() {
 
   else if (adminSubTab === "users") {
     const recents = (adminOverview.recent_users || []).map((u) => `
-      <div class="tx-row" style="cursor:pointer;margin-bottom:6px" onclick="adminLookupUser('${u.tg_id}')">
+      <div class="tx-row tx-row-card" style="cursor:pointer" onclick="adminLookupUser('${u.tg_id}')">
         <div style="min-width:0">
           <div class="tx-title">${esc(u.first_name || "User")} ${u.username ? `<span style="color:var(--text-3)">@${esc(u.username)}</span>` : ""}</div>
           <div class="tx-meta mono">ID ${u.tg_id} · Реф ${u.ref_points}/5.0 ${u.withdraw_bypass ? '<span style="color:var(--green)">· Без реф</span>' : ""} ${u.source ? "· " + esc(u.source) : ""}</div>
@@ -3260,7 +3217,7 @@ function renderAdminBody() {
       const trp = tu.ref_progress;
       const tierOpts = S.catalog.map((t) => `<option value="${t.id}">#${t.id + 1} · ${esc(t.name)} (${t.daily_net} TON/д)</option>`).join("");
       const srvRows = (adminTarget.servers || []).map((s) => `
-        <div class="tx-row" style="margin-top:6px;padding:8px 10px">
+        <div class="tx-row tx-row-card" style="margin-top:6px;margin-bottom:0;padding:9px 11px">
           <div style="min-width:0">
             <div class="tx-title" style="font-size:12px">${esc(s.name)} ${s.is_starter ? "(Shared-0)" : ""}</div>
             <div class="tx-meta mono">#${s.id} · ${s.status} · ${s.daily_ton} TON/д</div>
@@ -3269,14 +3226,14 @@ function renderAdminBody() {
         </div>`).join("");
 
       targetHtml = `
-        <div class="adm-card" style="border-color:rgba(56,189,248,0.34)">
+        <div class="adm-card" style="border-color:rgba(255,255,255,0.22)">
           <div class="row-between" style="margin-bottom:8px">
             <div>
               <div style="font-weight:700;font-size:15px">${esc(tu.first_name || "User")} ${tu.username ? "@" + esc(tu.username) : ""}</div>
               <div class="mono" style="font-size:11.5px;color:var(--text-2)">ID ${tu.tg_id} · ${tu.source || "organic"}</div>
             </div>
             <div style="text-align:right">
-              <div class="num" style="font-weight:700;font-size:15px;color:var(--accent-hi)">${fmtTon(tu.balance, 4)} TON</div>
+              <div class="num" style="font-weight:700;font-size:15px;color:var(--blue)">${fmtTon(tu.balance, 4)} TON</div>
               <div class="num" style="font-size:11.5px;color:var(--text-2)">≈ ${fmtUsd(tu.balance)}</div>
             </div>
           </div>
@@ -3301,7 +3258,7 @@ function renderAdminBody() {
               <div class="switch-title">Вывод без рефералов</div>
               <div class="switch-sub">Реф. баллы: ${trp.points} / ${trp.target} (Prem ${trp.premium_count}, обычн. ${trp.regular_count})</div>
             </div>
-            <button class="ios-switch green ${tu.withdraw_bypass ? "on" : ""}" onclick="admUserAct(${tu.tg_id}, 'toggle_wd_bypass', 0)"></button>
+            <button class="ios-switch ${tu.withdraw_bypass ? "on" : ""}" onclick="admUserAct(${tu.tg_id}, 'toggle_wd_bypass', 0)"></button>
           </div>
           <div class="switch-row">
             <div><div class="switch-title">Комиссия пула 0%</div><div class="switch-sub">Отключить удержание 15%</div></div>
@@ -3369,7 +3326,7 @@ function renderAdminBody() {
     const promos = (adminOverview.promos || []).map((p) => {
       const desc = p.promo_type === "balance" ? `+${p.value} TON` : `−${p.value}% скидка`;
       const lnk = `https://t.me/${S.config.bot_username}?start=promo_${p.code}`;
-      return `<div class="tx-row" style="margin-bottom:6px">
+      return `<div class="tx-row tx-row-card">
         <div style="min-width:0">
           <div class="tx-title mono">${esc(p.code)} · <span style="color:var(--green)">${desc}</span></div>
           <div class="tx-meta">Активаций: ${p.uses}/${p.max_uses} · Купили сервер: ${p.buyers}</div>
@@ -3382,7 +3339,7 @@ function renderAdminBody() {
     }).join("");
 
     const srcs = (adminOverview.sources || []).map((x) => `
-      <div class="tx-row" style="margin-bottom:6px">
+      <div class="tx-row tx-row-card">
         <div>
           <div class="tx-title mono">${esc(x.src)}</div>
           <div class="tx-meta">Юзеров: ${x.users_cnt} · Покупателей: ${x.buyers_cnt}</div>
@@ -3431,7 +3388,7 @@ function renderAdminBody() {
       const rel = adminGiftsData.relayer;
       const gst = adminGiftsData.stats;
       const ovList = (adminGiftsData.overrides || []).map((o) => `
-        <div class="tx-row" style="margin-bottom:5px;padding:8px 10px">
+        <div class="tx-row tx-row-card" style="padding:9px 11px">
           <div>
             <div class="tx-title">${esc(o.collection_name)}</div>
             <div class="tx-meta num">Флор: ${o.floor_ton} TON (выплата −10%: ${(o.floor_ton * 0.9).toFixed(2)} TON)</div>
@@ -3440,9 +3397,9 @@ function renderAdminBody() {
         </div>`).join("");
 
       const recList = (adminGiftsData.recent_gifts || []).map((g) => `
-        <div class="tx-row" style="margin-bottom:5px;padding:8px 10px">
+        <div class="tx-row tx-row-card" style="padding:9px 11px">
           <div style="min-width:0">
-            <div class="tx-title">${esc(g.collection_name)}${g.gift_num ? " #" + g.gift_num : ""} ${g.backdrop_name ? `· <span style="color:var(--accent-hi)">${esc(g.backdrop_name)}</span>` : ""}</div>
+            <div class="tx-title">${esc(g.collection_name)}${g.gift_num ? " #" + g.gift_num : ""} ${g.backdrop_name ? `· <span style="color:var(--blue)">${esc(g.backdrop_name)}</span>` : ""}</div>
             <div class="tx-meta mono">${g.username ? "@" + esc(g.username) : "ID " + g.user_id} · ${fmtTime(g.created_at)}</div>
           </div>
           <div class="tx-right">
@@ -3505,10 +3462,10 @@ function renderAdminBody() {
   else if (adminSubTab === "logs") {
     const cats = [["all","Все"],["auth","Вход"],["pay","Оплаты"],["buy","Покупки"],["withdraw","Выводы"],["discount","Скидки"],["admin","Админ"]];
     const chips = `<div class="chips-row">` + cats.map(([k, lbl]) =>
-      `<button class="chip" style="${adminLogCat === k ? "background:var(--accent-soft);border-color:var(--accent);color:#fff" : ""}" onclick="admLoadLogs('${k}')">${lbl}</button>`
+      `<button class="chip" style="${adminLogCat === k ? "background:#fff;border-color:#fff;color:#000" : ""}" onclick="admLoadLogs('${k}')">${lbl}</button>`
     ).join("") + `</div>`;
     const rows = (adminOverview.logs || []).map((l) => `
-      <div class="tx-row" style="padding:8px 10px;margin-bottom:5px">
+      <div class="tx-row tx-row-card" style="padding:9px 11px">
         <div style="min-width:0">
           <div class="tx-meta mono">[${esc(l.category)}] ${fmtTime(l.created_at)} · ${l.username ? "@" + esc(l.username) : l.user_id}</div>
           <div style="font-size:12px;margin-top:2px;word-break:break-word">${esc(l.message)}</div>
