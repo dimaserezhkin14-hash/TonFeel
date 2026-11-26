@@ -121,12 +121,11 @@ body.modal-open .app {
   position: relative;
   transform: translateZ(0);
 }
-/* Real optical backdrop blur reserved for hero Cluster card so scrolling lists stay locked at 60-120 FPS */
+/* Hero Cluster card: zero heavy backdrop-filter so expand/collapse & 120Hz scanner stay silky smooth */
 .glass.pool-card {
-  background: linear-gradient(165deg, rgba(44, 44, 48, 0.58) 0%, rgba(20, 20, 23, 0.76) 100%);
-  backdrop-filter: blur(26px) saturate(175%);
-  -webkit-backdrop-filter: blur(26px) saturate(175%);
-  box-shadow: inset 0 0.75px 0 rgba(255, 255, 255, 0.26), 0 14px 36px rgba(0, 0, 0, 0.52);
+  background: linear-gradient(165deg, rgba(38, 38, 42, 0.92) 0%, rgba(18, 18, 21, 0.96) 100%);
+  box-shadow: inset 0 0.75px 0 rgba(255, 255, 255, 0.24), 0 14px 34px rgba(0, 0, 0, 0.54);
+  contain: layout style;
 }
 
 /* iOS Grouped Inset Surface */
@@ -255,42 +254,31 @@ body.modal-open .app {
 .pill-btn:active { transform: scale(0.94); background: rgba(64, 64, 68, 0.7); }
 .pill-icon { width: 40px; padding: 0; justify-content: center; }
 
-/* ====== TABS (NATIVE DIRECTIONAL iOS SPRING TRANSITIONS) ====== */
+/* ====== TABS (CRISP 120Hz NATIVE iOS TRANSITIONS — ZERO CARD STAGGER) ====== */
 .tab {
   display: none;
   will-change: transform, opacity;
 }
 .tab.active {
   display: block;
-  animation: tabInUp 0.28s var(--spring-ios) both;
+  animation: tabFadeIn 0.17s var(--spring) both;
 }
 .tab.active.from-right {
-  animation: tabSlideRight 0.30s var(--spring-ios) both;
+  animation: tabSlideR 0.19s var(--spring) both;
 }
 .tab.active.from-left {
-  animation: tabSlideLeft 0.30s var(--spring-ios) both;
+  animation: tabSlideL 0.19s var(--spring) both;
 }
-@keyframes tabInUp {
-  from { opacity: 0; transform: translate3d(0, 10px, 0) scale(0.992); }
-  to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+@keyframes tabFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
-@keyframes tabSlideRight {
-  from { opacity: 0; transform: translate3d(20px, 0, 0); }
+@keyframes tabSlideR {
+  from { opacity: 0; transform: translate3d(12px, 0, 0); }
   to { opacity: 1; transform: translate3d(0, 0, 0); }
 }
-@keyframes tabSlideLeft {
-  from { opacity: 0; transform: translate3d(-20px, 0, 0); }
-  to { opacity: 1; transform: translate3d(0, 0, 0); }
-}
-.tab.active > .glass,
-.tab.active > .ios-group {
-  animation: cardStagger 0.32s var(--spring-ios) both;
-}
-.tab.active > :nth-child(2) { animation-delay: 24ms; }
-.tab.active > :nth-child(3) { animation-delay: 48ms; }
-.tab.active > :nth-child(4) { animation-delay: 72ms; }
-@keyframes cardStagger {
-  from { opacity: 0; transform: translate3d(0, 8px, 0); }
+@keyframes tabSlideL {
+  from { opacity: 0; transform: translate3d(-12px, 0, 0); }
   to { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 
@@ -658,53 +646,66 @@ body.modal-open .app {
   100% { background: rgba(48, 209, 88, 0.09); transform: scale(1); }
 }
 
-/* Smooth CSS Grid Accordion for Expanded Scanner Controls (Zero layout jump!) */
+/* 120 FPS Lightweight Scanner Expand / Collapse (Zero grid-row thrash) */
+.scanner-box {
+  contain: layout style paint;
+}
 .scanner-compact-collapse {
-  display: grid;
-  grid-template-rows: 1fr;
+  max-height: 112px;
   opacity: 1;
-  transition: grid-template-rows 0.34s var(--spring-ios), opacity 0.22s ease;
+  overflow: hidden;
+  transition: max-height 0.24s var(--spring), opacity 0.16s ease;
+  will-change: max-height, opacity;
 }
 .scanner-box.expanded .scanner-compact-collapse {
-  grid-template-rows: 0fr;
+  max-height: 0;
   opacity: 0;
   pointer-events: none;
 }
 .scanner-compact-inner {
-  overflow: hidden;
-  min-height: 0;
   cursor: pointer;
 }
 
 .scanner-panel-collapse {
-  display: grid;
-  grid-template-rows: 0fr;
+  max-height: 0;
   opacity: 0;
-  transition: grid-template-rows 0.36s var(--spring-ios), opacity 0.24s ease;
+  overflow: hidden;
+  transform: translate3d(0, -4px, 0);
+  transition: max-height 0.26s var(--spring), opacity 0.18s ease, transform 0.24s var(--spring);
+  will-change: max-height, opacity, transform;
 }
 .scanner-box.expanded .scanner-panel-collapse {
-  grid-template-rows: 1fr;
+  max-height: 465px;
   opacity: 1;
+  transform: translate3d(0, 0, 0);
 }
 .scanner-panel-inner {
-  overflow: hidden;
-  min-height: 0;
+  padding-top: 2px;
 }
 .scanner-stats-mini {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 6px;
   margin-bottom: 9px;
 }
 .scanner-stat-cell {
-  padding: 7px 6px;
+  padding: 7px 5px;
   border-radius: 11px;
   background: rgba(255, 255, 255, 0.045);
   border: 0.5px solid rgba(255, 255, 255, 0.08);
   text-align: center;
+  min-width: 0;
 }
-.scanner-stat-v { font-size: 12.5px; font-weight: 700; color: #fff; line-height: 1.2; }
-.scanner-stat-l { font-size: 10px; color: var(--text-3); margin-top: 1px; }
+.scanner-stat-v {
+  font-size: clamp(10.5px, 3vw, 12.5px);
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.scanner-stat-l { font-size: 10px; color: var(--text-3); margin-top: 2px; white-space: nowrap; }
 
 .scanner-feed-wrap {
   position: relative;
@@ -724,7 +725,7 @@ body.modal-open .app {
   border: 0.5px solid rgba(255, 255, 255, 0.28);
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.52);
   cursor: pointer;
-  transition: transform 0.2s var(--spring-ios), opacity 0.2s;
+  transition: transform 0.16s var(--spring), opacity 0.16s;
 }
 .scanner-pause-pill:active { transform: translate3d(-50%, 0, 0) scale(0.94); }
 
@@ -740,6 +741,7 @@ body.modal-open .app {
   flex-direction: column;
   gap: 5px;
   padding-right: 2px;
+  contain: strict;
 }
 .scanner-center-state {
   flex: 1;
@@ -760,10 +762,12 @@ body.modal-open .app {
   gap: 4px;
   font-size: 11px;
   color: var(--text-3);
-  min-height: 92px;
+  min-height: 98px;
   overflow: hidden;
+  contain: layout style;
 }
 .ms-line {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -779,9 +783,9 @@ body.modal-open .app {
   background: rgba(255, 255, 255, 0.036);
   border: 0.5px solid rgba(255, 255, 255, 0.065);
   cursor: pointer;
-  transition: background 0.14s, transform 0.14s var(--spring-ios);
+  transition: background 0.12s;
 }
-.ms-line.clickable:active { background: rgba(255, 255, 255, 0.09); transform: scale(0.985); }
+.ms-line.clickable:active { background: rgba(255, 255, 255, 0.10); }
 .ms-line.is-hit {
   background: rgba(48, 209, 88, 0.14);
   border: 0.5px solid rgba(48, 209, 88, 0.28);
@@ -792,7 +796,23 @@ body.modal-open .app {
   background: rgba(48, 209, 88, 0.11);
   border-color: rgba(48, 209, 88, 0.28);
 }
-.ms-addr { overflow: hidden; text-overflow: ellipsis; color: var(--text-2); }
+.ms-addr {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-2);
+}
+.ms-time {
+  flex-shrink: 0;
+  font-size: 10px;
+  color: var(--text-3);
+}
+.ms-val {
+  flex-shrink: 0;
+  text-align: right;
+  color: var(--text-3);
+}
 .ms-hit { color: var(--green); font-weight: 700; }
 
 /* ====== PROMO / BANNER STRIP ====== */
@@ -2148,7 +2168,7 @@ body.spectating .app {
             </div>
 
             <div class="scanner-feed-wrap">
-              <button class="scanner-pause-pill hidden" id="scannerResumeBtn" onclick="resumeScannerLive()">↓ К новым</button>
+              <button class="scanner-pause-pill hidden" id="scannerResumeBtn" onclick="resumeScannerLive()">↑ К новым</button>
               <div class="scanner-expanded-list mono" id="scannerExpandedList" onscroll="onScannerListScroll()"></div>
             </div>
             <div id="scannerMoreWrap"></div>
@@ -2346,7 +2366,7 @@ body.spectating .app {
 
     <!-- VERSION FOOTER (5x tap hidden admin trigger) -->
     <div style="text-align:center;margin:22px 0 8px;user-select:none">
-      <span id="appVersionTap" onclick="onVersionTap()" style="font-size:11.5px;color:var(--text-3);padding:6px 14px;cursor:pointer">TonPain v7.2</span>
+      <span id="appVersionTap" onclick="onVersionTap()" style="font-size:11.5px;color:var(--text-3);padding:6px 14px;cursor:pointer">TonPain v7.3</span>
     </div>
   </section>
 
@@ -2358,6 +2378,14 @@ body.spectating .app {
         <span class="status-chip" id="admHeaderOnline">0 онлайн</span>
       </div>
       <button class="btn btn-xs" onclick="refreshAdminData()">Обновить</button>
+    </div>
+    <div class="seg-tabs hidden" id="adminSegBar">
+      <button class="seg-btn active" data-sub="overview" onclick="setAdminSubTab('overview')">Обзор</button>
+      <button class="seg-btn" data-sub="users" id="admTabUsersLbl" onclick="setAdminSubTab('users')">Юзеры</button>
+      <button class="seg-btn" data-sub="wds" id="admTabWdsLbl" onclick="setAdminSubTab('wds')">Выводы</button>
+      <button class="seg-btn" data-sub="promo" onclick="setAdminSubTab('promo')">Промо</button>
+      <button class="seg-btn" data-sub="gifts" onclick="setAdminSubTab('gifts')">Подарки</button>
+      <button class="seg-btn" data-sub="logs" onclick="setAdminSubTab('logs')">Логи</button>
     </div>
     <div id="adminRoot">
       <div style="padding:32px;text-align:center"><div class="spinner" style="margin:0 auto"></div></div>
@@ -2533,6 +2561,8 @@ let dispBalance = 0;
 let dispBuffer = 0;
 let lastServerSyncMs = 0;
 let hitLog = [];
+let topHitsLog = [];
+let serverTopHitTon = 0;
 let totalHitsCount = 0;
 let fundedHitsCount = 0;
 let lastFundedHit = null;
@@ -2546,17 +2576,25 @@ let hwDrift = 0;
 let hwImpulse = 0;
 let hwPingMs = 16;
 let workerLoopTimer = null;
-let scannerLoopTimer = null;
+let scannerRafId = null;
+let scannerLastFrameMs = 0;
+let scannerRowAccum = 0;
+let scannerCountAccum = 0;
+let scannerStatLastMs = 0;
+let scannerAnimUntilMs = 0;
+let miniPool = [];
+let livePool = [];
 let hitSyncTimer = null;
 let hitSyncInFlight = false;
+let claimInFlight = false;
+let dailyInFlight = false;
 
 // In-place expandable Wallet Scanner state
 let scannerExpanded = false;
 let scannerTab = "live"; // "live" | "funded" | "top"
-let scannerLiveFeed = []; // actual real-time live stream items (max 80)
+let scannerLiveFeed = []; // real-time live stream items (max 36 for 120 FPS recycled pool)
 let scannerPaused = false;
 let scannerLiveDirty = false;
-let scannerLiveLastFlushMs = 0;
 let hitsExpItems = [];
 let hitsExpOffset = 0;
 let hitsExpHasMore = false;
@@ -2620,23 +2658,33 @@ function haptic(type = "light") {
   } catch(_) {}
 }
 
-function syncSegPills(scope = document) {
+function syncSegPills(scope = document, instant = false) {
   const containers = (scope && scope.classList && scope.classList.contains("seg-tabs"))
     ? [scope]
     : Array.from((scope || document).querySelectorAll(".seg-tabs"));
   containers.forEach((box) => {
     const activeBtn = box.querySelector(".seg-btn.active");
     if (!activeBtn) return;
+    const w = activeBtn.offsetWidth;
+    const x = activeBtn.offsetLeft;
+    if (w <= 0) return;
+
     let pill = box.querySelector(":scope > .seg-pill");
-    if (!pill) {
+    const isFresh = !pill;
+    if (isFresh) {
       pill = document.createElement("div");
       pill.className = "seg-pill";
       box.insertBefore(pill, box.firstChild);
     }
-    const w = activeBtn.offsetWidth;
-    const x = activeBtn.offsetLeft;
-    if (w > 0) {
-      box.classList.add("has-pill");
+    box.classList.add("has-pill");
+    if (isFresh || instant) {
+      pill.style.transition = "none";
+      pill.style.width = w + "px";
+      pill.style.transform = `translate3d(${x}px, 0, 0)`;
+      pill.style.opacity = "1";
+      void pill.offsetWidth;
+      pill.style.transition = "";
+    } else {
       pill.style.width = w + "px";
       pill.style.transform = `translate3d(${x}px, 0, 0)`;
       pill.style.opacity = "1";
@@ -2873,7 +2921,7 @@ function switchTab(idx, fromFollow = false) {
   }
   requestAnimationFrame(() => {
     const curTabEl = $("tab" + idx);
-    if (curTabEl) syncSegPills(curTabEl);
+    if (curTabEl) syncSegPills(curTabEl, true);
     if (idx === 0) drawChart();
   });
   if (!spectateActive && prevTab !== idx && idx < 5) {
@@ -3120,6 +3168,14 @@ function getTonConnectManifestUrl() {
   return API_BASE + "/tonconnect-manifest.json";
 }
 
+function waitTonConnectReady(ms = 1600) {
+  if (!tonConnectReady) return Promise.resolve();
+  return Promise.race([
+    tonConnectReady.catch(() => {}),
+    new Promise((res) => setTimeout(res, ms)),
+  ]);
+}
+
 function initTonConnect() {
   if (tonConnectUI || !window.TON_CONNECT_UI) return;
   try {
@@ -3138,41 +3194,83 @@ function initTonConnect() {
     tonConnectUI.onStatusChange(async (wallet) => {
       const addr = wallet && wallet.account ? wallet.account.address : "";
       if (S && !spectateActive) {
-        S.user.wallet_address = addr;
-        renderProfile();
-      }
-      if (!spectateActive) {
-        try { await apiPost("/api/wallet/connect", { wallet_address: addr }); } catch(_) {}
+        // Ignore empty initial callback before user actually disconnects if DB already has linked addr
+        if (addr) {
+          S.user.wallet_address = addr;
+          renderProfile();
+          try { await apiPost("/api/wallet/connect", { wallet_address: addr }); } catch(_) {}
+        }
       }
       if (addr && pendingTxAutoTrigger) {
         const inv = pendingTxAutoTrigger;
         pendingTxAutoTrigger = null;
-        setTimeout(() => sendTonConnectTx(inv), 220);
+        setTimeout(() => sendTonConnectTx(inv), 240);
       }
     });
   } catch(_) {}
 }
 
+function confirmDisconnectWallet() {
+  if (blockIfSpectating()) return;
+  const addr = (tonConnectUI && tonConnectUI.account && tonConnectUI.account.address)
+    || (S && S.user && S.user.wallet_address) || "";
+  haptic("warning");
+  openSheet(
+    LANG === "en" ? "Disconnect Wallet?" : "Отключить кошелёк?",
+    `<div style="font-size:13.5px;color:var(--text-2);margin-bottom:14px">
+      ${LANG === "en"
+        ? `Are you sure you want to disconnect <b class="mono" style="color:#fff">${esc(shortAddr(addr))}</b>?`
+        : `Точно отключить кошелёк <b class="mono" style="color:#fff">${esc(shortAddr(addr))}</b> от аккаунта?`}
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-full" onclick="closeSheet()">${LANG === "en" ? "Cancel" : "Отмена"}</button>
+      <button class="btn btn-danger-ghost btn-full" onclick="doDisconnectWallet()">${LANG === "en" ? "Disconnect" : "Отключить"}</button>
+    </div>`
+  );
+}
+
+async function doDisconnectWallet() {
+  if (blockIfSpectating()) return;
+  closeSheet();
+  haptic("medium");
+  // Optimistic instant UI update
+  if (S && S.user) {
+    S.user.wallet_address = "";
+    renderProfile();
+  }
+  showToast(LANG === "en" ? "Wallet disconnected" : "Кошелёк отключён", "ok");
+  try {
+    if (tonConnectUI) {
+      await waitTonConnectReady(900);
+      if (tonConnectUI.connected) await tonConnectUI.disconnect();
+    }
+  } catch(_) {}
+  try { await apiPost("/api/wallet/connect", { wallet_address: "" }); } catch(_) {}
+}
+
 async function toggleWallet() {
   if (blockIfSpectating() || walletBusy) return;
   initTonConnect();
+  const hasLinked = Boolean((tonConnectUI && tonConnectUI.connected) || (S && S.user && S.user.wallet_address));
+  if (hasLinked) {
+    confirmDisconnectWallet();
+    return;
+  }
   if (!tonConnectUI) { showToast("TON Connect загружается...", "err"); return; }
   walletBusy = true;
   haptic("light");
   try {
-    if (tonConnectReady) await tonConnectReady;
+    await waitTonConnectReady(1400);
     if (tonConnectUI.connected) {
-      await tonConnectUI.disconnect();
-      showToast(LANG === "en" ? "Wallet disconnected" : "Кошелёк отключён");
-    } else {
-      // Clear any half-open modal state before opening fresh
-      try { if (tonConnectUI.closeModal) tonConnectUI.closeModal(); } catch(_) {}
-      await tonConnectUI.openModal();
+      confirmDisconnectWallet();
+      return;
     }
+    try { if (tonConnectUI.closeModal) tonConnectUI.closeModal(); } catch(_) {}
+    await tonConnectUI.openModal();
   } catch(e) {
     showToast((e && e.message) ? e.message : "Попробуйте подключить ещё раз", "err");
   } finally {
-    setTimeout(() => { walletBusy = false; }, 350);
+    setTimeout(() => { walletBusy = false; }, 320);
   }
 }
 
@@ -3335,7 +3433,9 @@ function renderAll(prevBal = null) {
       Number(S.total_hits_count || S.mining_hits.length),
       Number(S.funded_hits_count !== undefined ? S.funded_hits_count : S.mining_hits.length),
       S.last_funded_hit || null,
-      false
+      false,
+      Array.isArray(S.top_hits) ? S.top_hits : null,
+      Number(S.top_hit_ton || 0)
     );
   }
   renderServers();
@@ -3778,22 +3878,27 @@ function updateScannerHeaderUI() {
   if ($("scTabFunded")) $("scTabFunded").classList.toggle("active", scannerTab === "funded");
   if ($("scTabTop")) $("scTabTop").classList.toggle("active", scannerTab === "top");
   if ($("scannerResumeBtn")) {
-    $("scannerResumeBtn").textContent = LANG === "en" ? "↓ Live latest" : "↓ К новым";
+    $("scannerResumeBtn").textContent = LANG === "en" ? "↑ Latest" : "↑ К новым";
     $("scannerResumeBtn").classList.toggle("hidden", !(scannerExpanded && scannerTab === "live" && scannerPaused));
   }
 }
 
 function updateScannerStatsBar() {
-  if ($("scStatChecked")) {
-    $("scStatChecked").textContent = Number(totalHitsCount || 0).toLocaleString("en-US").replace(/,/g, " ");
+  const chkEl = $("scStatChecked");
+  if (chkEl) {
+    chkEl.textContent = Math.floor(totalHitsCount || 0).toLocaleString("en-US").replace(/,/g, " ");
   }
-  if ($("scStatFunded")) {
-    $("scStatFunded").textContent = Number(fundedHitsCount || hitsExpMeta.total_funded || hitLog.length).toLocaleString("en-US").replace(/,/g, " ");
+  const fEl = $("scStatFunded");
+  if (fEl) {
+    fEl.textContent = Number(fundedHitsCount || hitsExpMeta.total_funded || hitLog.length).toLocaleString("en-US").replace(/,/g, " ");
   }
-  if ($("scStatBest")) {
-    const localBest = hitLog.reduce((a, h) => Math.max(a, Number(h.amt || 0)), 0);
-    const best = Math.max(Number(hitsExpMeta.top_hit_ton || 0), localBest);
-    $("scStatBest").textContent = best > 0 ? best.toFixed(3) : "0";
+  const bEl = $("scStatBest");
+  if (bEl) {
+    const localBest = topHitsLog.length
+      ? Number(topHitsLog[0].amount_ton || 0)
+      : hitLog.reduce((a, h) => Math.max(a, Number(h.amt || 0)), 0);
+    const best = Math.max(Number(serverTopHitTon || 0), Number(hitsExpMeta.top_hit_ton || 0), localBest);
+    bEl.textContent = best > 0 ? best.toFixed(3) : "0";
   }
 }
 
@@ -3801,6 +3906,7 @@ function toggleScannerExpand(forceState) {
   const next = typeof forceState === "boolean" ? forceState : !scannerExpanded;
   if (next === scannerExpanded) return;
   scannerExpanded = next;
+  scannerAnimUntilMs = performance.now() + 260;
   haptic("select");
   if (scannerExpanded) {
     scannerPaused = false;
@@ -3809,15 +3915,15 @@ function toggleScannerExpand(forceState) {
     if (scannerTab === "live") {
       renderExpandedLiveFeed(true);
     } else {
-      loadScannerDbPage(true);
+      renderInstantScannerDbTab(scannerTab);
     }
     requestAnimationFrame(() => {
-      syncSegPills($("scannerSegTabs"));
+      syncSegPills($("scannerSegTabs"), true);
       const box = $("scannerBox");
       if (box) {
         const rect = box.getBoundingClientRect();
-        if (rect.top > window.innerHeight * 0.42) {
-          window.scrollBy({ top: Math.min(200, rect.top - 110), behavior: "smooth" });
+        if (rect.top > window.innerHeight * 0.45) {
+          window.scrollBy({ top: Math.min(180, rect.top - 110), behavior: "smooth" });
         }
       }
     });
@@ -3825,7 +3931,7 @@ function toggleScannerExpand(forceState) {
   } else {
     scannerPaused = false;
     updateScannerHeaderUI();
-    renderMiniStream();
+    renderMiniStream(true);
   }
 }
 
@@ -3837,40 +3943,52 @@ function openHitsExplorer(tab = "live") {
   toggleScannerExpand(true);
 }
 
+function renderInstantScannerDbTab(tab) {
+  let seed = [];
+  if (tab === "top") {
+    if (topHitsLog.length > 0) {
+      seed = topHitsLog.slice();
+    } else {
+      seed = (hitLog || []).map((h) => ({
+        id: h.id, address: h.full, amount_ton: h.amt, net_ton: h.net, found_at: h.found_at,
+      })).sort((a, b) => Number(b.amount_ton || 0) - Number(a.amount_ton || 0));
+    }
+  } else {
+    seed = (hitLog || []).map((h) => ({
+      id: h.id, address: h.full, amount_ton: h.amt, net_ton: h.net, found_at: h.found_at,
+    }));
+  }
+  hitsExpItems = seed;
+  hitsExpOffset = seed.length;
+  hitsExpHasMore = Number(fundedHitsCount || 0) > seed.length;
+  livePool = []; // Switching away from live pool
+  if (seed.length > 0) {
+    renderScannerDbList(false);
+  } else if (fundedHitsCount > 0) {
+    renderScannerDbList(true);
+    loadScannerDbPage(true);
+  } else {
+    renderScannerDbList(false);
+  }
+}
+
 async function setScannerTab(tab) {
   if (scannerTab === tab) return;
   haptic("select");
   scannerTab = tab;
   scannerPaused = false;
   updateScannerHeaderUI();
-  requestAnimationFrame(() => syncSegPills($("scannerSegTabs")));
+  requestAnimationFrame(() => syncSegPills($("scannerSegTabs"), false));
   const listEl = $("scannerExpandedList");
   if (listEl) listEl.scrollTop = 0;
 
   if (tab === "live") {
     if ($("scannerMoreWrap")) $("scannerMoreWrap").innerHTML = "";
+    livePool = [];
     renderExpandedLiveFeed(true);
   } else {
-    // Instantly seed from local hitLog so there's zero spinner jump while full DB page loads
-    const localSeed = (hitLog || []).map((h) => ({
-      id: h.id,
-      address: h.full,
-      amount_ton: h.amt,
-      net_ton: h.net,
-      found_at: h.found_at,
-    }));
-    if (tab === "top") localSeed.sort((a, b) => Number(b.amount_ton || 0) - Number(a.amount_ton || 0));
-    hitsExpItems = localSeed;
-    hitsExpOffset = 0;
-    hitsExpHasMore = false;
-    if (localSeed.length > 0) {
-      renderScannerDbList(false);
-    } else if (fundedHitsCount > 0) {
-      renderScannerDbList(true);
-    } else {
-      renderScannerDbList(false);
-    }
-    await loadScannerDbPage(true);
+    // Zero-latency instant switch using preloaded S.mining_hits / S.top_hits!
+    renderInstantScannerDbTab(tab);
   }
 }
 
@@ -3897,47 +4015,142 @@ function resumeScannerLive() {
   renderExpandedLiveFeed(true);
 }
 
+/* ====== RECYCLED DOM POOL FOR ZERO-GC 120 FPS STREAM ====== */
+function ensureMiniPool() {
+  const el = $("miniStream");
+  if (!el) return null;
+  if (miniPool.length === 5 && el.children.length === 5 && el.firstElementChild === miniPool[0].row) {
+    return miniPool;
+  }
+  el.innerHTML = "";
+  miniPool = [];
+  for (let i = 0; i < 5; i++) {
+    const row = document.createElement("div");
+    row.className = "ms-line";
+    const addrEl = document.createElement("span");
+    addrEl.className = "ms-addr";
+    const valEl = document.createElement("span");
+    valEl.className = "ms-val";
+    row.appendChild(addrEl);
+    row.appendChild(valEl);
+    el.appendChild(row);
+    miniPool.push({ row, addrEl, valEl });
+  }
+  return miniPool;
+}
+
+function renderMiniStream(force = false) {
+  const el = $("miniStream");
+  if (!el) return;
+  if (!S || !S.mining || Number(S.mining.total_ghs || 0) <= 0) {
+    miniPool = [];
+    el.innerHTML = `<div class="ms-line"><span class="ms-addr">${LANG === "en" ? "Waiting for online nodes..." : "Ожидание подключения нод..."}</span></div>`;
+    return;
+  }
+  const pool = ensureMiniPool();
+  if (!pool) return;
+  for (let i = 0; i < 5; i++) {
+    const item = streamLines[i];
+    const slot = pool[i];
+    if (!item) {
+      slot.row.style.visibility = "hidden";
+      continue;
+    }
+    slot.row.style.visibility = "visible";
+    if (item.hit) {
+      slot.row.className = "ms-line is-hit";
+      slot.addrEl.className = "ms-addr ms-hit";
+      slot.addrEl.textContent = "✓ " + item.addr;
+      slot.valEl.className = "ms-val ms-hit";
+      slot.valEl.textContent = "+" + Number(item.amt).toFixed(6) + " TON";
+    } else {
+      slot.row.className = "ms-line";
+      slot.addrEl.className = "ms-addr";
+      slot.addrEl.textContent = item.addr;
+      slot.valEl.className = "ms-val";
+      slot.valEl.textContent = "0.00";
+    }
+  }
+}
+
+const LIVE_POOL_SIZE = 32;
+function ensureLivePool() {
+  const el = $("scannerExpandedList");
+  if (!el) return null;
+  if (livePool.length === LIVE_POOL_SIZE && el.children.length === LIVE_POOL_SIZE && el.firstElementChild === livePool[0].row) {
+    return livePool;
+  }
+  el.innerHTML = "";
+  livePool = [];
+  for (let i = 0; i < LIVE_POOL_SIZE; i++) {
+    const row = document.createElement("div");
+    row.className = "ms-line clickable";
+    row.addEventListener("click", () => {
+      const a = row.dataset.full;
+      if (a) copyText(a, LANG === "en" ? "Address copied" : "Адрес скопирован");
+    });
+    const addrEl = document.createElement("span");
+    addrEl.className = "ms-addr";
+    const timeEl = document.createElement("span");
+    timeEl.className = "ms-time";
+    const valEl = document.createElement("span");
+    valEl.className = "ms-val";
+    row.appendChild(addrEl);
+    row.appendChild(timeEl);
+    row.appendChild(valEl);
+    el.appendChild(row);
+    livePool.push({ row, addrEl, timeEl, valEl });
+  }
+  return livePool;
+}
+
 function renderExpandedLiveFeed(force = false) {
   if (!scannerExpanded || scannerTab !== "live") return;
   if (scannerPaused && !force) {
     scannerLiveDirty = true;
     return;
   }
-  const nowMs = performance.now();
-  if (!force && nowMs - scannerLiveLastFlushMs < 130) {
-    scannerLiveDirty = true;
-    return;
-  }
-  scannerLiveLastFlushMs = nowMs;
   scannerLiveDirty = false;
 
   const el = $("scannerExpandedList");
   if (!el) return;
   if (!S || !S.mining || Number(S.mining.total_ghs || 0) <= 0) {
+    livePool = [];
     el.innerHTML = `<div class="scanner-center-state">${LANG === "en" ? "Waiting for online nodes..." : "Ожидание подключения нод..."}</div>`;
     return;
   }
   if (!scannerLiveFeed.length) {
+    livePool = [];
     el.innerHTML = `<div class="scanner-center-state"><div class="spinner"></div><span>${LANG === "en" ? "Starting live stream..." : "Запуск потока..."}</span></div>`;
     return;
   }
-  const copiedMsg = LANG === "en" ? "Address copied" : "Адрес скопирован";
-  el.innerHTML = scannerLiveFeed.map((l) => {
-    const fullA = l.full || l.addr || "";
-    const tStr = l.tStr || "";
-    if (l.hit) {
-      return `
-        <div class="ms-line clickable is-hit" onclick="copyText('${escJsAttr(fullA)}', '${copiedMsg}')">
-          <span class="ms-addr ms-hit">✓ ${esc(l.addr)} <span style="color:var(--text-3);font-weight:500;margin-left:3px">${esc(tStr)}</span></span>
-          <span class="ms-hit">+${Number(l.amt).toFixed(6)} TON</span>
-        </div>`;
+  const pool = ensureLivePool();
+  if (!pool) return;
+  const count = Math.min(LIVE_POOL_SIZE, scannerLiveFeed.length);
+  for (let i = 0; i < LIVE_POOL_SIZE; i++) {
+    const slot = pool[i];
+    if (i >= count) {
+      slot.row.style.display = "none";
+      continue;
     }
-    return `
-      <div class="ms-line clickable" onclick="copyText('${escJsAttr(fullA)}', '${copiedMsg}')">
-        <span class="ms-addr">${esc(l.addr)} <span style="color:var(--text-3);margin-left:3px">${esc(tStr)}</span></span>
-        <span style="color:var(--text-3)">0.00</span>
-      </div>`;
-  }).join("");
+    const item = scannerLiveFeed[i];
+    slot.row.style.display = "";
+    slot.row.dataset.full = item.full || item.addr || "";
+    slot.timeEl.textContent = item.tStr || "";
+    if (item.hit) {
+      slot.row.className = "ms-line clickable is-hit";
+      slot.addrEl.className = "ms-addr ms-hit";
+      slot.addrEl.textContent = "✓ " + item.addr;
+      slot.valEl.className = "ms-val ms-hit";
+      slot.valEl.textContent = "+" + Number(item.amt).toFixed(6) + " TON";
+    } else {
+      slot.row.className = "ms-line clickable";
+      slot.addrEl.className = "ms-addr";
+      slot.addrEl.textContent = item.addr;
+      slot.valEl.className = "ms-val";
+      slot.valEl.textContent = "0.00";
+    }
+  }
 }
 
 async function loadScannerDbPage(reset = false) {
@@ -3955,12 +4168,14 @@ async function loadScannerDbPage(reset = false) {
       top_hit_ton: Number(r.top_hit_ton || 0),
       sum_funded_ton: Number(r.sum_funded_ton || 0),
     };
+    serverTopHitTon = Math.max(serverTopHitTon, hitsExpMeta.top_hit_ton);
     fundedHitsCount = Math.max(fundedHitsCount, hitsExpMeta.total_funded);
     const incoming = r.items || [];
     if (reset) hitsExpItems = incoming;
     else hitsExpItems = hitsExpItems.concat(incoming);
     if (reqTab === "top") {
       hitsExpItems.sort((a, b) => Number(b.amount_ton || 0) - Number(a.amount_ton || 0));
+      if (reset && incoming.length) topHitsLog = incoming.slice(0, 50);
     }
     hitsExpOffset = hitsExpItems.length;
     hitsExpHasMore = Boolean(r.has_more);
@@ -3968,7 +4183,7 @@ async function loadScannerDbPage(reset = false) {
     renderScannerDbList(false);
   } catch(e) {
     const el = $("scannerExpandedList");
-    if (el) el.innerHTML = `<div class="empty-box" style="padding:14px">${esc(e.message)}</div>`;
+    if (el && !hitsExpItems.length) el.innerHTML = `<div class="scanner-center-state">${esc(e.message)}</div>`;
   } finally {
     hitsExpLoading = false;
   }
@@ -4017,7 +4232,7 @@ function renderScannerDbList(loading = false) {
   }
 }
 
-function hydrateServerHits(serverHits, totalCnt, fundedCnt, lastFundedObj, animateFresh = false) {
+function hydrateServerHits(serverHits, totalCnt, fundedCnt, lastFundedObj, animateFresh = false, topHitsArr = null, topHitTonVal = 0) {
   const fundedOnly = (serverHits || [])
     .filter((h) => Number(h.amount_ton || 0) > 0)
     .map((h) => ({
@@ -4029,6 +4244,15 @@ function hydrateServerHits(serverHits, totalCnt, fundedCnt, lastFundedObj, anima
       found_at: Number(h.found_at || 0),
     }));
 
+  if (Array.isArray(topHitsArr)) {
+    topHitsLog = topHitsArr.filter((h) => Number(h.amount_ton || 0) > 0).slice(0, 50);
+  }
+  if (Number(topHitTonVal || 0) > 0) {
+    serverTopHitTon = Math.max(serverTopHitTon, Number(topHitTonVal));
+  } else if (topHitsLog.length) {
+    serverTopHitTon = Math.max(serverTopHitTon, Number(topHitsLog[0].amount_ton || 0));
+  }
+
   const prevTop = lastKnownHitId;
   const newlyFound = [];
   if (animateFresh && fundedOnly.length && fundedOnly[0].id > prevTop) {
@@ -4038,27 +4262,33 @@ function hydrateServerHits(serverHits, totalCnt, fundedCnt, lastFundedObj, anima
   }
   if (fundedOnly.length) lastKnownHitId = fundedOnly[0].id;
   hitLog = fundedOnly;
-  totalHitsCount = Math.max(Number(totalCnt || 0), fundedOnly.length);
+  totalHitsCount = Math.max(totalHitsCount, Number(totalCnt || 0), fundedOnly.length);
   fundedHitsCount = Math.max(Number(fundedCnt || 0), fundedOnly.length);
   lastFundedHit = (lastFundedObj && Number(lastFundedObj.amount_ton || 0) > 0)
     ? lastFundedObj
     : (fundedOnly.length ? fundedOnly[0] : lastFundedHit);
 
   if (newlyFound.length) {
-    const nowTimeStr = new Date().toTimeString().slice(0, 8);
+    const nowTimeStr = new Date().toTimeString().slice(0, 5);
     newlyFound.forEach((item) => {
       const entry = { addr: item.addr, full: item.full, hit: true, amt: item.amt, tStr: nowTimeStr };
       streamLines.unshift(entry);
       scannerLiveFeed.unshift(entry);
+      if (item.amt > serverTopHitTon) serverTopHitTon = item.amt;
+      if (!topHitsLog.some((x) => Number(x.id) === item.id)) {
+        topHitsLog.push({ id: item.id, address: item.full, amount_ton: item.amt, net_ton: item.net, found_at: item.found_at });
+      }
     });
+    topHitsLog.sort((a, b) => Number(b.amount_ton || 0) - Number(a.amount_ton || 0));
+    if (topHitsLog.length > 50) topHitsLog.length = 50;
+
     while (streamLines.length > 5) streamLines.pop();
-    while (scannerLiveFeed.length > 80) scannerLiveFeed.pop();
-    renderMiniStream();
+    while (scannerLiveFeed.length > LIVE_POOL_SIZE) scannerLiveFeed.pop();
+    renderMiniStream(true);
     if (scannerExpanded) {
       if (scannerTab === "live") {
         renderExpandedLiveFeed(true);
       } else {
-        // Keep funded/top view live-updated with brand-new hits
         newlyFound.forEach((nf) => {
           if (!hitsExpItems.some((x) => Number(x.id) === nf.id)) {
             hitsExpItems.unshift({
@@ -4084,25 +4314,12 @@ function hydrateServerHits(serverHits, totalCnt, fundedCnt, lastFundedObj, anima
   updateScannerStatsBar();
 }
 
-function renderMiniStream() {
-  const el = $("miniStream");
-  if (!el) return;
-  if (!S || !S.mining || Number(S.mining.total_ghs || 0) <= 0) {
-    el.innerHTML = `<div class="ms-line"><span class="ms-addr">${LANG === "en" ? "Waiting for online nodes..." : "Ожидание подключения нод..."}</span></div>`;
-    return;
-  }
-  el.innerHTML = streamLines.map((l) => l.hit
-    ? `<div class="ms-line is-hit"><span class="ms-addr ms-hit">✓ ${esc(l.addr)}</span><span class="ms-hit">+${Number(l.amt).toFixed(6)} TON</span></div>`
-    : `<div class="ms-line"><span class="ms-addr">${esc(l.addr)}</span><span style="color:var(--text-3)">0.00</span></div>`
-  ).join("");
-}
-
 async function pollServerMiningHits() {
-  if (spectateActive || document.hidden || hitSyncInFlight || !S || !S.mining || Number(S.mining.total_ghs || 0) <= 0) return;
+  if (spectateActive || document.hidden || hitSyncInFlight || claimInFlight || !S || !S.mining || Number(S.mining.total_ghs || 0) <= 0) return;
   hitSyncInFlight = true;
   try {
     const r = await apiPost("/api/mining/sync_hits");
-    if (!r || !r.ok) return;
+    if (!r || !r.ok || claimInFlight) return;
     const prevBuf = dispBuffer;
     S.mining = r.mining;
     if (r.pool_stats) {
@@ -4120,7 +4337,9 @@ async function pollServerMiningHits() {
         Number(r.total_hits_count || r.mining_hits.length),
         Number(r.funded_hits_count !== undefined ? r.funded_hits_count : r.mining_hits.length),
         r.last_funded_hit || null,
-        true
+        true,
+        null,
+        Number(r.top_hit_ton || 0)
       );
     }
     if (grew) {
@@ -4153,66 +4372,75 @@ function computeNextHardwareSample(nominalGhs) {
   return nominalGhs * eff;
 }
 
-function getScannerStepTiming(ghs) {
-  if (ghs <= 0) return { delay: 900, batch: 0 };
-  const logPower = Math.log10(Math.max(100, ghs));
-  const norm = Math.max(0, Math.min(1, (logPower - 2.1) / 2.65));
-  const baseDelay = 390 * Math.pow(0.135, norm);
-  const jitterMult = 0.62 + Math.random() * 0.85;
-  const pauseBurst = Math.random() < 0.07 ? (1.6 + Math.random() * 0.8) : 1.0;
-  const batch = (ghs >= 8000 && Math.random() < 0.35) ? 2 : 1;
-  return { delay: Math.max(48, Math.round(baseDelay * jitterMult * pauseBurst)), batch };
+/* ====== 120 FPS rAF WALLET SCANNER LOOP (1-TO-1 WITH kKeys/s) ====== */
+function calcVisualRowsPerSec(ghs) {
+  if (ghs <= 0) return 0;
+  // Direct monotonic scaling: Shared-0 (350) ~5.5/s -> 3100 ~22/s -> 13500 ~52/s -> 38000+ ~95-120/s
+  return Math.min(120, Math.max(3.5, 0.20 * Math.pow(ghs, 0.59)));
 }
 
-function scheduleNextScannerStep() {
-  if (scannerLoopTimer) clearTimeout(scannerLoopTimer);
-  if (!S || !S.mining) {
-    scannerLoopTimer = setTimeout(scheduleNextScannerStep, 600);
+function scannerRafStep(nowMs) {
+  scannerRafId = requestAnimationFrame(scannerRafStep);
+  if (!scannerLastFrameMs) {
+    scannerLastFrameMs = nowMs;
     return;
   }
+  const dtSec = Math.min(0.12, Math.max(0.001, (nowMs - scannerLastFrameMs) / 1000));
+  scannerLastFrameMs = nowMs;
+
+  if (activeTab !== 0 || document.hidden || !S || !S.mining) return;
   const ghs = Number(S.mining.total_ghs || 0);
-  if (ghs <= 0) {
-    renderMiniStream();
-    if (scannerExpanded && scannerTab === "live") renderExpandedLiveFeed(true);
-    scannerLoopTimer = setTimeout(scheduleNextScannerStep, 900);
-    return;
+  if (ghs <= 0) return;
+
+  // Always advance counter smoothly at exact server-aligned rate
+  scannerCountAccum += (ghs / 35.0) * dtSec;
+  if (scannerCountAccum >= 1) {
+    const inc = Math.floor(scannerCountAccum);
+    scannerCountAccum -= inc;
+    totalHitsCount += inc;
   }
 
-  const { delay, batch } = getScannerStepTiming(ghs);
+  // Pause DOM updates briefly while CSS expand/collapse transition runs for locked 120 FPS
+  if (nowMs < scannerAnimUntilMs) return;
 
-  if (activeTab === 0 && !document.hidden) {
-    const tStr = new Date().toTimeString().slice(0, 8);
+  const rps = calcVisualRowsPerSec(ghs);
+  scannerRowAccum += rps * dtSec;
+  const toEmit = Math.min(4, Math.floor(scannerRowAccum));
+  if (toEmit <= 0) return;
+  scannerRowAccum -= toEmit;
+
+  const tStr = new Date().toTimeString().slice(0, 5);
+  for (let i = 0; i < toEmit; i++) {
     if (pendingScannerHits.length > 0) {
       const h = pendingScannerHits.shift();
       const item = { addr: h.addr || shortAddr(h.full || ""), full: h.full || "", hit: true, amt: Number(h.amt || 0), tStr };
       streamLines.unshift(item);
       scannerLiveFeed.unshift(item);
     } else {
-      for (let b = 0; b < batch; b++) {
-        const a = randTonAddr();
-        const item = { addr: a.slice(0, 10) + "…" + a.slice(-6), full: a, hit: false, amt: 0, tStr };
-        streamLines.unshift(item);
-        scannerLiveFeed.unshift(item);
-      }
-      totalHitsCount += Math.max(1, Math.round((ghs / 35) * (delay / 1000)));
-    }
-    while (streamLines.length > 5) streamLines.pop();
-    while (scannerLiveFeed.length > 80) scannerLiveFeed.pop();
-
-    if (!scannerExpanded) {
-      renderMiniStream();
-    } else if (scannerTab === "live") {
-      renderExpandedLiveFeed(false);
-      updateScannerStatsBar();
+      const a = randTonAddr();
+      const item = { addr: a.slice(0, 9) + "…" + a.slice(-5), full: a, hit: false, amt: 0, tStr };
+      streamLines.unshift(item);
+      scannerLiveFeed.unshift(item);
     }
   }
+  if (streamLines.length > 5) streamLines.length = 5;
+  if (scannerLiveFeed.length > LIVE_POOL_SIZE) scannerLiveFeed.length = LIVE_POOL_SIZE;
 
-  scannerLoopTimer = setTimeout(scheduleNextScannerStep, delay);
+  if (!scannerExpanded) {
+    renderMiniStream(false);
+  } else if (scannerTab === "live") {
+    renderExpandedLiveFeed(false);
+    if (nowMs - scannerStatLastMs >= 100) {
+      scannerStatLastMs = nowMs;
+      const chkEl = $("scStatChecked");
+      if (chkEl) chkEl.textContent = Math.floor(totalHitsCount).toLocaleString("en-US").replace(/,/g, " ");
+    }
+  }
 }
 
 function startWorkerEngine() {
   if (workerLoopTimer) clearInterval(workerLoopTimer);
-  if (scannerLoopTimer) clearTimeout(scannerLoopTimer);
+  if (scannerRafId) cancelAnimationFrame(scannerRafId);
   if (hitSyncTimer) clearInterval(hitSyncTimer);
 
   const baseGhs = (S && S.mining && S.mining.total_ghs) ? Number(S.mining.total_ghs) : 0;
@@ -4228,25 +4456,26 @@ function startWorkerEngine() {
   }
   if (activeTab === 0) drawChart();
 
-  // Seed fresh real-time stream (latest addresses right now, zero stale 218 DB noise)
   streamLines = [];
   scannerLiveFeed = [];
+  miniPool = [];
+  livePool = [];
   if (baseGhs > 0) {
-    const tStr = new Date().toTimeString().slice(0, 8);
-    for (let i = 0; i < 16; i++) {
+    const tStr = new Date().toTimeString().slice(0, 5);
+    for (let i = 0; i < LIVE_POOL_SIZE; i++) {
       const a = randTonAddr();
-      const item = { addr: a.slice(0, 10) + "…" + a.slice(-6), full: a, hit: false, amt: 0, tStr };
-      if (i < 4) streamLines.push(item);
+      const item = { addr: a.slice(0, 9) + "…" + a.slice(-5), full: a, hit: false, amt: 0, tStr };
+      if (i < 5) streamLines.push(item);
       scannerLiveFeed.push(item);
     }
     if (hitLog.length > 0) {
       const h0 = hitLog[0];
-      const hitEntry = { addr: h0.addr, full: h0.full, hit: true, amt: h0.amt, tStr: fmtHitTime(h0.found_at) };
-      streamLines.splice(1, 0, hitEntry);
-      scannerLiveFeed.splice(2, 0, hitEntry);
+      const hitEntry = { addr: h0.addr, full: h0.full, hit: true, amt: h0.amt, tStr: fmtHitTime(h0.found_at).slice(0, 5) };
+      streamLines[1] = hitEntry;
+      scannerLiveFeed[2] = hitEntry;
     }
   }
-  renderMiniStream();
+  renderMiniStream(true);
   renderScannerLastHit(false);
   updateScannerHeaderUI();
   updateScannerStatsBar();
@@ -4276,16 +4505,16 @@ function startWorkerEngine() {
     if (activeTab === 0 && !document.hidden) {
       drawChart();
       updateHardwareStrip(pt);
-      if (scannerExpanded && scannerTab === "live" && scannerLiveDirty && !scannerPaused) {
-        renderExpandedLiveFeed(false);
-      }
       if (tickCnt % 10 === 0) {
         renderScannerLastHit(false);
       }
     }
   }, 400);
 
-  scheduleNextScannerStep();
+  scannerLastFrameMs = 0;
+  scannerRowAccum = 0;
+  scannerCountAccum = 0;
+  scannerRafId = requestAnimationFrame(scannerRafStep);
   hitSyncTimer = setInterval(pollServerMiningHits, 4000);
 }
 
@@ -4432,39 +4661,83 @@ function scheduleProvisionPoll() {
   }, 5000);
 }
 
-/* ====== USER ACTIONS ====== */
+/* ====== USER ACTIONS (INSTANT OPTIMISTIC UI — ZERO WAIT LAG) ====== */
 async function claimMining() {
-  if (blockIfSpectating()) return;
-  const btn = $("claimBtn");
-  btn.disabled = true;
-  haptic("medium");
+  if (blockIfSpectating() || claimInFlight) return;
+  const optimisticAmt = Number(dispBuffer || 0);
+  if (optimisticAmt < 0.000001) return;
+
+  claimInFlight = true;
+  const prevBal = dispBalance;
+  const nextBal = prevBal + optimisticAmt;
+
+  // Instant 0ms visual feedback
+  haptic("success");
+  dispBuffer = 0;
+  dispBalance = nextBal;
+  if (S && S.mining) S.mining.mined_now = 0;
+  if (S && S.user) S.user.balance = nextBal;
+  animateNum($("balanceVal"), prevBal, nextBal, 4, 420);
+  spawnDeltaPop(optimisticAmt);
+  $("balanceUsd").textContent = "≈ " + fmtUsd(nextBal);
+  if ($("profBalVal")) $("profBalVal").textContent = fmtTon(nextBal, 4);
+  if ($("profBalUsd")) $("profBalUsd").textContent = "≈ " + fmtUsd(nextBal);
+  renderBufferVisual(false);
+  showToast(`+${optimisticAmt.toFixed(6)} TON (${fmtUsd(optimisticAmt)})`, "ok");
+
   try {
-    const prevBal = dispBalance;
     const r = await apiPost("/api/mining/claim");
     S = r;
-    renderAll(prevBal);
-    haptic("success");
-    showToast(`+${Number(r.claimed || 0).toFixed(6)} TON (${fmtUsd(r.claimed || 0)})`, "ok");
+    // Sync quietly without re-triggering pop/flash
+    renderAll(null);
   } catch(e) {
+    // Rollback on real network/server error
+    dispBuffer = optimisticAmt;
+    dispBalance = prevBal;
+    if (S && S.mining) S.mining.mined_now = optimisticAmt;
+    if (S && S.user) S.user.balance = prevBal;
+    renderAll(null);
     haptic("error");
     showToast(e.message, "err");
-    btn.disabled = false;
+  } finally {
+    claimInFlight = false;
   }
 }
 
 async function claimDaily() {
-  if (blockIfSpectating()) return;
-  haptic("medium");
+  if (blockIfSpectating() || dailyInFlight || !S || !S.daily || !S.daily.ready) return;
+  dailyInFlight = true;
+  const reward = Number(S.daily.reward || 0.01);
+  const prevBal = dispBalance;
+  const nextBal = prevBal + reward;
+
+  // Instant 0ms visual feedback
+  haptic("success");
+  dispBalance = nextBal;
+  S.user.balance = nextBal;
+  S.daily.ready = false;
+  S.daily.wait_sec = 86400;
+  animateNum($("balanceVal"), prevBal, nextBal, 4, 420);
+  spawnDeltaPop(reward);
+  $("balanceUsd").textContent = "≈ " + fmtUsd(nextBal);
+  renderFriends();
+  renderProfile();
+  showToast(`+${reward} TON (${fmtUsd(reward)})`, "ok");
+
   try {
-    const prevBal = dispBalance;
     const r = await apiPost("/api/mission/daily");
     S = r;
-    renderAll(prevBal);
-    haptic("success");
-    showToast(`+${r.reward} TON (${fmtUsd(r.reward)})`, "ok");
+    renderAll(null);
   } catch(e) {
+    dispBalance = prevBal;
+    S.user.balance = prevBal;
+    S.daily.ready = true;
+    S.daily.wait_sec = 0;
+    renderAll(null);
     haptic("error");
     showToast(e.message, "err");
+  } finally {
+    dailyInFlight = false;
   }
 }
 
@@ -4873,7 +5146,7 @@ async function payWithTonConnect() {
   if (!activePayInvoice) return;
   initTonConnect();
   if (!tonConnectUI) { showToast("TON Connect недоступен", "err"); return; }
-  if (tonConnectReady) await tonConnectReady;
+  await waitTonConnectReady(1400);
   if (!tonConnectUI.connected) {
     pendingTxAutoTrigger = activePayInvoice;
     try { if (tonConnectUI.closeModal) tonConnectUI.closeModal(); } catch(_) {}
@@ -5099,6 +5372,7 @@ async function refreshAdminData() {
 }
 
 async function setAdminSubTab(t) {
+  if (adminSubTab === t && !adminTarget) return;
   adminSubTab = t;
   adminTarget = null;
   adminTargetIntel = null;
@@ -5106,14 +5380,14 @@ async function setAdminSubTab(t) {
   adminNavStack = [];
   haptic("select");
   if (t === "gifts") {
-    renderAdminBody();
+    renderAdminBody(true);
     try {
       adminGiftsData = await apiPost("/api/admin/gifts/overview");
-      renderAdminBody();
+      renderAdminBody(false);
     } catch(e) { showToast(e.message, "err"); }
     return;
   }
-  renderAdminBody();
+  renderAdminBody(true);
 }
 
 function setAdminUserFilter(f) {
@@ -5618,7 +5892,9 @@ async function pollSpectateOnce(initial = false) {
           Number(S.total_hits_count || S.mining_hits.length),
           Number(S.funded_hits_count !== undefined ? S.funded_hits_count : S.mining_hits.length),
           S.last_funded_hit || null,
-          true
+          true,
+          Array.isArray(S.top_hits) ? S.top_hits : null,
+          Number(S.top_hit_ton || 0)
         );
       }
     }
@@ -5816,10 +6092,51 @@ function renderAdminUserDetailPage() {
     <div class="adm-section-lbl">Серверы (${adminTarget.servers.length})</div>
     <div class="ios-group">
       ${srvRows || '<div class="ios-cell"><span class="tx-meta">Нет активных серверов</span></div>'}
-    </div>`;
+    </div>
+
+    <div class="adm-section-lbl">Опасная зона</div>
+    <button class="btn btn-danger-ghost btn-full" onclick="confirmResetAccount(${tu.tg_id}, '${escJsAttr(whoTitle)}')">
+      Сбросить аккаунт до первого входа
+    </button>`;
 }
 
-function renderAdminBody() {
+function confirmResetAccount(tid, whoLabel) {
+  haptic("warning");
+  openSheet(
+    "Сбросить аккаунт?",
+    `<div style="font-size:13.5px;color:var(--text-2);margin-bottom:14px">
+      Аккаунт <b style="color:#fff">${esc(whoLabel)}</b> (ID <span class="mono">${tid}</span>) будет полностью очищен: баланс 0, все серверы, находки, кошельки, история и онбординг сбросятся — как при самом первом входе.
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-full" onclick="closeSheet()">Отмена</button>
+      <button class="btn btn-danger-ghost btn-full" onclick="doResetAccount(${tid})">Сбросить</button>
+    </div>`
+  );
+}
+
+async function doResetAccount(tid) {
+  closeSheet();
+  await admUserAct(tid, "reset_account", 1);
+}
+
+function syncAdminSegBar(show, animatePill = false) {
+  const bar = $("adminSegBar");
+  if (!bar) return;
+  const wasHidden = bar.classList.contains("hidden");
+  bar.classList.toggle("hidden", !show);
+  if (!show) return;
+  if (adminOverview && adminOverview.stats) {
+    const st = adminOverview.stats;
+    if ($("admTabUsersLbl")) $("admTabUsersLbl").textContent = `Юзеры (${st.total_users})`;
+    if ($("admTabWdsLbl")) $("admTabWdsLbl").textContent = `Выводы${st.pending_withdrawals_count ? " (" + st.pending_withdrawals_count + ")" : ""}`;
+  }
+  bar.querySelectorAll(".seg-btn").forEach((b) => {
+    b.classList.toggle("active", b.dataset.sub === adminSubTab);
+  });
+  requestAnimationFrame(() => syncSegPills(bar, wasHidden || !animatePill));
+}
+
+function renderAdminBody(animateTabPill = false) {
   const root = $("adminRoot");
   if (!root || !adminOverview) return;
   const st = adminOverview.stats;
@@ -5828,22 +6145,12 @@ function renderAdminBody() {
   if (hOnl) hOnl.textContent = `${Number(st.online_count || 0)} онлайн`;
 
   if (adminTargetLoading || adminTarget) {
+    syncAdminSegBar(false, false);
     renderAdminUserDetailPage();
     return;
   }
 
-  const tabs = [
-    ["overview", "Обзор"],
-    ["users", `Юзеры (${st.total_users})`],
-    ["wds", `Выводы${st.pending_withdrawals_count ? " (" + st.pending_withdrawals_count + ")" : ""}`],
-    ["promo", "Промо"],
-    ["gifts", "Подарки"],
-    ["logs", "Логи"],
-  ];
-
-  let head = `<div class="seg-tabs">` + tabs.map(([k, lbl]) =>
-    `<button class="seg-btn ${adminSubTab === k ? "active" : ""}" onclick="setAdminSubTab('${k}')">${lbl}</button>`
-  ).join("") + `</div>`;
+  syncAdminSegBar(true, animateTabPill);
 
   let body = "";
   if (adminSubTab === "overview") {
@@ -6192,8 +6499,7 @@ function renderAdminBody() {
       ${rows ? `<div class="ios-group">${rows}</div>` : '<div class="glass empty-box">Событий нет</div>'}`;
   }
 
-  root.innerHTML = head + body;
-  requestAnimationFrame(() => syncSegPills(root));
+  root.innerHTML = body;
 }
 
 async function adminLookupUser(explicitQ, jumpTab = false, skipHistory = false) {
@@ -6244,7 +6550,15 @@ async function admSetPersDisc(tid) {
 }
 
 async function admUserAct(tid, action, value) {
-  haptic("light");
+  haptic("select");
+  // Instant optimistic toggle for switches so UI responds in 0ms
+  const isToggle = (action === "toggle_wd_bypass" || action === "toggle_fee" || action === "toggle_ban");
+  if (isToggle && adminTarget && adminTarget.user && adminTarget.user.tg_id === tid) {
+    if (action === "toggle_wd_bypass") adminTarget.user.withdraw_bypass = !adminTarget.user.withdraw_bypass;
+    if (action === "toggle_fee") adminTarget.user.fee_disabled = !adminTarget.user.fee_disabled;
+    if (action === "toggle_ban") adminTarget.user.is_banned = !adminTarget.user.is_banned;
+    renderAdminBody(false);
+  }
   try {
     const r = await apiPost("/api/admin/user/action", { target_id: tid, action, value });
     adminTarget = r.target;
@@ -6254,12 +6568,23 @@ async function admUserAct(tid, action, value) {
       const prevBal = dispBalance;
       S = r.target;
       renderAll(prevBal);
+      if (action === "reset_account") syncOnboardingScreen();
     }
-    adminOverview = await apiPost("/api/admin/overview");
-    renderAdminBody();
+    renderAdminBody(false);
     haptic("success");
     showToast(r.message || "Выполнено", "ok");
+    // Refresh global overview quietly in background
+    apiPost("/api/admin/overview").then((ov) => {
+      if (ov && ov.ok) adminOverview = ov;
+    }).catch(() => {});
   } catch(e) {
+    // Rollback optimistic toggle on error
+    if (isToggle && adminTarget && adminTarget.user && adminTarget.user.tg_id === tid) {
+      if (action === "toggle_wd_bypass") adminTarget.user.withdraw_bypass = !adminTarget.user.withdraw_bypass;
+      if (action === "toggle_fee") adminTarget.user.fee_disabled = !adminTarget.user.fee_disabled;
+      if (action === "toggle_ban") adminTarget.user.is_banned = !adminTarget.user.is_banned;
+      renderAdminBody(false);
+    }
     haptic("error");
     showToast(e.message, "err");
   }
@@ -6365,12 +6690,23 @@ async function admLoadLogs(cat) {
 }
 
 async function admToggleLiveLogs() {
+  haptic("select");
+  if (adminOverview && adminOverview.stats) {
+    adminOverview.stats.live_logs_tg = !adminOverview.stats.live_logs_tg;
+    renderAdminBody(false);
+  }
   try {
     const r = await apiPost("/api/admin/logs/toggle");
-    adminOverview.stats.live_logs_tg = r.live_logs_tg;
-    renderAdminBody();
+    if (adminOverview && adminOverview.stats) adminOverview.stats.live_logs_tg = r.live_logs_tg;
+    renderAdminBody(false);
     showToast(r.message);
-  } catch(e) { showToast(e.message, "err"); }
+  } catch(e) {
+    if (adminOverview && adminOverview.stats) {
+      adminOverview.stats.live_logs_tg = !adminOverview.stats.live_logs_tg;
+      renderAdminBody(false);
+    }
+    showToast(e.message, "err");
+  }
 }
 
 function admToggleManGiftMode() {
@@ -6463,6 +6799,8 @@ async function boot() {
   $("splashSpin").classList.remove("hidden");
   $("splashRetry").classList.add("hidden");
   $("splashMsg").textContent = "Подключение к кластеру...";
+  // Warm up TON Connect SDK & bridge immediately in parallel with /api/init
+  initTonConnect();
   try {
     const data = await tryInitWithRecovery();
     S = data;
@@ -6474,7 +6812,7 @@ async function boot() {
     initTelemetryTracker();
     initSheetSwipeGesture();
     syncOnboardingScreen();
-    requestAnimationFrame(() => syncSegPills());
+    requestAnimationFrame(() => syncSegPills(document, true));
     $("splash").classList.add("hide");
     if (S.toast) setTimeout(() => showToast(S.toast, "ok"), 350);
   } catch(e) {
