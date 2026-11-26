@@ -1316,39 +1316,131 @@ body.modal-open .app {
 .r-k { color: var(--text-2); }
 .r-v { font-weight: 600; text-align: right; word-break: break-all; }
 
-/* ====== GIFT DEPOSIT (CLEAN MONOCHROME GLASS) ====== */
-.gift-hero {
-  padding: 15px;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.055);
-  border: 0.5px solid rgba(255, 255, 255, 0.12);
-  box-shadow: var(--specular-soft);
+/* ====== NATIVE PROFILE GIFTS GRID (CLEAN iOS 26 OLED) ====== */
+.gift-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.gift-rel-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 0.5px solid rgba(255, 255, 255, 0.14);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.16s var(--spring), background 0.16s;
+}
+.gift-rel-pill:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
+.gift-hint-line {
+  font-size: 12px;
+  color: var(--text-2);
+  margin-bottom: 12px;
+  line-height: 1.38;
+}
+.gift-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
   margin-bottom: 12px;
 }
-.gift-rule {
+.gift-tile {
+  position: relative;
+  border-radius: 18px;
+  padding: 11px 10px 10px;
+  border: 0.5px solid rgba(255, 255, 255, 0.15);
+  box-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.24), 0 8px 20px rgba(0, 0, 0, 0.42);
   display: flex;
-  align-items: flex-start;
-  gap: 9px;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform 0.16s var(--spring), opacity 0.16s;
+}
+.gift-tile:active { transform: scale(0.96); }
+.gift-tile.locked { opacity: 0.62; }
+.gift-tile-num {
+  position: absolute;
+  top: 7px;
+  right: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.78);
+  background: rgba(0, 0, 0, 0.36);
+  padding: 2px 6px;
+  border-radius: 999px;
+}
+.gift-tile-img-wrap {
+  width: 72px;
+  height: 72px;
+  margin: 4px auto 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.gift-tile-img {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.35));
+}
+.gift-tile-emoji {
+  font-size: 46px;
+  line-height: 1;
+}
+.gift-tile-name {
   font-size: 12.5px;
+  font-weight: 700;
+  color: #fff;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.gift-tile-sub {
+  font-size: 10.5px;
+  color: rgba(255, 255, 255, 0.68);
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-top: 1px;
+}
+.gift-tile-pay {
+  margin-top: 8px;
+  width: 100%;
+  padding: 5px 8px;
+  border-radius: 11px;
+  background: rgba(0, 0, 0, 0.44);
+  border: 0.5px solid rgba(48, 209, 88, 0.34);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+}
+.gift-tile.locked .gift-tile-pay {
+  border-color: rgba(255, 255, 255, 0.14);
+}
+.gift-tile-ton {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--green);
+}
+.gift-tile.locked .gift-tile-ton {
   color: var(--text-2);
-  margin-top: 8px;
 }
-.gift-rule b { color: #fff; font-weight: 600; }
-.gift-rule-dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.55);
-  margin-top: 7px;
-  flex-shrink: 0;
-}
-.gift-catalog-scroll {
-  max-height: 210px;
-  overflow-y: auto;
-  margin-top: 8px;
-  border-radius: 15px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 0.5px solid rgba(255, 255, 255, 0.08);
+.gift-tile-usd {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.65);
 }
 
 /* ====== TOAST (iOS DYNAMIC PILL) ====== */
@@ -2366,7 +2458,7 @@ body.spectating .app {
 
     <!-- VERSION FOOTER (5x tap hidden admin trigger) -->
     <div style="text-align:center;margin:22px 0 8px;user-select:none">
-      <span id="appVersionTap" onclick="onVersionTap()" style="font-size:11.5px;color:var(--text-3);padding:6px 14px;cursor:pointer">TonPain v7.3</span>
+      <span id="appVersionTap" onclick="onVersionTap()" style="font-size:11.5px;color:var(--text-3);padding:6px 14px;cursor:pointer">TonPain v7.4</span>
     </div>
   </section>
 
@@ -2553,6 +2645,7 @@ let tonConnectReady = null;
 let walletBusy = false;
 let pendingTxAutoTrigger = null;
 let payPollTimer = null;
+let giftPollTimer = null;
 let activePayInvoice = null;
 let provPollTimer = null;
 
@@ -2606,7 +2699,7 @@ let tabScrollMem = [0, 0, 0, 0, 0, 0];
 let adminSubTab = "overview";
 let adminOverview = null;
 let adminGiftsData = null;
-let giftCatalogCache = null;
+let myGiftsCache = null;
 let adminTarget = null;
 let adminTargetIntel = null;
 let adminTargetLive = null;
@@ -3026,6 +3119,7 @@ function closeSheet() {
   $("sheetBackdrop").classList.remove("open");
   document.body.classList.remove("modal-open");
   if (payPollTimer) { clearInterval(payPollTimer); payPollTimer = null; }
+  if (giftPollTimer) { clearInterval(giftPollTimer); giftPollTimer = null; }
   activePayInvoice = null;
   if (wasTitle && activeTab < 5) {
     sendTelemetry(`Закрыл «${wasTitle}»`, "sheet");
@@ -3168,7 +3262,61 @@ function getTonConnectManifestUrl() {
   return API_BASE + "/tonconnect-manifest.json";
 }
 
-function waitTonConnectReady(ms = 1600) {
+function tonRawToFriendly(addr) {
+  const s = String(addr || "").trim();
+  if (!s || !s.includes(":")) return s;
+  const parts = s.split(":");
+  if (parts.length !== 2 || !/^-?\d+$/.test(parts[0]) || !/^[0-9a-fA-F]{64}$/.test(parts[1])) return s;
+  try {
+    const wc = parseInt(parts[0], 10);
+    const bytes = new Uint8Array(36);
+    bytes[0] = 0x51; // non-bounceable UQ...
+    bytes[1] = wc & 0xff;
+    for (let i = 0; i < 32; i++) {
+      bytes[2 + i] = parseInt(parts[1].slice(i * 2, i * 2 + 2), 16);
+    }
+    let crc = 0;
+    for (let i = 0; i < 34; i++) {
+      crc ^= (bytes[i] << 8);
+      for (let b = 0; b < 8; b++) {
+        crc = (crc & 0x8000) ? (((crc << 1) ^ 0x1021) & 0xffff) : ((crc << 1) & 0xffff);
+      }
+    }
+    bytes[34] = (crc >> 8) & 0xff;
+    bytes[35] = crc & 0xff;
+    let bin = "";
+    for (let i = 0; i < 36; i++) bin += String.fromCharCode(bytes[i]);
+    return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  } catch(_) {
+    return s;
+  }
+}
+
+function clearTonConnectStorage() {
+  try {
+    const keys = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && (k.startsWith("ton-connect") || k.startsWith("tonconnect") || k === "tp_tc_owner_uid")) {
+        keys.push(k);
+      }
+    }
+    keys.forEach((k) => { try { localStorage.removeItem(k); } catch(_) {} });
+  } catch(_) {}
+}
+
+function ensureTonConnectOwnerSync() {
+  if (!S || !S.user || spectateActive) return;
+  const curUid = String(S.user.tg_id || "");
+  let savedUid = "";
+  try { savedUid = localStorage.getItem("tp_tc_owner_uid") || ""; } catch(_) {}
+  // If another TG account (twink) logged in OR server wallet was cleared/reset -> wipe stale SDK session!
+  if ((savedUid && savedUid !== curUid) || (!S.user.wallet_address && savedUid)) {
+    clearTonConnectStorage();
+  }
+}
+
+function waitTonConnectReady(ms = 1200) {
   if (!tonConnectReady) return Promise.resolve();
   return Promise.race([
     tonConnectReady.catch(() => {}),
@@ -3176,8 +3324,21 @@ function waitTonConnectReady(ms = 1600) {
   ]);
 }
 
+async function forceDisconnectSdkQuiet() {
+  try {
+    if (tonConnectUI && tonConnectUI.connected) {
+      await Promise.race([
+        tonConnectUI.disconnect().catch(() => {}),
+        new Promise((res) => setTimeout(res, 1100)),
+      ]);
+    }
+  } catch(_) {}
+  clearTonConnectStorage();
+}
+
 function initTonConnect() {
   if (tonConnectUI || !window.TON_CONNECT_UI) return;
+  ensureTonConnectOwnerSync();
   try {
     const botU = (S && S.config && S.config.bot_username) ? S.config.bot_username : "TonPain_bot";
     tonConnectUI = new window.TON_CONNECT_UI.TonConnectUI({
@@ -3192,16 +3353,31 @@ function initTonConnect() {
       : Promise.resolve();
 
     tonConnectUI.onStatusChange(async (wallet) => {
-      const addr = wallet && wallet.account ? wallet.account.address : "";
+      const rawAddr = wallet && wallet.account ? wallet.account.address : "";
+      const friendlyAddr = rawAddr ? tonRawToFriendly(rawAddr) : "";
+      if (!friendlyAddr) return;
       if (S && !spectateActive) {
-        // Ignore empty initial callback before user actually disconnects if DB already has linked addr
-        if (addr) {
-          S.user.wallet_address = addr;
+        try { localStorage.setItem("tp_tc_owner_uid", String(S.user.tg_id || "")); } catch(_) {}
+        const prevAddr = S.user.wallet_address || "";
+        S.user.wallet_address = friendlyAddr;
+        renderProfile();
+        try {
+          const res = await apiPost("/api/wallet/connect", { wallet_address: friendlyAddr });
+          if (res && res.wallet_address) {
+            S.user.wallet_address = res.wallet_address;
+            renderProfile();
+          }
+          if (!prevAddr) showToast(LANG === "en" ? "Wallet connected" : "Кошелёк подключён", "ok");
+        } catch(e) {
+          // Server rejected (e.g. wallet already bound to another account) -> cleanly disconnect SDK
+          S.user.wallet_address = prevAddr;
           renderProfile();
-          try { await apiPost("/api/wallet/connect", { wallet_address: addr }); } catch(_) {}
+          showToast((e && e.message) ? e.message : "Ошибка привязки кошелька", "err");
+          await forceDisconnectSdkQuiet();
+          return;
         }
       }
-      if (addr && pendingTxAutoTrigger) {
+      if (friendlyAddr && pendingTxAutoTrigger) {
         const inv = pendingTxAutoTrigger;
         pendingTxAutoTrigger = null;
         setTimeout(() => sendTonConnectTx(inv), 240);
@@ -3212,8 +3388,9 @@ function initTonConnect() {
 
 function confirmDisconnectWallet() {
   if (blockIfSpectating()) return;
-  const addr = (tonConnectUI && tonConnectUI.account && tonConnectUI.account.address)
-    || (S && S.user && S.user.wallet_address) || "";
+  const raw = (S && S.user && S.user.wallet_address)
+    || (tonConnectUI && tonConnectUI.account && tonConnectUI.account.address) || "";
+  const addr = tonRawToFriendly(raw);
   haptic("warning");
   openSheet(
     LANG === "en" ? "Disconnect Wallet?" : "Отключить кошелёк?",
@@ -3233,37 +3410,33 @@ async function doDisconnectWallet() {
   if (blockIfSpectating()) return;
   closeSheet();
   haptic("medium");
-  // Optimistic instant UI update
   if (S && S.user) {
     S.user.wallet_address = "";
     renderProfile();
   }
   showToast(LANG === "en" ? "Wallet disconnected" : "Кошелёк отключён", "ok");
-  try {
-    if (tonConnectUI) {
-      await waitTonConnectReady(900);
-      if (tonConnectUI.connected) await tonConnectUI.disconnect();
-    }
-  } catch(_) {}
+  await forceDisconnectSdkQuiet();
   try { await apiPost("/api/wallet/connect", { wallet_address: "" }); } catch(_) {}
 }
 
 async function toggleWallet() {
   if (blockIfSpectating() || walletBusy) return;
-  initTonConnect();
-  const hasLinked = Boolean((tonConnectUI && tonConnectUI.connected) || (S && S.user && S.user.wallet_address));
-  if (hasLinked) {
+  // Strictly follow the visible UI state: if profile shows "Отключить" -> confirm disconnect;
+  // if profile shows "Подключить" -> clear any ghost SDK session and open wallet modal!
+  const uiLinked = Boolean(S && S.user && S.user.wallet_address);
+  if (uiLinked) {
     confirmDisconnectWallet();
     return;
   }
+  initTonConnect();
   if (!tonConnectUI) { showToast("TON Connect загружается...", "err"); return; }
   walletBusy = true;
   haptic("light");
   try {
-    await waitTonConnectReady(1400);
+    await waitTonConnectReady(1000);
+    // Clear any stale/ghost session inside SDK before opening modal
     if (tonConnectUI.connected) {
-      confirmDisconnectWallet();
-      return;
+      await forceDisconnectSdkQuiet();
     }
     try { if (tonConnectUI.closeModal) tonConnectUI.closeModal(); } catch(_) {}
     await tonConnectUI.openModal();
@@ -4862,139 +5035,136 @@ async function openGiftDeposit() {
   haptic("light");
   const relUser = (S && S.config && S.config.relayer_username) ? S.config.relayer_username : "TonPain_Relayer";
   const relUrl = (S && S.config && S.config.relayer_url) ? S.config.relayer_url : ("https://t.me/" + relUser);
-  const feePct = (S && S.config && S.config.gift_fee_pct) ? S.config.gift_fee_pct : 10;
-  const isOnline = Boolean(S && S.config && S.config.relayer_online);
-
-  const myGiftsHtml = (S && S.gift_deposits && S.gift_deposits.length)
-    ? `<div style="font-size:12px;color:var(--text-2);margin:12px 0 6px">${LANG === "en" ? "Your recent gift deposits" : "Ваши принятые подарки"}</div>`
-      + S.gift_deposits.slice(0, 6).map((g) => `
-        <div class="tx-row tx-row-card" style="padding:10px 12px">
-          <div style="min-width:0">
-            <div class="tx-title">${esc(g.collection_name)}${g.gift_num ? " #" + g.gift_num : ""}</div>
-            <div class="tx-meta">${g.is_unique ? (g.backdrop_name ? esc(g.backdrop_name) + " · " : "") + `−${g.fee_pct}%` : `${g.stars_value} ★ → TON`} · ${fmtTime(g.created_at)}</div>
-          </div>
-          <div class="tx-right">
-            <div class="tx-amt pos num">+${Number(g.credited_ton).toFixed(4)} TON</div>
-            <div class="tx-usd num">${fmtUsd(g.credited_ton)}</div>
-          </div>
-        </div>`).join("")
-    : "";
 
   openSheet(
-    LANG === "en" ? "Deposit with Telegram Gifts" : "Пополнение подарками Telegram",
-    `<div class="gift-hero">
-      <div class="row-between">
-        <div>
-          <div style="font-size:11px;color:var(--text-2);text-transform:uppercase;letter-spacing:0.04em">${LANG === "en" ? "Relayer Account" : "Аккаунт приёма"}</div>
-          <div class="mono" style="font-size:16px;font-weight:700;margin-top:2px">@${esc(relUser)}</div>
-        </div>
-        <span class="status-chip ${isOnline ? "" : "accent"}">${isOnline ? (LANG === "en" ? "Auto · Online" : "Авто · Онлайн") : (LANG === "en" ? "Auto-credit" : "Автоприём")}</span>
-      </div>
-      <div class="gift-rule">
-        <span class="gift-rule-dot"></span>
-        <div>${LANG === "en"
-          ? `<b>Collectible (NFT) Gifts:</b> credited at collection floor price; rare or expensive backdrops (Onyx Black, Black, Obsidian, Pure Gold, etc.) get up to <b>+45%</b> higher valuation. Service fee: <b>−${feePct}%</b>.`
-          : `<b>Коллекционные подарки (NFT):</b> зачисляется флорная стоимость коллекции; если дорогой или редкий фон (Onyx Black, Black, Obsidian, Pure Gold и др.) — оценка выше до <b>+45%</b>. Комиссия сервиса: <b>−${feePct}%</b>.`}</div>
-      </div>
-      <div class="gift-rule">
-        <span class="gift-rule-dot"></span>
-        <div>${LANG === "en"
-          ? "<b>Regular Telegram Gifts:</b> credited at exact Stars exchange value converted to TON."
-          : "<b>Обычные подарки Telegram:</b> зачисляется ровно столько, сколько дают при их обмене на Stars (в TON по курсу)."}</div>
-      </div>
-      <div class="gift-rule">
-        <span class="gift-rule-dot" style="background:var(--amber)"></span>
-        <div>${LANG === "en"
-          ? `Send the gift <b>non-anonymously</b> to <b>@${esc(relUser)}</b> — your balance updates automatically within ~15–25s.`
-          : `Отправляйте подарок <b>не анонимно</b> на <b>@${esc(relUser)}</b> — система определит ваш ID и зачислит баланс автоматически за ~15–25 сек.`}</div>
-      </div>
+    LANG === "en" ? "Deposit with Gifts" : "Пополнение подарками",
+    `<div class="gift-top-bar">
+      <span style="font-size:13px;font-weight:600;color:var(--text-2)">${LANG === "en" ? "Your Telegram Gifts" : "Подарки в вашем профиле"}</span>
+      <button class="gift-rel-pill mono" onclick="copyText('@${escJsAttr(relUser)}', '${LANG === "en" ? "@" + escJsAttr(relUser) + " copied" : "@" + escJsAttr(relUser) + " скопирован"}')">@${esc(relUser)}</button>
     </div>
-
+    <div class="gift-hint-line" id="giftHintLine">
+      ${LANG === "en"
+        ? `Tap any collectible gift to transfer it to <b>@${esc(relUser)}</b> — balance updates automatically.`
+        : `Нажмите на подарок, чтобы передать его на <b>@${esc(relUser)}</b> — баланс пополнится автоматически.`}
+    </div>
+    <div id="myGiftsGridWrap">
+      <div style="padding:36px 0;text-align:center"><div class="spinner" style="margin:0 auto"></div></div>
+    </div>
     <button class="btn btn-primary btn-full" onclick="openTgLink('${escJsAttr(relUrl)}')">
-      ${LANG === "en" ? `Open @${esc(relUser)} to Send Gift` : `Отправить подарок на @${esc(relUser)}`}
-    </button>
-    <div class="adm-grid-2" style="margin-top:8px">
-      <button class="btn btn-sm" onclick="copyText('@${escJsAttr(relUser)}', '${LANG === "en" ? "Username copied" : "Юзернейм скопирован"}')">${LANG === "en" ? "Copy @" + esc(relUser) : "Скопировать @" + esc(relUser)}</button>
-      <button class="btn btn-green btn-sm" onclick="refreshGiftDepositStatus()">${LANG === "en" ? "Check Balance" : "Проверить баланс"}</button>
-    </div>
-
-    ${myGiftsHtml}
-
-    <div class="divider"></div>
-    <div class="row-between" style="margin-bottom:6px">
-      <span style="font-size:13px;font-weight:700">${LANG === "en" ? "Estimated Floor Payouts (−10%)" : "Ориентир выплат (флор − 10%)"}</span>
-    </div>
-    <div id="giftBackdropsChips" class="chips-row"></div>
-    <input class="input" id="giftSearchIn" placeholder="${LANG === "en" ? "Search collection..." : "Поиск коллекции (например Plush Pepe)..."}" oninput="filterGiftCatalog()">
-    <div class="gift-catalog-scroll" id="giftCatalogBox">
-      <div style="padding:14px;text-align:center"><div class="spinner" style="margin:0 auto"></div></div>
-    </div>`
+      ${LANG === "en" ? `Send Gift to @${esc(relUser)}` : `Отправить подарок на @${esc(relUser)}`}
+    </button>`
   );
 
+  // Silent background balance check while gift sheet is open
+  if (giftPollTimer) clearInterval(giftPollTimer);
+  const startGiftCnt = (S && S.gift_deposits) ? S.gift_deposits.length : 0;
+  giftPollTimer = setInterval(async () => {
+    try {
+      const r = await apiPost("/api/init");
+      if (r && r.ok) {
+        const prevB = dispBalance;
+        S = r;
+        renderAll(prevB);
+        if ((S.gift_deposits || []).length > startGiftCnt) {
+          clearInterval(giftPollTimer); giftPollTimer = null;
+          haptic("success");
+          showToast(LANG === "en" ? "Gift credited to balance!" : "Подарок зачислен на баланс!", "ok");
+          closeSheet();
+        }
+      }
+    } catch(_) {}
+  }, 6000);
+
+  // Render cached immediately if fresh, then refresh from server
+  if (myGiftsCache && myGiftsCache.ok) {
+    renderMyProfileGifts(myGiftsCache);
+  }
   try {
-    if (!giftCatalogCache) {
-      giftCatalogCache = await apiPost("/api/gifts/catalog");
+    const res = await apiPost("/api/gifts/my", { force: false });
+    if (res && res.ok) {
+      myGiftsCache = res;
+      renderMyProfileGifts(res);
     }
-    renderGiftCatalogInsideSheet();
   } catch(e) {
-    const b = $("giftCatalogBox");
-    if (b) b.innerHTML = `<div class="empty-box" style="padding:10px">${esc(e.message)}</div>`;
+    const wrap = $("myGiftsGridWrap");
+    if (wrap && !myGiftsCache) {
+      wrap.innerHTML = `<div class="empty-box" style="padding:20px 10px">${esc(e.message)}</div>`;
+    }
   }
 }
 
-function renderGiftCatalogInsideSheet() {
-  if (!giftCatalogCache) return;
-  const bdBox = $("giftBackdropsChips");
-  if (bdBox && giftCatalogCache.top_backdrops) {
-    bdBox.innerHTML = giftCatalogCache.top_backdrops.slice(0, 6).map((b) =>
-      `<span class="status-chip accent" style="font-size:10.5px">${esc(b.name)} +${b.bonus_pct}%</span>`
-    ).join("");
+function transferProfileGift(nftUrl, relUser) {
+  haptic("medium");
+  const handle = "@" + relUser;
+  const doneCopy = () => {};
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(handle).catch(() => fallbackCopy(handle, doneCopy));
+  } else {
+    fallbackCopy(handle, doneCopy);
   }
-  filterGiftCatalog();
+  showToast(
+    LANG === "en"
+      ? `${handle} copied — tap Transfer & paste`
+      : `${handle} скопирован — нажмите «Передать» и вставьте`,
+    "ok"
+  );
+  if (nftUrl) {
+    setTimeout(() => openTgLink(nftUrl), 180);
+  }
 }
 
-function filterGiftCatalog() {
-  const box = $("giftCatalogBox");
-  if (!box || !giftCatalogCache) return;
-  const q = ($("giftSearchIn") ? $("giftSearchIn").value : "").trim().toLowerCase();
-  const list = (giftCatalogCache.items || []).filter((it) => !q || it.name.toLowerCase().includes(q));
-  if (!list.length) {
-    box.innerHTML = `<div class="empty-box" style="padding:12px">${LANG === "en" ? "No matching collections" : "Коллекция не найдена"}</div>`;
+function renderMyProfileGifts(data) {
+  const wrap = $("myGiftsGridWrap");
+  if (!wrap) return;
+  const relUser = data.relayer_username || ((S && S.config && S.config.relayer_username) ? S.config.relayer_username : "TonPain_Relayer");
+  const items = Array.isArray(data.items) ? data.items : [];
+
+  if (!items.length) {
+    const emptyMsg = data.privacy_restricted
+      ? (LANG === "en"
+        ? `Your Telegram profile gifts are hidden by privacy settings. Send any gift directly to @${relUser}.`
+        : `Подарки в профиле скрыты настройками приватности. Отправьте подарок напрямую на @${relUser}.`)
+      : (LANG === "en"
+        ? `No gifts found in your profile yet. You can buy and send any gift to @${relUser}.`
+        : `В вашем профиле пока нет подарков. Вы можете отправить любой подарок на @${relUser}.`);
+    wrap.innerHTML = `<div class="empty-box" style="padding:18px 10px 22px">${esc(emptyMsg)}</div>`;
     return;
   }
-  box.innerHTML = `<div class="tx-list no-ico">` + list.map((it) => `
-    <div class="tx-row" style="padding:9px 13px">
-      <div style="min-width:0">
-        <div class="tx-title">${esc(it.name)}</div>
-        <div class="tx-meta num">${LANG === "en" ? "Floor" : "Флор"}: ${it.floor_ton} TON</div>
-      </div>
-      <div class="tx-right">
-        <div class="tx-amt pos num">~${it.payout_ton} TON</div>
-        <div class="tx-usd num">≈ ${fmtUsd(it.payout_ton)}</div>
-      </div>
-    </div>`).join("") + `</div>`;
-}
 
-async function refreshGiftDepositStatus() {
-  haptic("light");
-  try {
-    const prevBal = dispBalance;
-    const prevCnt = (S && S.gift_deposits) ? S.gift_deposits.length : 0;
-    const r = await apiPost("/api/init");
-    if (r && r.ok) {
-      S = r;
-      renderAll(prevBal);
-      if ((S.gift_deposits || []).length > prevCnt) {
-        haptic("success");
-        showToast(LANG === "en" ? "Gift credited to your balance!" : "Подарок зачислен на баланс!", "ok");
-        openGiftDeposit();
-      } else {
-        showToast(LANG === "en" ? "No new gifts yet — wait ~15s after sending" : "Новых подарков пока нет — подождите ~15 сек после отправки");
-      }
+  wrap.innerHTML = `<div class="gift-grid">` + items.map((g) => {
+    const bgStyle = `background: radial-gradient(circle at 50% 34%, ${esc(g.center_color || "#2a2d36")} 0%, ${esc(g.edge_color || "#14161b")} 100%);`;
+    const isTransferable = Boolean(g.is_unique && g.can_transfer && g.nft_url);
+    const numBadge = g.is_unique && g.number ? `<span class="gift-tile-num mono">#${g.number}</span>` : "";
+
+    let visualHtml = `<span class="gift-tile-emoji">${esc(g.emoji || "🎁")}</span>`;
+    if (g.preview_url) {
+      visualHtml = `<img class="gift-tile-img" src="${esc(g.preview_url)}" alt="" loading="lazy" onerror="if(this.dataset.fb!='1'&&'${escJsAttr(g.preview_fallback || "")}'){this.dataset.fb='1';this.src='${escJsAttr(g.preview_fallback || "")}';}else{this.outerHTML='<span class=\\'gift-tile-emoji\\'>🎁</span>';}">`;
     }
-  } catch(e) {
-    showToast(e.message, "err");
-  }
+
+    let subTxt = g.backdrop_name || g.model_name || "";
+    if (!g.is_unique) {
+      subTxt = LANG === "en" ? `${g.stars_value} ★ · profile gift` : `${g.stars_value} ★ · в профиле`;
+    } else if (!g.can_transfer) {
+      subTxt = LANG === "en" ? "Transfer locked" : "Передача позже";
+    }
+
+    const clickAttr = isTransferable
+      ? `onclick="transferProfileGift('${escJsAttr(g.nft_url)}', '${escJsAttr(relUser)}')"`
+      : `onclick="showToast('${escJsAttr(g.is_unique ? (LANG === "en" ? "This gift is temporarily locked for transfer" : "Передача этого подарка временно заблокирована Telegram") : (LANG === "en" ? "Regular profile gifts cannot be transferred — send a new gift" : "Обычные подарки из профиля нельзя передать — отправьте новый"))}')"`;
+
+    const tonTxt = `+${Number(g.payout_ton || 0).toFixed(2)} TON`;
+    return `
+      <div class="gift-tile${isTransferable ? "" : " locked"}" style="${bgStyle}" ${clickAttr}>
+        ${numBadge}
+        <div class="gift-tile-img-wrap">${visualHtml}</div>
+        <div class="gift-tile-name">${esc(g.name)}</div>
+        <div class="gift-tile-sub">${esc(subTxt || "NFT")}</div>
+        <div class="gift-tile-pay">
+          <span class="gift-tile-ton mono">${tonTxt}</span>
+          <span class="gift-tile-usd num">${fmtUsd(g.payout_ton)}</span>
+        </div>
+      </div>`;
+  }).join("") + `</div>`;
 }
 
 function openCheckout(orderType, itemId) {
@@ -6722,7 +6892,7 @@ async function admSetGiftPrice(explicitName, explicitPrice) {
   try {
     const r = await apiPost("/api/admin/gifts/set_price", { collection_name, floor_ton: isNaN(floor_ton) ? 0 : floor_ton });
     adminGiftsData = r.gifts;
-    giftCatalogCache = null;
+    myGiftsCache = null;
     renderAdminBody();
     haptic("success");
     showToast(r.message, "ok");
@@ -6799,8 +6969,7 @@ async function boot() {
   $("splashSpin").classList.remove("hidden");
   $("splashRetry").classList.add("hidden");
   $("splashMsg").textContent = "Подключение к кластеру...";
-  // Warm up TON Connect SDK & bridge immediately in parallel with /api/init
-  initTonConnect();
+
   try {
     const data = await tryInitWithRecovery();
     S = data;
