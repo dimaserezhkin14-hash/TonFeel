@@ -211,12 +211,13 @@ body.modal-open .app {
   line-height: 1.18;
 }
 .user-chip-sub {
-  display: flex;
-  align-items: center;
-  gap: 5px;
   font-size: 11px;
   color: var(--text-2);
-  line-height: 1.18;
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 148px;
 }
 .dot-live {
   width: 6px;
@@ -1497,18 +1498,23 @@ body.spectating .app {
   max-width: 424px;
   z-index: 95;
   border-radius: 20px;
-  background: rgba(20, 20, 23, 0.86);
+  background: rgba(18, 18, 21, 0.90);
   backdrop-filter: blur(36px) saturate(200%);
   -webkit-backdrop-filter: blur(36px) saturate(200%);
   border: 0.5px solid rgba(255, 255, 255, 0.22);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.26), 0 16px 40px rgba(0, 0, 0, 0.76);
   padding: 8px 10px;
+  transition: border-color 0.26s ease, box-shadow 0.26s ease;
+}
+.spectate-bar.control-mode {
+  border-color: rgba(255, 159, 10, 0.48);
+  box-shadow: inset 0 1px 0 rgba(255, 159, 10, 0.26), 0 16px 40px rgba(0, 0, 0, 0.78);
 }
 .spectate-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 6px;
 }
 .spectate-who {
   display: flex;
@@ -1518,7 +1524,7 @@ body.spectating .app {
   flex: 1;
 }
 .spectate-name {
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 700;
   color: #fff;
   white-space: nowrap;
@@ -1526,7 +1532,7 @@ body.spectating .app {
   text-overflow: ellipsis;
 }
 .spectate-sub {
-  font-size: 10.5px;
+  font-size: 10px;
   color: var(--text-2);
   white-space: nowrap;
   overflow: hidden;
@@ -1535,32 +1541,38 @@ body.spectating .app {
 .spectate-ctrls {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   flex-shrink: 0;
 }
 .sp-btn {
-  height: 28px;
-  padding: 0 9px;
+  height: 27px;
+  padding: 0 8px;
   border-radius: 999px;
   border: 0.5px solid rgba(255, 255, 255, 0.16);
   background: rgba(255, 255, 255, 0.09);
   color: #fff;
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
-  transition: transform 0.16s var(--spring), background 0.16s;
+  transition: transform 0.16s var(--spring-ios), background 0.16s, border-color 0.16s, color 0.16s;
 }
-.sp-btn:active { transform: scale(0.93); }
+.sp-btn:active { transform: scale(0.92); }
 .sp-btn.on {
   background: var(--green-soft);
   border-color: rgba(48, 209, 88, 0.38);
   color: var(--green);
 }
+.sp-btn.ctrl-on {
+  background: var(--amber-soft);
+  border-color: rgba(255, 159, 10, 0.45);
+  color: var(--amber);
+}
 .sp-btn.exit {
   background: var(--red-soft);
   border-color: rgba(255, 69, 58, 0.34);
   color: var(--red);
+  padding: 0 9px;
 }
 .spectate-sheet-banner {
   margin-top: 6px;
@@ -1577,25 +1589,166 @@ body.spectating .app {
   gap: 6px;
 }
 .spectate-log-drawer {
-  margin-top: 7px;
-  padding-top: 7px;
+  margin-top: 8px;
+  padding-top: 8px;
   border-top: 0.5px solid rgba(255, 255, 255, 0.10);
-  max-height: 185px;
+  max-height: 220px;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
+  padding-right: 2px;
 }
 .radar-ev {
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 0.5px solid rgba(255, 255, 255, 0.09);
+  font-size: 11.5px;
+  line-height: 1.35;
+}
+.radar-ev-txt {
+  color: var(--text);
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  min-width: 0;
+  flex: 1;
+}
+.radar-ev-ts {
+  font-size: 10px;
+  color: var(--text-3);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* ====== FIRST-TIME ONBOARDING OVERLAY (iOS 26 OLED + LIQUID GLASS) ====== */
+.onb-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 110;
+  background:
+    radial-gradient(95% 44% at 50% -4%, rgba(255, 255, 255, 0.085) 0%, transparent 72%),
+    #000000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: calc(20px + var(--safe-t)) 18px calc(24px + var(--safe-b));
+  overflow-y: auto;
+  opacity: 0;
+  transform: scale(1.03);
+  pointer-events: none;
+  transition: opacity 0.34s ease, transform 0.42s var(--spring-ios);
+}
+.onb-overlay.open {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+.onb-inner {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.onb-hero {
+  text-align: center;
+  padding: 6px 4px 2px;
+}
+.onb-logo {
+  width: 58px;
+  height: 58px;
+  margin: 0 auto 12px;
+  border-radius: 18px;
+  background: linear-gradient(155deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.04) 100%);
+  border: 0.5px solid rgba(255, 255, 255, 0.22);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.34), 0 12px 30px rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 6px 9px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.045);
-  border: 0.5px solid rgba(255, 255, 255, 0.08);
-  font-size: 11px;
+  justify-content: center;
+}
+.onb-title {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+}
+.onb-sub {
+  font-size: 13.5px;
+  color: var(--text-2);
+  margin-top: 6px;
+  line-height: 1.4;
+}
+.onb-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.onb-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 13px 14px;
+  border-radius: 18px;
+  background: linear-gradient(165deg, rgba(40, 40, 44, 0.72) 0%, rgba(20, 20, 23, 0.86) 100%);
+  border: 0.5px solid rgba(255, 255, 255, 0.11);
+  box-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.22);
+  opacity: 0;
+  transform: translate3d(0, 12px, 0);
+  transition: opacity 0.38s ease, transform 0.42s var(--spring-ios);
+}
+.onb-overlay.open .onb-card {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+.onb-overlay.open .onb-card:nth-child(2) { transition-delay: 70ms; }
+.onb-overlay.open .onb-card:nth-child(3) { transition-delay: 140ms; }
+.onb-card.gift {
+  border-color: rgba(48, 209, 88, 0.30);
+  background: linear-gradient(165deg, rgba(48, 209, 88, 0.11) 0%, rgba(20, 22, 21, 0.88) 100%);
+}
+.onb-ico {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 0.5px solid rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #fff;
+}
+.onb-card.gift .onb-ico {
+  background: rgba(48, 209, 88, 0.16);
+  border-color: rgba(48, 209, 88, 0.32);
+  color: var(--green);
+}
+.onb-card-t {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: #fff;
+}
+.onb-card-d {
+  font-size: 12.5px;
+  color: var(--text-2);
+  margin-top: 2px;
+  line-height: 1.38;
+}
+.onb-cta {
+  height: 52px;
+  font-size: 15px;
+  font-weight: 700;
+  margin-top: 4px;
 }
 .radar-ev.tap { border-color: rgba(10, 132, 255, 0.30); background: rgba(10, 132, 255, 0.09); }
 .radar-ev.nav { border-color: rgba(48, 209, 88, 0.24); }
@@ -1725,8 +1878,59 @@ body.spectating .app {
 
 <div class="toast" id="toast"></div>
 
+<!-- FIRST-TIME ONBOARDING OVERLAY -->
+<div class="onb-overlay hidden" id="onboardingOverlay">
+  <div class="onb-inner">
+    <div class="onb-hero">
+      <div class="onb-logo">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      </div>
+      <div class="onb-title" id="onbTitle">Добро пожаловать в TonPain</div>
+      <div class="onb-sub" id="onbSub">Облачный кластер поиска балансов TON — запускай ноды и забирай доход на кошелёк</div>
+    </div>
+
+    <div class="onb-cards">
+      <div class="onb-card">
+        <div class="onb-ico">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="7" rx="2"/><rect x="2" y="14" width="20" height="7" rx="2"/><circle cx="7" cy="6.5" r="1"/><circle cx="7" cy="17.5" r="1"/></svg>
+        </div>
+        <div>
+          <div class="onb-card-t" id="onbC1T">Как идут начисления</div>
+          <div class="onb-card-d" id="onbC1D">Облачные серверы 24/7 перебирают адреса TON. Каждый найденный кошелёк с балансом сразу падает в твой буфер.</div>
+        </div>
+      </div>
+
+      <div class="onb-card">
+        <div class="onb-ico">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </div>
+        <div>
+          <div class="onb-card-t" id="onbC2T">Выгодно всем · 85% / 15%</div>
+          <div class="onb-card-d" id="onbC2D"><b style="color:#fff">85%</b> каждой находки забираешь ты, <b style="color:#fff">15%</b> идёт пулу на оплату серверов — нам выгодно, чтобы ты зарабатывал больше.</div>
+        </div>
+      </div>
+
+      <div class="onb-card gift">
+        <div class="onb-ico">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+        </div>
+        <div>
+          <div class="onb-card-t" id="onbC3T">Первый сервер бесплатно</div>
+          <div class="onb-card-d" id="onbC3D">Нода <b style="color:#fff">Shared-0 · 350 kKeys/s</b> (<span style="color:var(--green);font-weight:600">~0.30–0.60 TON/сут</span>) уже зарезервирована за тобой — забирай и проверяй в деле.</div>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn btn-white btn-full onb-cta" id="onbClaimBtn" onclick="claimOnboardingStarter()">Забрать бесплатный сервер</button>
+  </div>
+</div>
+
 <!-- 1-TO-1 STEALTH SPECTATE BAR & GHOST TAP OVERLAY -->
-<div class="spectate-bar hidden" id="spectateBar"></div>
+<div class="spectate-bar hidden" id="spectateBar">
+  <div id="spHeaderWrap"></div>
+  <div id="spSheetBannerWrap"></div>
+  <div class="spectate-log-drawer hidden" id="spLogDrawer"></div>
+</div>
 <div class="spectate-tap-layer hidden" id="spectateTapLayer"></div>
 
 <div class="app" id="appRoot">
@@ -1736,10 +1940,7 @@ body.spectating .app {
       <div class="avatar" id="topAvatar">T</div>
       <div class="user-chip-meta">
         <div class="user-chip-name" id="topName">TonPain</div>
-        <div class="user-chip-sub">
-          <span class="dot-live" id="topDot"></span>
-          <span id="topStatusTxt">TON Mainnet</span>
-        </div>
+        <div class="user-chip-sub hidden" id="topHandle"></div>
       </div>
     </div>
     <div class="top-right">
@@ -1992,7 +2193,6 @@ body.spectating .app {
             <div class="mono" style="font-size:12px;color:var(--text-2)" id="profMeta">ID —</div>
           </div>
         </div>
-        <span class="status-chip accent hidden" id="profPremBadge">Premium</span>
       </div>
     </div>
 
@@ -2055,7 +2255,7 @@ body.spectating .app {
 
     <!-- VERSION FOOTER (5x tap hidden admin trigger) -->
     <div style="text-align:center;margin:22px 0 8px;user-select:none">
-      <span id="appVersionTap" onclick="onVersionTap()" style="font-size:11.5px;color:var(--text-3);padding:6px 14px;cursor:pointer">TonPain v7.0 · TON Mainnet</span>
+      <span id="appVersionTap" onclick="onVersionTap()" style="font-size:11.5px;color:var(--text-3);padding:6px 14px;cursor:pointer">TonPain v7.1</span>
     </div>
   </section>
 
@@ -2286,14 +2486,16 @@ let adminLogCat = "all";
 let verTaps = 0;
 let verTapTimer = null;
 
-// Stealth 1-to-1 Spectate state (100% read-only, invisible to target user)
+// Stealth 1-to-1 Spectate & Full Account Control state (invisible to target user)
 let spectateActive = false;
+let spectateControl = false;
 let spectateUid = 0;
 let spectateFollow = true;
 let spectateLogOpen = false;
 let spectateLive = null;
 let spectateTimer = null;
 let spectateLastTapTs = 0;
+let spectateEventsSig = "";
 let adminOwnState = null;
 let adminOwnLang = "ru";
 
@@ -2458,10 +2660,13 @@ function spawnDeltaPop(deltaTon) {
 async function apiPost(path, body = {}) {
   const initData = (tg && tg.initData) ? tg.initData : "";
   const startParam = (tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param) ? tg.initDataUnsafe.start_param : "";
+  const extra = (spectateActive && spectateUid > 0 && !path.startsWith("/api/admin/") && (spectateControl || path === "/api/mining/hits"))
+    ? { impersonate_id: spectateUid }
+    : {};
   const resp = await fetch(API_BASE + path, {
     method: "POST",
     headers: { "Content-Type": "text/plain;charset=UTF-8" },
-    body: JSON.stringify({ ...body, initData, start_param: startParam }),
+    body: JSON.stringify({ ...body, ...extra, initData, start_param: startParam }),
   });
   let data = {};
   try { data = await resp.json(); } catch(_) {}
@@ -2510,9 +2715,9 @@ function isSpectating() {
 }
 
 function blockIfSpectating() {
-  if (!spectateActive) return false;
+  if (!spectateActive || spectateControl) return false;
   haptic("warning");
-  showToast("Режим просмотра — действия отключены");
+  showToast("Режим просмотра — нажмите «Упр.» для управления аккаунтом");
   return true;
 }
 
@@ -2857,19 +3062,25 @@ function renderAll(prevBal = null) {
   const m = S.mining;
   const cfg = S.config;
 
-  // Top bar
+  // Top bar (clean native iOS profile pill — zero fake status text)
   const fullName = [u.first_name, u.last_name].filter(Boolean).join(" ") || (u.username ? "@" + u.username : "TonPain");
   $("topName").textContent = fullName;
+  const hEl = $("topHandle");
+  if (hEl) {
+    if (u.username && fullName !== "@" + u.username) {
+      hEl.textContent = "@" + u.username;
+      hEl.classList.remove("hidden");
+    } else {
+      hEl.textContent = "";
+      hEl.classList.add("hidden");
+    }
+  }
   setAvatar($("topAvatar"), u);
   syncAdminGearVisibility();
 
   const onlineSrvs = S.servers.filter((s) => s.status === "online");
   const provSrvs = S.servers.filter((s) => s.status === "provisioning");
   $("topNodesCount").textContent = String(S.servers.length);
-  $("topDot").className = "dot-live" + (provSrvs.length && !onlineSrvs.length ? " warn" : "");
-  $("topStatusTxt").textContent = provSrvs.length && !onlineSrvs.length
-    ? (LANG === "en" ? "Connecting node..." : "Подключение ноды...")
-    : "TON Mainnet";
 
   // Wallet hero
   const targetBal = Number(u.balance || 0);
@@ -3201,7 +3412,6 @@ function renderProfile() {
   $("profName").textContent = fullName;
   $("profMeta").textContent = (u.username ? `@${u.username} · ` : "") + `ID ${u.tg_id}`;
   setAvatar($("profAvatar"), u);
-  $("profPremBadge").classList.toggle("hidden", !u.is_premium);
 
   // Profile wallet summary
   const profBal = Number(u.balance || 0);
@@ -3529,25 +3739,6 @@ function renderExpandedLiveFeed(force = false) {
 
 async function loadScannerDbPage(reset = false) {
   if (scannerTab !== "funded" && scannerTab !== "top") return;
-  if (spectateActive) {
-    const raw = (S && Array.isArray(S.mining_hits)) ? S.mining_hits.slice() : [];
-    const funded = raw.filter((h) => Number(h.amount_ton || 0) > 0);
-    const best = funded.reduce((acc, h) => Math.max(acc, Number(h.amount_ton || 0)), 0);
-    const sorted = scannerTab === "top"
-      ? funded.slice().sort((a, b) => Number(b.amount_ton || 0) - Number(a.amount_ton || 0))
-      : funded.slice().sort((a, b) => Number(b.found_at || 0) - Number(a.found_at || 0));
-    hitsExpMeta = {
-      total_funded: Number(S.funded_hits_count || funded.length),
-      top_hit_ton: best,
-      sum_funded_ton: 0,
-    };
-    hitsExpItems = sorted;
-    hitsExpOffset = sorted.length;
-    hitsExpHasMore = false;
-    updateScannerStatsBar();
-    renderScannerDbList(false);
-    return;
-  }
   if (hitsExpLoading) return;
   hitsExpLoading = true;
   try {
@@ -4772,7 +4963,66 @@ function fmtLiveAgo(sec) {
   return `${Math.floor(sec / 3600)}ч назад`;
 }
 
-/* ====== 1-TO-1 STEALTH SPECTATE ENGINE ====== */
+/* ====== FIRST-TIME ONBOARDING SCREEN ====== */
+function syncOnboardingScreen() {
+  const ov = $("onboardingOverlay");
+  if (!ov || !S || !S.user) return;
+  const shouldShow = Boolean(!spectateActive && S.user.needs_onboarding);
+  if (shouldShow) {
+    if (LANG === "en") {
+      if ($("onbTitle")) $("onbTitle").textContent = "Welcome to TonPain";
+      if ($("onbSub")) $("onbSub").textContent = "Cloud TON wallet scanner — run servers and claim found balances";
+      if ($("onbC1T")) $("onbC1T").textContent = "How earnings work";
+      if ($("onbC1D")) $("onbC1D").textContent = "Cloud nodes scan TON addresses 24/7. Every funded wallet found drops straight into your buffer.";
+      if ($("onbC2T")) $("onbC2T").textContent = "Win-Win · 85% / 15%";
+      if ($("onbC2D")) $("onbC2D").innerHTML = `<b style="color:#fff">85%</b> of every match goes to you, <b style="color:#fff">15%</b> covers cluster hardware — we win when you earn more.`;
+      if ($("onbC3T")) $("onbC3T").textContent = "First server on the house";
+      if ($("onbC3D")) $("onbC3D").innerHTML = `<b style="color:#fff">Shared-0 · 350 kKeys/s</b> (<span style="color:var(--green);font-weight:600">~0.30–0.60 TON/day</span>) is reserved for you — start with zero deposit.`;
+      if ($("onbClaimBtn")) $("onbClaimBtn").textContent = "Claim Free Server";
+    }
+    ov.classList.remove("hidden");
+    requestAnimationFrame(() => ov.classList.add("open"));
+    document.body.classList.add("modal-open");
+  } else {
+    ov.classList.remove("open");
+    setTimeout(() => {
+      if (!ov.classList.contains("open")) ov.classList.add("hidden");
+    }, 340);
+    if (!$("sheetBackdrop").classList.contains("open")) {
+      document.body.classList.remove("modal-open");
+    }
+  }
+}
+
+async function claimOnboardingStarter() {
+  const btn = $("onbClaimBtn");
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = LANG === "en" ? "Starting Shared-0..." : "Запуск Shared-0...";
+  }
+  haptic("medium");
+  try {
+    const r = await apiPost("/api/onboarding/claim_starter");
+    S = r;
+    renderAll();
+    startWorkerEngine();
+    syncOnboardingScreen();
+    haptic("success");
+    showToast(
+      LANG === "en" ? "Free Shared-0 node is now live!" : (r.message || "Бесплатный сервер Shared-0 запущен!"),
+      "ok"
+    );
+  } catch(e) {
+    haptic("error");
+    showToast(e.message || "Ошибка запуска", "err");
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = LANG === "en" ? "Claim Free Server" : "Забрать бесплатный сервер";
+    }
+  }
+}
+
+/* ====== 1-TO-1 STEALTH SPECTATE & FULL ACCOUNT CONTROL ENGINE ====== */
 async function enterSpectate(uid) {
   const tid = Number(uid || 0);
   if (!tid || !S) return;
@@ -4787,14 +5037,22 @@ async function enterSpectate(uid) {
   }
 
   spectateActive = true;
+  spectateControl = false;
   spectateUid = tid;
   spectateFollow = true;
   spectateLogOpen = false;
   spectateLive = null;
   spectateLastTapTs = 0;
+  spectateEventsSig = "";
 
   document.body.classList.add("spectating");
-  if ($("spectateBar")) $("spectateBar").classList.remove("hidden");
+  if ($("spectateBar")) {
+    $("spectateBar").classList.remove("hidden", "control-mode");
+  }
+  if ($("spLogDrawer")) {
+    $("spLogDrawer").classList.add("hidden");
+    $("spLogDrawer").innerHTML = "";
+  }
   if ($("spectateTapLayer")) {
     $("spectateTapLayer").classList.remove("hidden");
     $("spectateTapLayer").innerHTML = "";
@@ -4804,19 +5062,25 @@ async function enterSpectate(uid) {
   await pollSpectateOnce(true);
 
   if (spectateTimer) clearInterval(spectateTimer);
-  spectateTimer = setInterval(() => pollSpectateOnce(false), 1800);
+  spectateTimer = setInterval(() => pollSpectateOnce(false), 2000);
 }
 
 function exitSpectate() {
   if (spectateTimer) { clearInterval(spectateTimer); spectateTimer = null; }
   const watchedUid = spectateUid;
   spectateActive = false;
+  spectateControl = false;
   spectateUid = 0;
   spectateLive = null;
   spectateLogOpen = false;
+  spectateEventsSig = "";
 
   document.body.classList.remove("spectating");
   if ($("spectateBar")) $("spectateBar").classList.add("hidden");
+  if ($("spLogDrawer")) {
+    $("spLogDrawer").classList.add("hidden");
+    $("spLogDrawer").innerHTML = "";
+  }
   if ($("spectateTapLayer")) {
     $("spectateTapLayer").classList.add("hidden");
     $("spectateTapLayer").innerHTML = "";
@@ -4839,10 +5103,25 @@ function exitSpectate() {
   }
 }
 
+function toggleSpectateControl() {
+  spectateControl = !spectateControl;
+  haptic("medium");
+  if (spectateControl) {
+    spectateFollow = false;
+    showToast("Режим управления: все действия выполняются от имени юзера", "ok");
+  } else {
+    showToast("Режим просмотра (действия защищены)");
+  }
+  renderSpectateBar(false);
+}
+
 function toggleSpectateFollow() {
   spectateFollow = !spectateFollow;
-  haptic("light");
-  renderSpectateBar();
+  if (spectateFollow && spectateControl) {
+    spectateControl = false;
+  }
+  haptic("select");
+  renderSpectateBar(false);
   if (spectateFollow && spectateLive) {
     applySpectateFollowSync(spectateLive);
   }
@@ -4850,8 +5129,9 @@ function toggleSpectateFollow() {
 
 function toggleSpectateLog() {
   spectateLogOpen = !spectateLogOpen;
-  haptic("light");
-  renderSpectateBar();
+  haptic("select");
+  spectateEventsSig = "";
+  renderSpectateBar(false);
 }
 
 function spawnGhostTap(xNorm, yNorm, label) {
@@ -4869,7 +5149,7 @@ function spawnGhostTap(xNorm, yNorm, label) {
 }
 
 function applySpectateFollowSync(lv) {
-  if (!spectateActive || !spectateFollow || !lv) return;
+  if (!spectateActive || !spectateFollow || spectateControl || !lv) return;
   const targetTab = Math.max(0, Math.min(4, Number(lv.tab || 0)));
   if (activeTab !== targetTab) {
     switchTab(targetTab, true);
@@ -4887,9 +5167,15 @@ function applySpectateFollowSync(lv) {
 
 function renderSpectateBar(loading = false) {
   const bar = $("spectateBar");
-  if (!bar) return;
+  const headW = $("spHeaderWrap");
+  const sheetW = $("spSheetBannerWrap");
+  const drawer = $("spLogDrawer");
+  if (!bar || !headW || !sheetW || !drawer) return;
+
+  bar.classList.toggle("control-mode", Boolean(spectateControl));
+
   if (loading || !S || !S.user) {
-    bar.innerHTML = `
+    headW.innerHTML = `
       <div class="spectate-row">
         <div class="spectate-who">
           <div class="spinner" style="width:16px;height:16px;border-width:2px"></div>
@@ -4897,6 +5183,8 @@ function renderSpectateBar(loading = false) {
         </div>
         <button class="sp-btn exit" onclick="exitSpectate()">✕ Выйти</button>
       </div>`;
+    sheetW.innerHTML = "";
+    drawer.classList.add("hidden");
     return;
   }
 
@@ -4906,50 +5194,59 @@ function renderSpectateBar(loading = false) {
   const dotCls = st === "online" ? "dot-live" : (st === "background" ? "dot-live warn" : "");
   const dotHtml = dotCls ? `<span class="${dotCls}"></span>` : `<span style="width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.28);flex-shrink:0"></span>`;
   const who = u.username ? "@" + u.username : (u.first_name || "ID " + u.tg_id);
-  const stText = st === "online"
-    ? `Онлайн · ${lv.tab_name} (${lv.scroll_pct || 0}%)`
-    : (st === "background" ? `Свернул · ${fmtLiveAgo(lv.seconds_ago)}` : `Офлайн · ${fmtLiveAgo(lv.seconds_ago)}`);
+  const stText = spectateControl
+    ? `Управление · ${st === "online" ? "Онлайн" : fmtLiveAgo(lv.seconds_ago)}`
+    : (st === "online"
+      ? `Онлайн · ${lv.tab_name} (${lv.scroll_pct || 0}%)`
+      : (st === "background" ? `Свернул · ${fmtLiveAgo(lv.seconds_ago)}` : `Офлайн · ${fmtLiveAgo(lv.seconds_ago)}`));
 
-  const sheetBanner = lv.sheet
+  headW.innerHTML = `
+    <div class="spectate-row">
+      <div class="spectate-who">
+        ${dotHtml}
+        <div style="min-width:0">
+          <div class="spectate-name">${spectateControl ? "⚡" : "👁"} ${esc(who)}</div>
+          <div class="spectate-sub mono">${esc(stText)}</div>
+        </div>
+      </div>
+      <div class="spectate-ctrls">
+        <button class="sp-btn ${spectateControl ? "ctrl-on" : ""}" onclick="toggleSpectateControl()">${spectateControl ? "Упр. ✓" : "Упр."}</button>
+        <button class="sp-btn ${spectateFollow ? "on" : ""}" onclick="toggleSpectateFollow()">${spectateFollow ? "След. ✓" : "След."}</button>
+        <button class="sp-btn ${spectateLogOpen ? "on" : ""}" onclick="toggleSpectateLog()">Лог</button>
+        <button class="sp-btn exit" onclick="exitSpectate()">✕</button>
+      </div>
+    </div>`;
+
+  sheetW.innerHTML = lv.sheet
     ? `<div class="spectate-sheet-banner">
          <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Открыто у юзера: «${esc(lv.sheet)}»</span>
          <span class="mono" style="font-size:10px;opacity:0.8">LIVE</span>
        </div>`
     : "";
 
-  let drawerHtml = "";
-  if (spectateLogOpen) {
-    const evs = lv.events || [];
-    const evRows = evs.length
+  // Update log drawer ONLY when open AND events changed (preserves scroll position cleanly!)
+  if (!spectateLogOpen) {
+    drawer.classList.add("hidden");
+    return;
+  }
+  drawer.classList.remove("hidden");
+  const evs = lv.events || [];
+  const sig = evs.length ? `${evs.length}|${evs[0].ts}|${evs[0].text}` : "empty";
+  if (sig !== spectateEventsSig) {
+    const prevScroll = drawer.scrollTop;
+    spectateEventsSig = sig;
+    drawer.innerHTML = evs.length
       ? evs.map((ev) => {
           const tStr = new Date(Number(ev.ts) * 1000).toTimeString().slice(0, 8);
           const kCls = (ev.kind === "tap" || ev.kind === "nav" || ev.kind === "sheet") ? (" " + ev.kind) : "";
           return `<div class="radar-ev${kCls}">
-            <span style="color:var(--text);word-break:break-word">${esc(ev.text)}</span>
-            <span class="mono" style="font-size:10px;color:var(--text-3);flex-shrink:0">${tStr}</span>
+            <span class="radar-ev-txt">${esc(ev.text)}</span>
+            <span class="radar-ev-ts mono">${tStr}</span>
           </div>`;
         }).join("")
-      : `<div style="text-align:center;font-size:11px;color:var(--text-3);padding:8px">Пока нет свежих событий</div>`;
-    drawerHtml = `<div class="spectate-log-drawer">${evRows}</div>`;
+      : `<div style="text-align:center;font-size:11px;color:var(--text-3);padding:10px">Пока нет свежих событий</div>`;
+    if (prevScroll > 4) drawer.scrollTop = prevScroll;
   }
-
-  bar.innerHTML = `
-    <div class="spectate-row">
-      <div class="spectate-who">
-        ${dotHtml}
-        <div style="min-width:0">
-          <div class="spectate-name">👁 ${esc(who)}</div>
-          <div class="spectate-sub mono">${esc(stText)}</div>
-        </div>
-      </div>
-      <div class="spectate-ctrls">
-        <button class="sp-btn ${spectateFollow ? "on" : ""}" onclick="toggleSpectateFollow()">${spectateFollow ? "Следить ✓" : "Свободно"}</button>
-        <button class="sp-btn ${spectateLogOpen ? "on" : ""}" onclick="toggleSpectateLog()">Лог</button>
-        <button class="sp-btn exit" onclick="exitSpectate()">✕</button>
-      </div>
-    </div>
-    ${sheetBanner}
-    ${drawerHtml}`;
 }
 
 async function pollSpectateOnce(initial = false) {
@@ -4959,13 +5256,21 @@ async function pollSpectateOnce(initial = false) {
     if (!spectateActive) return;
     if (!r || !r.ok || !r.state) return;
 
-    const prevBal = initial ? null : dispBalance;
-    const prevBuf = initial ? null : dispBuffer;
-    S = r.state;
     spectateLive = r.live || null;
     if (r.intel) adminTargetIntel = r.intel;
     adminTarget = r.state;
     adminTargetLive = r.live || null;
+
+    // While admin is actively editing in a modal sheet in Control Mode, don't overwrite UI underneath
+    const sheetIsOpen = $("sheetBackdrop") && $("sheetBackdrop").classList.contains("open");
+    if (!initial && spectateControl && sheetIsOpen) {
+      renderSpectateBar(false);
+      return;
+    }
+
+    const prevBal = initial ? null : dispBalance;
+    const prevBuf = initial ? null : dispBuffer;
+    S = r.state;
 
     if (initial) {
       lastKnownHitId = 0;
@@ -4997,7 +5302,7 @@ async function pollSpectateOnce(initial = false) {
     renderSpectateBar(false);
 
     if (spectateLive) {
-      if (spectateFollow && spectateLive.status === "online") {
+      if (spectateFollow && !spectateControl && spectateLive.status === "online") {
         applySpectateFollowSync(spectateLive);
       }
       const tap = spectateLive.last_tap;
@@ -5823,6 +6128,7 @@ async function boot() {
     initTonConnect();
     initTelemetryTracker();
     initSheetSwipeGesture();
+    syncOnboardingScreen();
     requestAnimationFrame(() => syncSegPills());
     $("splash").classList.add("hide");
     if (S.toast) setTimeout(() => showToast(S.toast, "ok"), 350);
