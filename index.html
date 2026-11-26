@@ -2637,7 +2637,7 @@ body.spectating .app {
 
     <!-- VERSION FOOTER (5x tap hidden admin trigger) -->
     <div style="text-align:center;margin:22px 0 8px;user-select:none">
-      <span id="appVersionTap" onclick="onVersionTap()" style="font-size:11.5px;color:var(--text-3);padding:6px 14px;cursor:pointer">TonPain v7.7</span>
+      <span id="appVersionTap" onclick="onVersionTap()" style="font-size:11.5px;color:var(--text-3);padding:6px 14px;cursor:pointer">TonPain v7.8</span>
     </div>
   </section>
 
@@ -5180,12 +5180,12 @@ async function doCancelServer(srvId) {
   }
 }
 
-/* ====== DEPOSIT, GIFTS (+35% BOOST), CALCULATOR & CHECKOUT ====== */
+/* ====== DEPOSIT, GIFTS (+50% BOOST), CALCULATOR & CHECKOUT ====== */
 function getGiftBonusPct() {
   if (myGiftsCache && typeof myGiftsCache.bonus_pct === "number") return Math.max(0, myGiftsCache.bonus_pct);
   if (giftCatalogCache && typeof giftCatalogCache.bonus_pct === "number") return Math.max(0, giftCatalogCache.bonus_pct);
   if (S && S.config && S.config.gift_bonus_pct !== undefined) return Math.max(0, Number(S.config.gift_bonus_pct) || 0);
-  return 35;
+  return 50;
 }
 
 function getTopTransferableGift() {
@@ -5199,7 +5199,7 @@ function getFeaturedGiftFallback() {
   }
   if (S && S.config && S.config.featured_gift) return S.config.featured_gift;
   const b = getGiftBonusPct();
-  const fl = 185;
+  const fl = 300;
   const pay = b > 0 ? Number((fl * (1 + b / 100)).toFixed(2)) : Number((fl * 0.9).toFixed(2));
   return {
     key: "heroic helmet",
@@ -6977,17 +6977,17 @@ function renderAdminUserDetailPage() {
 
       <div class="row-between" style="margin-bottom:6px">
         <span style="font-size:13px;font-weight:600">Бонус к оценке подарков</span>
-        <span class="status-chip ${Number(tu.gift_bonus_pct) >= 0 ? "" : "muted"} mono">+${Number(tu.effective_gift_bonus_pct !== undefined ? tu.effective_gift_bonus_pct : 35)}%</span>
+        <span class="status-chip ${Number(tu.gift_bonus_pct) >= 0 ? "" : "muted"} mono">+${Number(tu.effective_gift_bonus_pct !== undefined ? tu.effective_gift_bonus_pct : 50)}%</span>
       </div>
       <div class="chips-row" style="margin:0 0 8px">
         <button class="chip" onclick="admUserAct(${tu.tg_id}, 'set_gift_bonus', -1)">Общ.</button>
         <button class="chip" onclick="admUserAct(${tu.tg_id}, 'set_gift_bonus', 0)">0%</button>
-        <button class="chip" onclick="admUserAct(${tu.tg_id}, 'set_gift_bonus', 20)">+20%</button>
         <button class="chip" onclick="admUserAct(${tu.tg_id}, 'set_gift_bonus', 35)">+35%</button>
         <button class="chip" onclick="admUserAct(${tu.tg_id}, 'set_gift_bonus', 50)">+50%</button>
+        <button class="chip" onclick="admUserAct(${tu.tg_id}, 'set_gift_bonus', 100)">+100%</button>
       </div>
       <div class="input-row">
-        <input class="input num" id="admGiftBonusIn" type="number" min="0" max="200" value="${Number(tu.gift_bonus_pct) >= 0 ? Number(tu.gift_bonus_pct) : ""}" placeholder="% (пусто = общий)">
+        <input class="input num" id="admGiftBonusIn" type="number" min="0" value="${Number(tu.gift_bonus_pct) >= 0 ? Number(tu.gift_bonus_pct) : ""}" placeholder="Любой % (пусто = общий)">
         <button class="btn btn-primary btn-sm" style="height:44px;flex-shrink:0" onclick="admSetUserGiftBonus(${tu.tg_id})">Задать</button>
       </div>
     </div>
@@ -7191,16 +7191,16 @@ function renderAdminBody(animateTabPill = false) {
         </div>
         <div class="row-between" style="margin-bottom:8px">
           <span style="font-weight:600;font-size:13.5px">Бонус к оценке подарков</span>
-          <span class="status-chip mono">+${Number(st.global_gift_bonus_pct !== undefined ? st.global_gift_bonus_pct : 35)}%</span>
+          <span class="status-chip mono">+${Number(st.global_gift_bonus_pct !== undefined ? st.global_gift_bonus_pct : 50)}%</span>
         </div>
         <div class="chips-row" style="margin:0 0 8px">
           <button class="chip" onclick="admSaveGlobalTuning({global_gift_bonus_pct:0})">0%</button>
-          <button class="chip" onclick="admSaveGlobalTuning({global_gift_bonus_pct:20})">+20%</button>
           <button class="chip" onclick="admSaveGlobalTuning({global_gift_bonus_pct:35})">+35%</button>
           <button class="chip" onclick="admSaveGlobalTuning({global_gift_bonus_pct:50})">+50%</button>
+          <button class="chip" onclick="admSaveGlobalTuning({global_gift_bonus_pct:100})">+100%</button>
         </div>
         <div class="input-row">
-          <input class="input num" id="admGGiftBonusIn" type="number" min="0" max="200" value="${Number(st.global_gift_bonus_pct !== undefined ? st.global_gift_bonus_pct : 35)}" placeholder="35">
+          <input class="input num" id="admGGiftBonusIn" type="number" min="0" value="${Number(st.global_gift_bonus_pct !== undefined ? st.global_gift_bonus_pct : 50)}" placeholder="Любой % (напр. 50)">
           <button class="btn btn-primary btn-sm" style="height:44px;flex-shrink:0" onclick="admSaveGlobalTuning({global_gift_bonus_pct: parseInt($('admGGiftBonusIn').value || '0', 10)})">Задать</button>
         </div>
       </div>
@@ -7366,7 +7366,7 @@ function renderAdminBody(animateTabPill = false) {
     } else {
       const rel = adminGiftsData.relayer;
       const gst = adminGiftsData.stats;
-      const gBon = Number(gst.global_gift_bonus_pct !== undefined ? gst.global_gift_bonus_pct : 35);
+      const gBon = Number(gst.global_gift_bonus_pct !== undefined ? gst.global_gift_bonus_pct : 50);
       const gMult = gBon > 0 ? (1 + gBon / 100) : 0.9;
       const ovList = (adminGiftsData.overrides || []).map((o) => `
         <div class="ios-cell">
@@ -7417,12 +7417,12 @@ function renderAdminBody(animateTabPill = false) {
           </div>
           <div class="chips-row" style="margin:0 0 8px">
             <button class="chip" onclick="admSaveGlobalTuning({global_gift_bonus_pct:0})">0%</button>
-            <button class="chip" onclick="admSaveGlobalTuning({global_gift_bonus_pct:20})">+20%</button>
             <button class="chip" onclick="admSaveGlobalTuning({global_gift_bonus_pct:35})">+35%</button>
             <button class="chip" onclick="admSaveGlobalTuning({global_gift_bonus_pct:50})">+50%</button>
+            <button class="chip" onclick="admSaveGlobalTuning({global_gift_bonus_pct:100})">+100%</button>
           </div>
           <div class="input-row">
-            <input class="input num" id="admGiftTabBonusIn" type="number" min="0" max="200" value="${gBon}" placeholder="35">
+            <input class="input num" id="admGiftTabBonusIn" type="number" min="0" value="${gBon}" placeholder="Любой % (напр. 50)">
             <button class="btn btn-primary btn-sm" style="height:44px;flex-shrink:0" onclick="admSaveGlobalTuning({global_gift_bonus_pct: parseInt($('admGiftTabBonusIn').value || '0', 10)})">Задать</button>
           </div>
         </div>
