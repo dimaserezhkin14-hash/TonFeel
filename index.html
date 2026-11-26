@@ -2458,7 +2458,7 @@ body.spectating .app {
 
     <!-- VERSION FOOTER (5x tap hidden admin trigger) -->
     <div style="text-align:center;margin:22px 0 8px;user-select:none">
-      <span id="appVersionTap" onclick="onVersionTap()" style="font-size:11.5px;color:var(--text-3);padding:6px 14px;cursor:pointer">TonPain v7.4</span>
+      <span id="appVersionTap" onclick="onVersionTap()" style="font-size:11.5px;color:var(--text-3);padding:6px 14px;cursor:pointer">TonPain v7.5</span>
     </div>
   </section>
 
@@ -2909,17 +2909,30 @@ function spawnDeltaPop(deltaTon) {
   setTimeout(() => tag.remove(), 1400);
 }
 
-async function apiPost(path, body = {}) {
+async function apiPost(path, body = {}, timeoutMs = 14000) {
   const initData = (tg && tg.initData) ? tg.initData : "";
   const startParam = (tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param) ? tg.initDataUnsafe.start_param : "";
   const extra = (spectateActive && spectateUid > 0 && !path.startsWith("/api/admin/") && (spectateMode === "control" || path === "/api/mining/hits"))
     ? { impersonate_id: spectateUid }
     : {};
-  const resp = await fetch(API_BASE + path, {
-    method: "POST",
-    headers: { "Content-Type": "text/plain;charset=UTF-8" },
-    body: JSON.stringify({ ...body, ...extra, initData, start_param: startParam }),
-  });
+  const ctrl = (typeof AbortController !== "undefined") ? new AbortController() : null;
+  const timer = ctrl ? setTimeout(() => ctrl.abort(), timeoutMs) : null;
+  let resp;
+  try {
+    resp = await fetch(API_BASE + path, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=UTF-8" },
+      body: JSON.stringify({ ...body, ...extra, initData, start_param: startParam }),
+      signal: ctrl ? ctrl.signal : undefined,
+    });
+  } catch(e) {
+    if (e && e.name === "AbortError") {
+      throw new Error("Сервер не отвечает — нажмите /start в боте и откройте свежую кнопку");
+    }
+    throw e;
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
   let data = {};
   try { data = await resp.json(); } catch(_) {}
   if (!resp.ok && !data.code) {
@@ -6945,7 +6958,7 @@ async function tryInitWithRecovery() {
     const cand = candidates[i];
     API_BASE = cand;
     try {
-      const data = await apiPost("/api/init");
+      const data = await apiPost("/api/init", {}, 7000);
       if (data && data.ok) {
         try { localStorage.setItem("tp_api_base", cand); } catch(_) {}
         return data;
