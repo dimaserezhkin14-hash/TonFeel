@@ -1522,6 +1522,102 @@ body.modal-open .app {
   margin-top: 10px;
   text-align: center;
 }
+.gift-calc-hero {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 14px;
+  border-radius: 18px;
+  background: linear-gradient(160deg, rgba(48, 209, 88, 0.12) 0%, rgba(22, 24, 26, 0.94) 100%);
+  border: 0.5px solid rgba(48, 209, 88, 0.30);
+  box-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.22);
+  margin-bottom: 10px;
+}
+.gift-calc-thumb {
+  width: 58px;
+  height: 58px;
+  border-radius: 16px;
+  background: radial-gradient(circle at 50% 35%, rgba(66, 135, 184, 0.45) 0%, rgba(16, 20, 28, 0.9) 100%);
+  border: 0.5px solid rgba(255, 255, 255, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.gift-calc-thumb img {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+  display: block;
+}
+.gift-calc-payout {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: var(--green);
+  line-height: 1.1;
+}
+.gift-calc-afford {
+  padding: 9px 12px;
+  border-radius: 13px;
+  background: rgba(10, 132, 255, 0.11);
+  border: 0.5px solid rgba(10, 132, 255, 0.26);
+  font-size: 12px;
+  color: #dbeeff;
+  line-height: 1.38;
+  margin-bottom: 11px;
+}
+.gift-calc-list {
+  max-height: 225px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+  padding-right: 2px;
+}
+.gift-calc-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 11px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.045);
+  border: 0.5px solid rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, transform 0.15s var(--spring);
+}
+.gift-calc-row:active { transform: scale(0.985); }
+.gift-calc-row.active {
+  background: rgba(48, 209, 88, 0.12);
+  border-color: rgba(48, 209, 88, 0.42);
+}
+.gift-calc-row-thumb {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.07);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.gift-calc-row-thumb img {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+  display: block;
+}
+.gift-chip-active {
+  background: #ffffff !important;
+  border-color: #ffffff !important;
+  color: #000000 !important;
+}
 
 /* ====== TOAST (iOS DYNAMIC PILL) ====== */
 .toast {
@@ -2541,7 +2637,7 @@ body.spectating .app {
 
     <!-- VERSION FOOTER (5x tap hidden admin trigger) -->
     <div style="text-align:center;margin:22px 0 8px;user-select:none">
-      <span id="appVersionTap" onclick="onVersionTap()" style="font-size:11.5px;color:var(--text-3);padding:6px 14px;cursor:pointer">TonPain v7.6</span>
+      <span id="appVersionTap" onclick="onVersionTap()" style="font-size:11.5px;color:var(--text-3);padding:6px 14px;cursor:pointer">TonPain v7.7</span>
     </div>
   </section>
 
@@ -2783,6 +2879,13 @@ let adminSubTab = "overview";
 let adminOverview = null;
 let adminGiftsData = null;
 let myGiftsCache = null;
+let giftCatalogCache = null;
+let giftSheetTab = "my";
+let giftSheetManualTab = false;
+let giftSheetTargetPrice = 0;
+let giftCalcKey = "";
+let giftCalcBackdrop = "std";
+let giftCalcSearch = "";
 let adminTarget = null;
 let adminTargetIntel = null;
 let adminTargetLive = null;
@@ -3707,6 +3810,7 @@ function renderAll(prevBal = null) {
       Number(S.top_hit_ton || 0)
     );
   }
+  renderHomeGiftBanner();
   renderServers();
   renderShop();
   renderFriends();
@@ -5076,9 +5180,10 @@ async function doCancelServer(srvId) {
   }
 }
 
-/* ====== DEPOSIT, GIFTS (+35% BOOST) & CHECKOUT ====== */
+/* ====== DEPOSIT, GIFTS (+35% BOOST), CALCULATOR & CHECKOUT ====== */
 function getGiftBonusPct() {
   if (myGiftsCache && typeof myGiftsCache.bonus_pct === "number") return Math.max(0, myGiftsCache.bonus_pct);
+  if (giftCatalogCache && typeof giftCatalogCache.bonus_pct === "number") return Math.max(0, giftCatalogCache.bonus_pct);
   if (S && S.config && S.config.gift_bonus_pct !== undefined) return Math.max(0, Number(S.config.gift_bonus_pct) || 0);
   return 35;
 }
@@ -5088,35 +5193,82 @@ function getTopTransferableGift() {
   return myGiftsCache.items.find((g) => g && g.is_unique && g.can_transfer && g.nft_url) || null;
 }
 
+function getFeaturedGiftFallback() {
+  if (giftCatalogCache && Array.isArray(giftCatalogCache.items) && giftCatalogCache.items.length) {
+    return giftCatalogCache.items[0];
+  }
+  if (S && S.config && S.config.featured_gift) return S.config.featured_gift;
+  const b = getGiftBonusPct();
+  const fl = 185;
+  const pay = b > 0 ? Number((fl * (1 + b / 100)).toFixed(2)) : Number((fl * 0.9).toFixed(2));
+  return {
+    key: "heroic helmet",
+    name: "Heroic Helmet",
+    floor_ton: fl,
+    payout_ton: pay,
+    payout_usd: Number((pay * tonRate()).toFixed(2)),
+    bonus_pct: b,
+    preview_url: "https://nft.fragment.com/gift/heroichelmet-1835.webp",
+    preview_fallback: "https://nft.fragment.com/gift/heroichelmet-1.medium.jpg",
+  };
+}
+
 function renderHomeGiftBanner() {
   const el = $("giftPromoBanner");
-  if (!el) return;
+  if (!el || !S) return;
   const top = getTopTransferableGift();
-  if (!top || spectateActive) {
-    el.classList.add("hidden");
+  const bonus = getGiftBonusPct();
+
+  if (top) {
+    const bTop = Number(top.bonus_pct !== undefined ? top.bonus_pct : bonus);
+    const bg = `background: radial-gradient(circle at 50% 34%, ${esc(top.center_color || "#2a2d36")} 0%, ${esc(top.edge_color || "#14161b")} 100%);`;
+    const thumb = top.preview_url
+      ? `<img src="${esc(top.preview_url)}" alt="" onerror="this.outerHTML='<span style=\\'font-size:24px\\'>🎁</span>'">`
+      : `<span style="font-size:24px">🎁</span>`;
+    const payTon = Number(top.payout_ton || 0).toFixed(2);
+    el.innerHTML = `
+      <div style="display:flex;align-items:center;gap:11px;min-width:0">
+        <div class="gift-hero-thumb" style="${bg}">${thumb}</div>
+        <div style="min-width:0">
+          <div class="promo-strip-title" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+            ${esc(top.name)}${top.number ? " #" + top.number : ""} · <span style="color:var(--green)">+${payTon} TON</span>
+          </div>
+          <div class="promo-strip-sub" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+            ${LANG === "en"
+              ? `Deposit gift (${fmtUsd(top.payout_ton)}) for instant balance`
+              : `Пополни баланс подарком (≈ ${fmtUsd(top.payout_ton)})`}
+          </div>
+        </div>
+      </div>
+      <span class="status-chip" style="flex-shrink:0">${bTop > 0 ? `+${bTop}%` : "NFT"}</span>`;
+    el.classList.remove("hidden");
     return;
   }
-  const bonus = Number(top.bonus_pct !== undefined ? top.bonus_pct : getGiftBonusPct());
-  const bg = `background: radial-gradient(circle at 50% 34%, ${esc(top.center_color || "#2a2d36")} 0%, ${esc(top.edge_color || "#14161b")} 100%);`;
-  const thumb = top.preview_url
-    ? `<img src="${esc(top.preview_url)}" alt="" onerror="this.outerHTML='<span style=\\'font-size:24px\\'>🎁</span>'">`
+
+  // Always show boosted gift banner even if profile gifts are hidden or stored on Portal/market
+  const feat = getFeaturedGiftFallback();
+  const fBonus = Number(feat.bonus_pct !== undefined ? feat.bonus_pct : bonus);
+  const bg = "background: radial-gradient(circle at 50% 34%, rgba(66, 135, 184, 0.45) 0%, rgba(16, 20, 28, 0.92) 100%);";
+  const thumb = feat.preview_url
+    ? `<img src="${esc(feat.preview_url)}" alt="" onerror="this.outerHTML='<span style=\\'font-size:24px\\'>🎁</span>'">`
     : `<span style="font-size:24px">🎁</span>`;
-  const payTon = Number(top.payout_ton || 0).toFixed(2);
   el.innerHTML = `
     <div style="display:flex;align-items:center;gap:11px;min-width:0">
       <div class="gift-hero-thumb" style="${bg}">${thumb}</div>
       <div style="min-width:0">
         <div class="promo-strip-title" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
-          ${esc(top.name)}${top.number ? " #" + top.number : ""} · <span style="color:var(--green)">+${payTon} TON</span>
+          ${LANG === "en"
+            ? `Deposit Gifts${fBonus > 0 ? ` · <span style="color:var(--green)">+${fBonus}%</span>` : ""}`
+            : `Депозит подарками${fBonus > 0 ? ` · <span style="color:var(--green)">+${fBonus}% к цене</span>` : ""}`}
         </div>
         <div class="promo-strip-sub" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
           ${LANG === "en"
-            ? `Deposit gift (${fmtUsd(top.payout_ton)}) for instant balance`
-            : `Пополни баланс подарком (≈ ${fmtUsd(top.payout_ton)})`}
+            ? `Above market floor · check your gift payout`
+            : `Выше флора маркета · узнай выплату за свой подарок`}
         </div>
       </div>
     </div>
-    <span class="status-chip" style="flex-shrink:0">${bonus > 0 ? `+${bonus}%` : "NFT"}</span>`;
+    <span class="status-chip" style="flex-shrink:0">${fBonus > 0 ? `+${fBonus}%` : "NFT"}</span>`;
   el.classList.remove("hidden");
 }
 
@@ -5130,7 +5282,7 @@ function openHomeTopGift() {
       return;
     }
   }
-  openGiftDeposit();
+  openGiftDeposit(0, "calc");
 }
 
 async function prefetchMyGiftsBanner() {
@@ -5164,7 +5316,7 @@ function openDeposit(prefillTon = 5) {
       <button class="chip" onclick="setDepAmt(50)">50 TON</button>
     </div>
     <div style="display:flex;flex-direction:column;gap:8px;margin-top:14px">
-      <button class="btn btn-gift btn-full" onclick="openGiftDeposit()">
+      <button class="btn btn-gift btn-full" onclick="openGiftDeposit(0, 'auto')">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
         <span>${LANG === "en" ? "Deposit with Gifts" : "Пополнить подарками"}</span>
         ${giftBadge}
@@ -5242,6 +5394,7 @@ function ensureGiftPoll() {
         if ((S.gift_deposits || []).length > startGiftCnt) {
           clearInterval(giftPollTimer); giftPollTimer = null;
           myGiftsCache = null;
+          giftCatalogCache = null;
           haptic("success");
           showToast(LANG === "en" ? "Gift credited to balance!" : "Подарок зачислен на баланс!", "ok");
           closeSheet();
@@ -5251,17 +5404,232 @@ function ensureGiftPoll() {
   }, 5500);
 }
 
-async function openGiftDeposit(targetPriceTon = 0) {
+function setGiftSheetTab(tab, fromAuto = false) {
+  if (!fromAuto) {
+    giftSheetManualTab = true;
+    haptic("select");
+  }
+  giftSheetTab = tab === "calc" ? "calc" : "my";
+  if ($("giftTabMyBtn")) $("giftTabMyBtn").classList.toggle("active", giftSheetTab === "my");
+  if ($("giftTabCalcBtn")) $("giftTabCalcBtn").classList.toggle("active", giftSheetTab === "calc");
+  if ($("giftMyPane")) $("giftMyPane").classList.toggle("hidden", giftSheetTab !== "my");
+  if ($("giftCalcPane")) $("giftCalcPane").classList.toggle("hidden", giftSheetTab !== "calc");
+  requestAnimationFrame(() => syncSegPills($("giftSheetSegTabs"), fromAuto));
+  if (giftSheetTab === "calc") {
+    renderGiftCalculator();
+    if (!giftCatalogCache) {
+      apiPost("/api/gifts/catalog").then((cat) => {
+        if (cat && cat.ok) {
+          giftCatalogCache = cat;
+          renderHomeGiftBanner();
+          if ($("giftCalcPane")) renderGiftCalculator();
+        }
+      }).catch(() => {});
+    }
+  }
+}
+
+function selectCalcGift(key) {
+  giftCalcKey = String(key || "");
+  haptic("select");
+  renderGiftCalculator();
+  const sheet = $("sheetBox");
+  if (sheet && sheet.scrollTop > 120) {
+    sheet.scrollTo({ top: 0, behavior: "smooth" });
+  }
+}
+
+function setCalcBackdrop(bpId) {
+  giftCalcBackdrop = bpId || "std";
+  haptic("select");
+  renderGiftCalculator();
+}
+
+function onCalcGiftSearch(val) {
+  giftCalcSearch = String(val || "");
+  renderGiftCalcModelList();
+}
+
+function getGiftBackdropPresets() {
+  if (giftCatalogCache && Array.isArray(giftCatalogCache.backdrop_presets) && giftCatalogCache.backdrop_presets.length) {
+    return giftCatalogCache.backdrop_presets;
+  }
+  return [
+    { id: "std", name: "Обычный фон", name_en: "Standard", mult: 1.0, bonus_pct: 0 },
+    { id: "rare", name: "Редкий 1%", name_en: "Rare 1%", mult: 1.18, bonus_pct: 18 },
+    { id: "top", name: "Топ-фон (Black)", name_en: "Top (Black)", mult: 1.45, bonus_pct: 45 },
+  ];
+}
+
+function buildGiftAffordabilityHint(payoutTon) {
+  if (!S || !Array.isArray(S.catalog) || !S.catalog.length || payoutTon <= 0) return "";
+  const sorted = S.catalog.slice().sort((a, b) => Number(b.effective_price || 0) - Number(a.effective_price || 0));
+  const best = sorted.find((t) => Number(t.effective_price || 0) > 0 && payoutTon + 1e-6 >= Number(t.effective_price || 0));
+  if (!best) return "";
+  const p = Number(best.effective_price || 0);
+  const nm = LANG === "en" ? best.name_en : best.name;
+  const cnt = Math.floor(payoutTon / p);
+  const rem = Math.max(0, payoutTon - p);
+  if (cnt >= 2) {
+    return LANG === "en"
+      ? `Enough for <b>${cnt}× ${esc(nm)}</b> right away!`
+      : `Хватит сразу на <b>${cnt}× ${esc(nm)}</b>!`;
+  }
+  if (rem >= 2) {
+    return LANG === "en"
+      ? `Covers <b>${esc(nm)}</b> (${fmtPrice(p)} TON) + <b>${rem.toFixed(1)} TON</b> left on balance.`
+      : `Хватит на <b>${esc(nm)}</b> (${fmtPrice(p)} TON) и ещё останется <b>${rem.toFixed(1)} TON</b> на балансе.`;
+  }
+  return LANG === "en"
+    ? `Covers <b>${esc(nm)}</b> (${fmtPrice(p)} TON) from balance.`
+    : `Хватит на <b>${esc(nm)}</b> (${fmtPrice(p)} TON) с баланса.`;
+}
+
+function renderGiftCalcModelList() {
+  const listEl = $("giftCalcModelsWrap");
+  if (!listEl) return;
+  const items = (giftCatalogCache && Array.isArray(giftCatalogCache.items) && giftCatalogCache.items.length)
+    ? giftCatalogCache.items
+    : [getFeaturedGiftFallback()];
+  const q = (giftCalcSearch || "").trim().toLowerCase();
+  const filtered = q ? items.filter((it) => String(it.name || "").toLowerCase().includes(q)) : items;
+  if (!filtered.length) {
+    listEl.innerHTML = `<div class="empty-box" style="padding:14px">${LANG === "en" ? "No model found" : "Модель не найдена"}</div>`;
+    return;
+  }
+  const presets = getGiftBackdropPresets();
+  const bp = presets.find((x) => x.id === giftCalcBackdrop) || presets[0];
+  const bpMult = Number(bp.mult || 1.0);
+  const bonusPct = getGiftBonusPct();
+
+  listEl.innerHTML = filtered.map((it) => {
+    const isSel = String(it.key) === String(giftCalcKey);
+    const fl = Number(it.floor_ton || 0);
+    const baseWithBp = fl * bpMult;
+    const pay = bonusPct > 0 ? baseWithBp * (1 + bonusPct / 100) : baseWithBp * 0.9;
+    const thumb = it.preview_url
+      ? `<img src="${esc(it.preview_url)}" alt="" loading="lazy" onerror="if(this.dataset.fb!='1'&&'${escJsAttr(it.preview_fallback || "")}'){this.dataset.fb='1';this.src='${escJsAttr(it.preview_fallback || "")}';}else{this.outerHTML='<span>🎁</span>';}">`
+      : `<span>🎁</span>`;
+    return `
+      <div class="gift-calc-row${isSel ? " active" : ""}" onclick="selectCalcGift('${escJsAttr(it.key)}')">
+        <div style="display:flex;align-items:center;gap:9px;min-width:0">
+          <div class="gift-calc-row-thumb">${thumb}</div>
+          <div style="min-width:0">
+            <div style="font-size:13px;font-weight:600;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(it.name)}</div>
+            <div class="mono" style="font-size:10.5px;color:var(--text-3)">${LANG === "en" ? "Floor" : "Флор"} ${fl.toFixed(fl >= 10 ? 0 : 1)} TON</div>
+          </div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div class="mono" style="font-size:12.5px;font-weight:700;color:var(--green)">+${pay.toFixed(2)} TON</div>
+          <div class="num" style="font-size:10.5px;color:var(--text-2)">≈ ${fmtUsd(pay)}</div>
+        </div>
+      </div>`;
+  }).join("");
+}
+
+function renderGiftCalculator() {
+  const pane = $("giftCalcPane");
+  if (!pane) return;
+  const relUser = (S && S.config && S.config.relayer_username) ? S.config.relayer_username : "TonPain_Relayer";
+  const items = (giftCatalogCache && Array.isArray(giftCatalogCache.items) && giftCatalogCache.items.length)
+    ? giftCatalogCache.items
+    : [getFeaturedGiftFallback()];
+
+  let sel = items.find((it) => String(it.key) === String(giftCalcKey)) || items[0];
+  giftCalcKey = sel.key;
+
+  const presets = getGiftBackdropPresets();
+  const bp = presets.find((x) => x.id === giftCalcBackdrop) || presets[0];
+  const bpMult = Number(bp.mult || 1.0);
+  const bpPct = Number(bp.bonus_pct || 0);
+  const bonusPct = Number(sel.bonus_pct !== undefined ? sel.bonus_pct : getGiftBonusPct());
+
+  const floorTon = Number(sel.floor_ton || 0);
+  const grossTon = floorTon * bpMult;
+  const payoutTon = bonusPct > 0 ? grossTon * (1 + bonusPct / 100) : grossTon * 0.9;
+
+  const thumb = sel.preview_url
+    ? `<img src="${esc(sel.preview_url)}" alt="" onerror="if(this.dataset.fb!='1'&&'${escJsAttr(sel.preview_fallback || "")}'){this.dataset.fb='1';this.src='${escJsAttr(sel.preview_fallback || "")}';}else{this.outerHTML='<span style=\\'font-size:28px\\'>🎁</span>';}">`
+    : `<span style="font-size:28px">🎁</span>`;
+
+  const bpChips = presets.map((p) => {
+    const lbl = LANG === "en" ? (p.name_en || p.name) : p.name;
+    const tag = p.bonus_pct > 0 ? ` (+${p.bonus_pct}%)` : "";
+    return `<button class="chip${p.id === bp.id ? " gift-chip-active" : ""}" onclick="setCalcBackdrop('${escJsAttr(p.id)}')">${esc(lbl)}${tag}</button>`;
+  }).join("");
+
+  const affordHtml = buildGiftAffordabilityHint(payoutTon);
+
+  pane.innerHTML = `
+    <div class="gift-calc-hero">
+      <div class="gift-calc-thumb">${thumb}</div>
+      <div style="min-width:0;flex:1">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:6px">
+          <div style="font-size:15px;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(sel.name)}</div>
+          ${bonusPct > 0 ? `<span class="status-chip" style="flex-shrink:0">+${bonusPct}%</span>` : ""}
+        </div>
+        <div class="gift-calc-payout mono" style="margin-top:3px">+${payoutTon.toFixed(2)} TON</div>
+        <div class="num" style="font-size:12px;color:var(--text-2);margin-top:1px">
+          <span style="text-decoration:line-through;color:var(--text-3);margin-right:5px">${grossTon.toFixed(2)} TON</span>
+          ≈ ${fmtUsd(payoutTon)}
+        </div>
+      </div>
+    </div>
+
+    <div class="chips-row" style="margin:0 0 10px">${bpChips}</div>
+
+    <div class="receipt-rows" style="margin:0 0 10px;padding:11px 13px;gap:7px">
+      <div class="r-row"><span class="r-k">${LANG === "en" ? "Market floor" : "Флор маркета"}</span><span class="r-v mono" style="color:var(--text-2)">${floorTon.toFixed(2)} TON</span></div>
+      ${bpPct > 0 ? `<div class="r-row"><span class="r-k">${LANG === "en" ? "Backdrop bonus" : "Редкий фон"}</span><span class="r-v" style="color:var(--green)">+${bpPct}%</span></div>` : ""}
+      ${bonusPct > 0 ? `<div class="r-row"><span class="r-k">${LANG === "en" ? "Deposit boost" : "Бонус пополнения"}</span><span class="r-v" style="color:var(--green)">+${bonusPct}%</span></div>` : ""}
+      <div class="r-row">
+        <span class="r-k">${LANG === "en" ? "You receive" : "Зачислится на баланс"}</span>
+        <span class="r-v mono" style="color:var(--green);font-size:14.5px">+${payoutTon.toFixed(2)} TON</span>
+      </div>
+    </div>
+
+    ${affordHtml ? `<div class="gift-calc-afford">${affordHtml}</div>` : ""}
+
+    <label class="field-lbl" style="margin-top:2px">${LANG === "en" ? "Select gift model" : "Выберите модель подарка"}</label>
+    <input class="input" id="giftCalcSearchIn" value="${esc(giftCalcSearch)}" placeholder="${LANG === "en" ? "Search model (Heroic Helmet...)" : "Поиск модели (Heroic Helmet...)"}" oninput="onCalcGiftSearch(this.value)" style="height:40px;margin-bottom:8px;font-size:13px">
+    <div class="gift-calc-list" id="giftCalcModelsWrap"></div>
+
+    <button class="btn btn-primary btn-full" onclick="launchGiftTransfer('', '${escJsAttr(relUser)}')">
+      ${LANG === "en" ? `Send Gift to @${esc(relUser)} · +${payoutTon.toFixed(2)} TON` : `Передать на @${esc(relUser)} · +${payoutTon.toFixed(2)} TON`}
+    </button>
+    <div class="gift-step-hint">
+      ${LANG === "en"
+        ? `If your gift is on Portal / marketplace, withdraw it to your Telegram profile and transfer to <b>@${esc(relUser)}</b> — credited automatically in ~15 sec.`
+        : `Если подарок лежит на Portal или маркете — выведите его в профиль Telegram и отправьте на <b>@${esc(relUser)}</b>. Зачислится автоматически за ~15 сек.`}
+    </div>`;
+
+  renderGiftCalcModelList();
+}
+
+async function openGiftDeposit(targetPriceTon = 0, preferredTab = "auto") {
   if (blockIfSpectating()) return;
   haptic("light");
+  giftSheetTargetPrice = Number(targetPriceTon || 0);
+  giftSheetManualTab = preferredTab !== "auto";
+  giftCalcSearch = "";
+
+  const hasLocalTransferable = Boolean(getTopTransferableGift());
+  if (preferredTab === "calc") {
+    giftSheetTab = "calc";
+  } else if (preferredTab === "my") {
+    giftSheetTab = "my";
+  } else {
+    giftSheetTab = (myGiftsCache && myGiftsCache.ok && !hasLocalTransferable) ? "calc" : "my";
+  }
+
   const relUser = (S && S.config && S.config.relayer_username) ? S.config.relayer_username : "TonPain_Relayer";
   const relUrl = (S && S.config && S.config.relayer_url) ? S.config.relayer_url : ("https://t.me/" + relUser);
   const gBonus = getGiftBonusPct();
   const bonusChip = gBonus > 0 ? `<span class="status-chip">+${gBonus}%</span>` : "";
-  const srvNote = targetPriceTon > 0
+  const srvNote = giftSheetTargetPrice > 0
     ? (LANG === "en"
-      ? `Needed: <b>${fmtPrice(targetPriceTon)} TON</b> — deposit any gift below and pay from balance.`
-      : `Для оплаты нужно <b>${fmtPrice(targetPriceTon)} TON</b> — закиньте подарок с бонусом и оплатите с баланса.`)
+      ? `Needed: <b>${fmtPrice(giftSheetTargetPrice)} TON</b> — deposit any gift below and pay from balance.`
+      : `Для оплаты нужно <b>${fmtPrice(giftSheetTargetPrice)} TON</b> — закиньте подарок с бонусом и оплатите с баланса.`)
     : (gBonus > 0
       ? (LANG === "en"
         ? `Boosted valuation <b>+${gBonus}%</b>! Tap any gift to transfer to <b>@${esc(relUser)}</b> — instant credit.`
@@ -5274,31 +5642,58 @@ async function openGiftDeposit(targetPriceTon = 0) {
     LANG === "en" ? "Deposit with Gifts" : "Пополнение подарками",
     `<div class="gift-top-bar">
       <div style="display:flex;align-items:center;gap:6px">
-        <span style="font-size:13px;font-weight:600;color:var(--text-2)">${LANG === "en" ? "Your Gifts" : "Ваши подарки"}</span>
+        <span style="font-size:13px;font-weight:600;color:var(--text-2)">${LANG === "en" ? "Telegram Gifts" : "Подарки Telegram"}</span>
         ${bonusChip}
       </div>
       <button class="gift-rel-pill mono" onclick="copyText('@${escJsAttr(relUser)}', '${LANG === "en" ? "@" + escJsAttr(relUser) + " copied" : "@" + escJsAttr(relUser) + " скопирован"}')">@${esc(relUser)}</button>
     </div>
-    <div class="gift-hint-line" id="giftHintLine">${srvNote}</div>
-    <div id="myGiftsGridWrap">
-      <div style="padding:36px 0;text-align:center"><div class="spinner" style="margin:0 auto"></div></div>
+
+    <div class="seg-tabs" id="giftSheetSegTabs" style="margin-bottom:11px">
+      <button class="seg-btn ${giftSheetTab === "my" ? "active" : ""}" id="giftTabMyBtn" onclick="setGiftSheetTab('my')">${LANG === "en" ? "My Gifts" : "Мои подарки"}</button>
+      <button class="seg-btn ${giftSheetTab === "calc" ? "active" : ""}" id="giftTabCalcBtn" onclick="setGiftSheetTab('calc')">${LANG === "en" ? `Check Price${gBonus > 0 ? " (+" + gBonus + "%)" : ""}` : `Узнать цену${gBonus > 0 ? " (+" + gBonus + "%)" : ""}`}</button>
     </div>
-    <button class="btn btn-primary btn-full" onclick="openTgLink('${escJsAttr(relUrl)}')">
-      ${LANG === "en" ? `Send Gift to @${esc(relUser)}` : `Отправить подарок на @${esc(relUser)}`}
-    </button>`
+
+    <div id="giftMyPane" class="${giftSheetTab === "my" ? "" : "hidden"}">
+      <div class="gift-hint-line" id="giftHintLine">${srvNote}</div>
+      <div id="myGiftsGridWrap">
+        <div style="padding:36px 0;text-align:center"><div class="spinner" style="margin:0 auto"></div></div>
+      </div>
+      <button class="btn btn-primary btn-full" onclick="launchGiftTransfer('', '${escJsAttr(relUser)}')">
+        ${LANG === "en" ? `Send Gift to @${esc(relUser)}` : `Отправить подарок на @${esc(relUser)}`}
+      </button>
+    </div>
+
+    <div id="giftCalcPane" class="${giftSheetTab === "calc" ? "" : "hidden"}"></div>`
   );
 
   ensureGiftPoll();
+  requestAnimationFrame(() => syncSegPills($("giftSheetSegTabs"), true));
 
   if (myGiftsCache && myGiftsCache.ok) {
     renderMyProfileGifts(myGiftsCache);
   }
+  if (giftSheetTab === "calc") {
+    renderGiftCalculator();
+  }
+
+  // Fetch profile gifts & full catalog in parallel
+  apiPost("/api/gifts/catalog").then((cat) => {
+    if (cat && cat.ok) {
+      giftCatalogCache = cat;
+      renderHomeGiftBanner();
+      if ($("giftCalcPane") && giftSheetTab === "calc") renderGiftCalculator();
+    }
+  }).catch(() => {});
+
   try {
     const res = await apiPost("/api/gifts/my", { force: false });
     if (res && res.ok) {
       myGiftsCache = res;
       renderHomeGiftBanner();
       if ($("myGiftsGridWrap")) renderMyProfileGifts(res);
+      if (!giftSheetManualTab && preferredTab === "auto" && !getTopTransferableGift() && $("giftCalcPane")) {
+        setGiftSheetTab("calc", true);
+      }
     }
   } catch(e) {
     const wrap = $("myGiftsGridWrap");
@@ -5330,7 +5725,7 @@ function openGiftItemSheet(idx) {
   if (blockIfSpectating()) return;
   const items = (myGiftsCache && Array.isArray(myGiftsCache.items)) ? myGiftsCache.items : [];
   const g = items[idx];
-  if (!g) { openGiftDeposit(); return; }
+  if (!g) { openGiftDeposit(0, "calc"); return; }
   haptic("light");
 
   const relUser = (myGiftsCache && myGiftsCache.relayer_username)
@@ -5377,7 +5772,7 @@ function openGiftItemSheet(idx) {
         <button class="btn btn-sm" onclick="copyText('@${escJsAttr(relUser)}', '@${escJsAttr(relUser)} скопирован')">${LANG === "en" ? "Copy @" + esc(relUser) : "Скопировать @" + esc(relUser)}</button>
         <button class="btn btn-sm" onclick="openTgLink('${escJsAttr(relUrl)}')">${LANG === "en" ? "Open @" + esc(relUser) : "Открыть @" + esc(relUser)}</button>
       </div>
-      <button class="btn btn-sm btn-full" onclick="openGiftDeposit()">← ${LANG === "en" ? "All profile gifts" : "Все подарки профиля"}</button>
+      <button class="btn btn-sm btn-full" onclick="openGiftDeposit(0, 'my')">← ${LANG === "en" ? "All profile gifts" : "Все подарки профиля"}</button>
     </div>
 
     <div class="gift-step-hint">
@@ -5394,16 +5789,21 @@ function renderMyProfileGifts(data) {
   if (!wrap) return;
   const relUser = data.relayer_username || ((S && S.config && S.config.relayer_username) ? S.config.relayer_username : "TonPain_Relayer");
   const items = Array.isArray(data.items) ? data.items : [];
+  const gBon = getGiftBonusPct();
 
   if (!items.length) {
     const emptyMsg = data.privacy_restricted
       ? (LANG === "en"
-        ? `Your Telegram profile gifts are hidden by privacy settings. Send any gift directly to @${relUser}.`
-        : `Подарки в профиле скрыты настройками приватности. Отправьте подарок напрямую на @${relUser}.`)
+        ? `Profile gifts are hidden by privacy settings or stored on a marketplace. Check your gift payout below and send it to @${relUser}.`
+        : `Подарки скрыты настройками приватности или лежат на маркете (Portal). Узнайте точную выплату с бонусом и отправьте подарок на @${relUser}.`)
       : (LANG === "en"
-        ? `No gifts found in your profile yet. You can buy and send any gift to @${relUser}.`
-        : `В вашем профиле пока нет подарков. Вы можете отправить любой подарок на @${relUser}.`);
-    wrap.innerHTML = `<div class="empty-box" style="padding:18px 10px 22px">${esc(emptyMsg)}</div>`;
+        ? `No gifts visible in your Telegram profile yet. Check your gift payout below or withdraw from Portal to send to @${relUser}.`
+        : `В профиле Telegram пока не видно подарков (возможно, они на Portal). Узнайте точную выплату с бонусом в калькуляторе.`);
+    wrap.innerHTML = `
+      <div class="empty-box" style="padding:14px 10px 12px">${esc(emptyMsg)}</div>
+      <button class="btn btn-gift btn-full" style="margin-bottom:10px" onclick="setGiftSheetTab('calc')">
+        ${LANG === "en" ? `Check Gift Payout${gBon > 0 ? " (+" + gBon + "%)" : ""}` : `Узнать цену подарка${gBon > 0 ? " (+" + gBon + "%)" : ""}`}
+      </button>`;
     return;
   }
 
@@ -5495,7 +5895,7 @@ function openCheckout(orderType, itemId) {
     </div>
     <div style="display:flex;flex-direction:column;gap:8px">
       ${balBtnHtml}
-      <button class="btn btn-gift btn-full" onclick="openGiftDeposit(${price})">
+      <button class="btn btn-gift btn-full" onclick="openGiftDeposit(${price}, 'auto')">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
         <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(giftLabel)}</span>
         ${giftBadge}
@@ -7166,6 +7566,7 @@ async function admSaveGlobalTuning(payload) {
     const r = await apiPost("/api/admin/settings/tuning", payload);
     if (r.overview) adminOverview = r.overview;
     myGiftsCache = null;
+    giftCatalogCache = null;
     if (adminSubTab === "gifts") {
       try { adminGiftsData = await apiPost("/api/admin/gifts/overview"); } catch(_) {}
     }
@@ -7355,6 +7756,7 @@ async function admSetGiftPrice(explicitName, explicitPrice) {
     const r = await apiPost("/api/admin/gifts/set_price", { collection_name, floor_ton: isNaN(floor_ton) ? 0 : floor_ton });
     adminGiftsData = r.gifts;
     myGiftsCache = null;
+    giftCatalogCache = null;
     renderAdminBody();
     haptic("success");
     showToast(r.message, "ok");
