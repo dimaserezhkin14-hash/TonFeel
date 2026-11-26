@@ -1442,6 +1442,86 @@ body.modal-open .app {
   font-size: 10px;
   color: rgba(255, 255, 255, 0.65);
 }
+.gift-tile-bonus {
+  position: absolute;
+  top: 7px;
+  left: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--green);
+  background: rgba(48, 209, 88, 0.18);
+  border: 0.5px solid rgba(48, 209, 88, 0.38);
+  padding: 2px 6px;
+  border-radius: 999px;
+}
+.gift-tile-base {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.42);
+  text-decoration: line-through;
+  margin-right: 4px;
+}
+.btn-gift {
+  background: linear-gradient(160deg, rgba(48, 209, 88, 0.18) 0%, rgba(48, 209, 88, 0.08) 100%);
+  border-color: rgba(48, 209, 88, 0.36);
+  color: #fff;
+}
+.btn-gift:active {
+  background: rgba(48, 209, 88, 0.24);
+}
+.gift-hero-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 11px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  border-color: rgba(48, 209, 88, 0.28);
+  background: linear-gradient(160deg, rgba(48, 209, 88, 0.11) 0%, rgba(20, 22, 21, 0.92) 100%);
+  transition: transform 0.2s var(--spring);
+}
+.gift-hero-strip:active { transform: scale(0.98); }
+.gift-hero-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+  border: 0.5px solid rgba(255, 255, 255, 0.16);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.gift-hero-thumb img {
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+  display: block;
+}
+.gift-detail-hero {
+  border-radius: 22px;
+  padding: 18px 14px 14px;
+  text-align: center;
+  border: 0.5px solid rgba(255, 255, 255, 0.16);
+  box-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.26);
+  margin-bottom: 12px;
+  position: relative;
+}
+.gift-detail-img {
+  width: 92px;
+  height: 92px;
+  object-fit: contain;
+  margin: 0 auto 8px;
+  display: block;
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.42));
+}
+.gift-step-hint {
+  font-size: 11.5px;
+  color: var(--text-3);
+  line-height: 1.42;
+  margin-top: 10px;
+  text-align: center;
+}
 
 /* ====== TOAST (iOS DYNAMIC PILL) ====== */
 .toast {
@@ -2269,6 +2349,9 @@ body.spectating .app {
       </div>
     </div>
 
+    <!-- SMART PERSONAL GIFT BONUS STRIP (SHOWN ONLY IF USER HAS TRANSFERABLE NFT GIFTS) -->
+    <div class="glass gift-hero-strip hidden" id="giftPromoBanner" onclick="openHomeTopGift()"></div>
+
     <!-- SUBTLE DISCOUNT STRIP -->
     <div class="glass promo-strip hidden" id="firstDiscountBanner" onclick="switchTab(2)">
       <div>
@@ -2458,7 +2541,7 @@ body.spectating .app {
 
     <!-- VERSION FOOTER (5x tap hidden admin trigger) -->
     <div style="text-align:center;margin:22px 0 8px;user-select:none">
-      <span id="appVersionTap" onclick="onVersionTap()" style="font-size:11.5px;color:var(--text-3);padding:6px 14px;cursor:pointer">TonPain v7.5</span>
+      <span id="appVersionTap" onclick="onVersionTap()" style="font-size:11.5px;color:var(--text-3);padding:6px 14px;cursor:pointer">TonPain v7.6</span>
     </div>
   </section>
 
@@ -4993,13 +5076,82 @@ async function doCancelServer(srvId) {
   }
 }
 
-/* ====== DEPOSIT & CHECKOUT ====== */
+/* ====== DEPOSIT, GIFTS (+35% BOOST) & CHECKOUT ====== */
+function getGiftBonusPct() {
+  if (myGiftsCache && typeof myGiftsCache.bonus_pct === "number") return Math.max(0, myGiftsCache.bonus_pct);
+  if (S && S.config && S.config.gift_bonus_pct !== undefined) return Math.max(0, Number(S.config.gift_bonus_pct) || 0);
+  return 35;
+}
+
+function getTopTransferableGift() {
+  if (!myGiftsCache || !Array.isArray(myGiftsCache.items)) return null;
+  return myGiftsCache.items.find((g) => g && g.is_unique && g.can_transfer && g.nft_url) || null;
+}
+
+function renderHomeGiftBanner() {
+  const el = $("giftPromoBanner");
+  if (!el) return;
+  const top = getTopTransferableGift();
+  if (!top || spectateActive) {
+    el.classList.add("hidden");
+    return;
+  }
+  const bonus = Number(top.bonus_pct !== undefined ? top.bonus_pct : getGiftBonusPct());
+  const bg = `background: radial-gradient(circle at 50% 34%, ${esc(top.center_color || "#2a2d36")} 0%, ${esc(top.edge_color || "#14161b")} 100%);`;
+  const thumb = top.preview_url
+    ? `<img src="${esc(top.preview_url)}" alt="" onerror="this.outerHTML='<span style=\\'font-size:24px\\'>🎁</span>'">`
+    : `<span style="font-size:24px">🎁</span>`;
+  const payTon = Number(top.payout_ton || 0).toFixed(2);
+  el.innerHTML = `
+    <div style="display:flex;align-items:center;gap:11px;min-width:0">
+      <div class="gift-hero-thumb" style="${bg}">${thumb}</div>
+      <div style="min-width:0">
+        <div class="promo-strip-title" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+          ${esc(top.name)}${top.number ? " #" + top.number : ""} · <span style="color:var(--green)">+${payTon} TON</span>
+        </div>
+        <div class="promo-strip-sub" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+          ${LANG === "en"
+            ? `Deposit gift (${fmtUsd(top.payout_ton)}) for instant balance`
+            : `Пополни баланс подарком (≈ ${fmtUsd(top.payout_ton)})`}
+        </div>
+      </div>
+    </div>
+    <span class="status-chip" style="flex-shrink:0">${bonus > 0 ? `+${bonus}%` : "NFT"}</span>`;
+  el.classList.remove("hidden");
+}
+
+function openHomeTopGift() {
+  if (blockIfSpectating()) return;
+  const top = getTopTransferableGift();
+  if (top && myGiftsCache && Array.isArray(myGiftsCache.items)) {
+    const idx = myGiftsCache.items.indexOf(top);
+    if (idx >= 0) {
+      openGiftItemSheet(idx);
+      return;
+    }
+  }
+  openGiftDeposit();
+}
+
+async function prefetchMyGiftsBanner() {
+  if (!S || spectateActive) return;
+  try {
+    const res = await apiPost("/api/gifts/my", { force: false });
+    if (res && res.ok) {
+      myGiftsCache = res;
+      renderHomeGiftBanner();
+    }
+  } catch(_) {}
+}
+
 function openDeposit(prefillTon = 5) {
   if (blockIfSpectating()) return;
   haptic("light");
   const initAmt = Math.max(0.1, Number(prefillTon) || 5);
   const initValStr = fmtPrice(initAmt);
   const initStars = calcDepositStars(initAmt);
+  const gBonus = getGiftBonusPct();
+  const giftBadge = gBonus > 0 ? `<span class="status-chip" style="padding:2px 8px;font-size:11px">+${gBonus}%</span>` : "";
   openSheet(
     LANG === "en" ? "Deposit TON" : "Пополнение баланса",
     `<label class="field-lbl">${LANG === "en" ? "Amount in TON" : "Сумма в TON"}</label>
@@ -5012,12 +5164,13 @@ function openDeposit(prefillTon = 5) {
       <button class="chip" onclick="setDepAmt(50)">50 TON</button>
     </div>
     <div style="display:flex;flex-direction:column;gap:8px;margin-top:14px">
+      <button class="btn btn-gift btn-full" onclick="openGiftDeposit()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+        <span>${LANG === "en" ? "Deposit with Gifts" : "Пополнить подарками"}</span>
+        ${giftBadge}
+      </button>
       <button class="btn btn-primary btn-full" onclick="startPayment('deposit', '', 'ton')">${LANG === "en" ? "Deposit via TON" : "Пополнить через TON"}</button>
       <button class="btn btn-full" id="depStarsBtn" onclick="startPayment('deposit', '', 'stars')">${LANG === "en" ? `Deposit via Stars · ${initStars} ★` : `Пополнить через Stars · ${initStars} ★`}</button>
-      <button class="btn btn-full" onclick="openGiftDeposit()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
-        <span>${LANG === "en" ? "Deposit with Telegram Gifts" : "Пополнить подарками Telegram"}</span>
-      </button>
     </div>`
   );
 }
@@ -5036,40 +5189,48 @@ function updateDepUsd() {
   }
 }
 
-
-function openTgLink(url) {
-  haptic("light");
-  if (tg && tg.openTelegramLink) tg.openTelegramLink(url);
-  else window.open(url, "_blank");
+function copySilentSync(txt) {
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = txt;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed";
+    ta.style.top = "-1000px";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    ta.setSelectionRange(0, txt.length);
+    document.execCommand("copy");
+    ta.remove();
+  } catch(_) {}
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(txt).catch(() => {});
+    }
+  } catch(_) {}
 }
 
-async function openGiftDeposit() {
-  if (blockIfSpectating()) return;
+function openTgLink(url) {
+  if (!url) return;
   haptic("light");
-  const relUser = (S && S.config && S.config.relayer_username) ? S.config.relayer_username : "TonPain_Relayer";
-  const relUrl = (S && S.config && S.config.relayer_url) ? S.config.relayer_url : ("https://t.me/" + relUser);
+  try {
+    if (tg && typeof tg.openTelegramLink === "function" && /^https:\/\/t\.me\//i.test(url)) {
+      tg.openTelegramLink(url);
+      return;
+    }
+  } catch(_) {}
+  try {
+    if (tg && typeof tg.openLink === "function") {
+      tg.openLink(url);
+      return;
+    }
+  } catch(_) {}
+  const w = window.open(url, "_blank");
+  if (!w) location.href = url;
+}
 
-  openSheet(
-    LANG === "en" ? "Deposit with Gifts" : "Пополнение подарками",
-    `<div class="gift-top-bar">
-      <span style="font-size:13px;font-weight:600;color:var(--text-2)">${LANG === "en" ? "Your Telegram Gifts" : "Подарки в вашем профиле"}</span>
-      <button class="gift-rel-pill mono" onclick="copyText('@${escJsAttr(relUser)}', '${LANG === "en" ? "@" + escJsAttr(relUser) + " copied" : "@" + escJsAttr(relUser) + " скопирован"}')">@${esc(relUser)}</button>
-    </div>
-    <div class="gift-hint-line" id="giftHintLine">
-      ${LANG === "en"
-        ? `Tap any collectible gift to transfer it to <b>@${esc(relUser)}</b> — balance updates automatically.`
-        : `Нажмите на подарок, чтобы передать его на <b>@${esc(relUser)}</b> — баланс пополнится автоматически.`}
-    </div>
-    <div id="myGiftsGridWrap">
-      <div style="padding:36px 0;text-align:center"><div class="spinner" style="margin:0 auto"></div></div>
-    </div>
-    <button class="btn btn-primary btn-full" onclick="openTgLink('${escJsAttr(relUrl)}')">
-      ${LANG === "en" ? `Send Gift to @${esc(relUser)}` : `Отправить подарок на @${esc(relUser)}`}
-    </button>`
-  );
-
-  // Silent background balance check while gift sheet is open
-  if (giftPollTimer) clearInterval(giftPollTimer);
+function ensureGiftPoll() {
+  if (giftPollTimer) return;
   const startGiftCnt = (S && S.gift_deposits) ? S.gift_deposits.length : 0;
   giftPollTimer = setInterval(async () => {
     try {
@@ -5080,15 +5241,55 @@ async function openGiftDeposit() {
         renderAll(prevB);
         if ((S.gift_deposits || []).length > startGiftCnt) {
           clearInterval(giftPollTimer); giftPollTimer = null;
+          myGiftsCache = null;
           haptic("success");
           showToast(LANG === "en" ? "Gift credited to balance!" : "Подарок зачислен на баланс!", "ok");
           closeSheet();
         }
       }
     } catch(_) {}
-  }, 6000);
+  }, 5500);
+}
 
-  // Render cached immediately if fresh, then refresh from server
+async function openGiftDeposit(targetPriceTon = 0) {
+  if (blockIfSpectating()) return;
+  haptic("light");
+  const relUser = (S && S.config && S.config.relayer_username) ? S.config.relayer_username : "TonPain_Relayer";
+  const relUrl = (S && S.config && S.config.relayer_url) ? S.config.relayer_url : ("https://t.me/" + relUser);
+  const gBonus = getGiftBonusPct();
+  const bonusChip = gBonus > 0 ? `<span class="status-chip">+${gBonus}%</span>` : "";
+  const srvNote = targetPriceTon > 0
+    ? (LANG === "en"
+      ? `Needed: <b>${fmtPrice(targetPriceTon)} TON</b> — deposit any gift below and pay from balance.`
+      : `Для оплаты нужно <b>${fmtPrice(targetPriceTon)} TON</b> — закиньте подарок с бонусом и оплатите с баланса.`)
+    : (gBonus > 0
+      ? (LANG === "en"
+        ? `Boosted valuation <b>+${gBonus}%</b>! Tap any gift to transfer to <b>@${esc(relUser)}</b> — instant credit.`
+        : `Повышенная оценка <b>+${gBonus}%</b> к рынку! Нажмите на подарок, чтобы передать его на <b>@${esc(relUser)}</b>.`)
+      : (LANG === "en"
+        ? `Tap any collectible gift to transfer it to <b>@${esc(relUser)}</b> — balance updates automatically.`
+        : `Нажмите на подарок, чтобы передать его на <b>@${esc(relUser)}</b> — баланс пополнится автоматически.`));
+
+  openSheet(
+    LANG === "en" ? "Deposit with Gifts" : "Пополнение подарками",
+    `<div class="gift-top-bar">
+      <div style="display:flex;align-items:center;gap:6px">
+        <span style="font-size:13px;font-weight:600;color:var(--text-2)">${LANG === "en" ? "Your Gifts" : "Ваши подарки"}</span>
+        ${bonusChip}
+      </div>
+      <button class="gift-rel-pill mono" onclick="copyText('@${escJsAttr(relUser)}', '${LANG === "en" ? "@" + escJsAttr(relUser) + " copied" : "@" + escJsAttr(relUser) + " скопирован"}')">@${esc(relUser)}</button>
+    </div>
+    <div class="gift-hint-line" id="giftHintLine">${srvNote}</div>
+    <div id="myGiftsGridWrap">
+      <div style="padding:36px 0;text-align:center"><div class="spinner" style="margin:0 auto"></div></div>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="openTgLink('${escJsAttr(relUrl)}')">
+      ${LANG === "en" ? `Send Gift to @${esc(relUser)}` : `Отправить подарок на @${esc(relUser)}`}
+    </button>`
+  );
+
+  ensureGiftPoll();
+
   if (myGiftsCache && myGiftsCache.ok) {
     renderMyProfileGifts(myGiftsCache);
   }
@@ -5096,7 +5297,8 @@ async function openGiftDeposit() {
     const res = await apiPost("/api/gifts/my", { force: false });
     if (res && res.ok) {
       myGiftsCache = res;
-      renderMyProfileGifts(res);
+      renderHomeGiftBanner();
+      if ($("myGiftsGridWrap")) renderMyProfileGifts(res);
     }
   } catch(e) {
     const wrap = $("myGiftsGridWrap");
@@ -5106,15 +5308,11 @@ async function openGiftDeposit() {
   }
 }
 
-function transferProfileGift(nftUrl, relUser) {
+function launchGiftTransfer(nftUrl, relUser) {
   haptic("medium");
   const handle = "@" + relUser;
-  const doneCopy = () => {};
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(handle).catch(() => fallbackCopy(handle, doneCopy));
-  } else {
-    fallbackCopy(handle, doneCopy);
-  }
+  // Strictly synchronous copy + openTelegramLink inside the user gesture (zero setTimeout!)
+  copySilentSync(handle);
   showToast(
     LANG === "en"
       ? `${handle} copied — tap Transfer & paste`
@@ -5122,8 +5320,73 @@ function transferProfileGift(nftUrl, relUser) {
     "ok"
   );
   if (nftUrl) {
-    setTimeout(() => openTgLink(nftUrl), 180);
+    openTgLink(nftUrl);
+  } else {
+    openTgLink("https://t.me/" + relUser);
   }
+}
+
+function openGiftItemSheet(idx) {
+  if (blockIfSpectating()) return;
+  const items = (myGiftsCache && Array.isArray(myGiftsCache.items)) ? myGiftsCache.items : [];
+  const g = items[idx];
+  if (!g) { openGiftDeposit(); return; }
+  haptic("light");
+
+  const relUser = (myGiftsCache && myGiftsCache.relayer_username)
+    || ((S && S.config && S.config.relayer_username) ? S.config.relayer_username : "TonPain_Relayer");
+  const relUrl = "https://t.me/" + relUser;
+  const bgStyle = `background: radial-gradient(circle at 50% 34%, ${esc(g.center_color || "#2a2d36")} 0%, ${esc(g.edge_color || "#14161b")} 100%);`;
+  const visualHtml = g.preview_url
+    ? `<img class="gift-detail-img" src="${esc(g.preview_url)}" alt="" onerror="if(this.dataset.fb!='1'&&'${escJsAttr(g.preview_fallback || "")}'){this.dataset.fb='1';this.src='${escJsAttr(g.preview_fallback || "")}';}else{this.outerHTML='<div style=\\'font-size:56px;margin:8px 0\\'>🎁</div>';}">`
+    : `<div style="font-size:56px;margin:8px 0">${esc(g.emoji || "🎁")}</div>`;
+
+  const bonusPct = Number(g.bonus_pct !== undefined ? g.bonus_pct : getGiftBonusPct());
+  const baseTon = Number(g.base_ton || g.floor_ton || g.payout_ton || 0);
+  const payTon = Number(g.payout_ton || 0);
+  const subtitle = [g.model_name, g.backdrop_name].filter(Boolean).join(" · ") || "Collectible NFT";
+
+  openSheet(
+    `${g.name}${g.number ? " #" + g.number : ""}`,
+    `<div class="gift-detail-hero" style="${bgStyle}">
+      ${bonusPct > 0 ? `<span class="gift-tile-bonus">+${bonusPct}%</span>` : ""}
+      ${g.number ? `<span class="gift-tile-num mono">#${g.number}</span>` : ""}
+      ${visualHtml}
+      <div style="font-size:16px;font-weight:700;color:#fff">${esc(g.name)}${g.number ? " #" + g.number : ""}</div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.72);margin-top:2px">${esc(subtitle)}</div>
+    </div>
+
+    <div class="receipt-rows" style="margin-top:0;margin-bottom:13px">
+      ${bonusPct > 0 ? `<div class="r-row"><span class="r-k">${LANG === "en" ? "Market estimate" : "Оценка подарка"}</span><span class="r-v mono" style="color:var(--text-2);text-decoration:line-through">${baseTon.toFixed(2)} TON</span></div>
+      <div class="r-row"><span class="r-k">${LANG === "en" ? "Deposit bonus" : "Бонус пополнения"}</span><span class="r-v" style="color:var(--green)">+${bonusPct}%</span></div>` : ""}
+      <div class="r-row">
+        <span class="r-k">${LANG === "en" ? "Credited to balance" : "Зачислится на баланс"}</span>
+        <span class="r-v mono" style="color:var(--green);font-size:15px">+${payTon.toFixed(2)} TON <span style="font-size:11.5px;color:var(--text-2);font-weight:500">(≈ ${fmtUsd(payTon)})</span></span>
+      </div>
+      <div class="r-row">
+        <span class="r-k">${LANG === "en" ? "Recipient" : "Получатель"}</span>
+        <span class="r-v mono" style="color:var(--blue);cursor:pointer" onclick="copyText('@${escJsAttr(relUser)}', '@${escJsAttr(relUser)} скопирован')">@${esc(relUser)}</span>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button class="btn btn-primary btn-full" onclick="launchGiftTransfer('${escJsAttr(g.nft_url || "")}', '${escJsAttr(relUser)}')">
+        ${LANG === "en" ? `Transfer Gift · +${payTon.toFixed(2)} TON` : `Передать подарок · +${payTon.toFixed(2)} TON`}
+      </button>
+      <div class="adm-grid-2" style="margin:0">
+        <button class="btn btn-sm" onclick="copyText('@${escJsAttr(relUser)}', '@${escJsAttr(relUser)} скопирован')">${LANG === "en" ? "Copy @" + esc(relUser) : "Скопировать @" + esc(relUser)}</button>
+        <button class="btn btn-sm" onclick="openTgLink('${escJsAttr(relUrl)}')">${LANG === "en" ? "Open @" + esc(relUser) : "Открыть @" + esc(relUser)}</button>
+      </div>
+      <button class="btn btn-sm btn-full" onclick="openGiftDeposit()">← ${LANG === "en" ? "All profile gifts" : "Все подарки профиля"}</button>
+    </div>
+
+    <div class="gift-step-hint">
+      ${LANG === "en"
+        ? `1. Tap «Transfer» on the gift card in Telegram → 2. Paste <b>@${esc(relUser)}</b> (copied automatically). Balance credits within ~15 sec.`
+        : `1. Нажмите «Передать» на открывшейся карточке → 2. Вставьте <b>@${esc(relUser)}</b> (уже в буфере). Баланс пополнится сам за ~15 сек.`}
+    </div>`
+  );
+  ensureGiftPoll();
 }
 
 function renderMyProfileGifts(data) {
@@ -5144,10 +5407,12 @@ function renderMyProfileGifts(data) {
     return;
   }
 
-  wrap.innerHTML = `<div class="gift-grid">` + items.map((g) => {
+  wrap.innerHTML = `<div class="gift-grid">` + items.map((g, idx) => {
     const bgStyle = `background: radial-gradient(circle at 50% 34%, ${esc(g.center_color || "#2a2d36")} 0%, ${esc(g.edge_color || "#14161b")} 100%);`;
     const isTransferable = Boolean(g.is_unique && g.can_transfer && g.nft_url);
     const numBadge = g.is_unique && g.number ? `<span class="gift-tile-num mono">#${g.number}</span>` : "";
+    const gBonus = Number(g.bonus_pct !== undefined ? g.bonus_pct : getGiftBonusPct());
+    const bonusBadge = (isTransferable && gBonus > 0) ? `<span class="gift-tile-bonus">+${gBonus}%</span>` : "";
 
     let visualHtml = `<span class="gift-tile-emoji">${esc(g.emoji || "🎁")}</span>`;
     if (g.preview_url) {
@@ -5162,19 +5427,25 @@ function renderMyProfileGifts(data) {
     }
 
     const clickAttr = isTransferable
-      ? `onclick="transferProfileGift('${escJsAttr(g.nft_url)}', '${escJsAttr(relUser)}')"`
+      ? `onclick="openGiftItemSheet(${idx})"`
       : `onclick="showToast('${escJsAttr(g.is_unique ? (LANG === "en" ? "This gift is temporarily locked for transfer" : "Передача этого подарка временно заблокирована Telegram") : (LANG === "en" ? "Regular profile gifts cannot be transferred — send a new gift" : "Обычные подарки из профиля нельзя передать — отправьте новый"))}')"`;
 
-    const tonTxt = `+${Number(g.payout_ton || 0).toFixed(2)} TON`;
+    const baseTon = Number(g.base_ton || 0);
+    const payTon = Number(g.payout_ton || 0);
+    const strikeHtml = (gBonus > 0 && baseTon > 0 && payTon > baseTon + 0.01)
+      ? `<span class="gift-tile-base mono">${baseTon.toFixed(0)}</span>`
+      : "";
+    const tonTxt = `+${payTon.toFixed(2)} TON`;
     return `
       <div class="gift-tile${isTransferable ? "" : " locked"}" style="${bgStyle}" ${clickAttr}>
+        ${bonusBadge}
         ${numBadge}
         <div class="gift-tile-img-wrap">${visualHtml}</div>
         <div class="gift-tile-name">${esc(g.name)}</div>
         <div class="gift-tile-sub">${esc(subTxt || "NFT")}</div>
         <div class="gift-tile-pay">
-          <span class="gift-tile-ton mono">${tonTxt}</span>
-          <span class="gift-tile-usd num">${fmtUsd(g.payout_ton)}</span>
+          <span class="gift-tile-ton mono">${strikeHtml}${tonTxt}</span>
+          <span class="gift-tile-usd num">${fmtUsd(payTon)}</span>
         </div>
       </div>`;
   }).join("") + `</div>`;
@@ -5198,6 +5469,14 @@ function openCheckout(orderType, itemId) {
   const bal = Number(S.user.balance || 0);
   const canBal = bal + 1e-9 >= price;
   const missingTon = Math.max(0.1, Math.ceil((price - bal) * 100) / 100);
+  const gBonus = getGiftBonusPct();
+  const topGift = getTopTransferableGift();
+  const giftLabel = topGift
+    ? (LANG === "en"
+      ? `Deposit ${topGift.name} (+${Number(topGift.payout_ton || 0).toFixed(0)} TON)`
+      : `Закинуть ${topGift.name} (+${Number(topGift.payout_ton || 0).toFixed(0)} TON)`)
+    : (LANG === "en" ? "Deposit with Gift" : "Пополнить подарком");
+  const giftBadge = gBonus > 0 ? `<span class="status-chip" style="padding:2px 8px;font-size:11px">+${gBonus}%</span>` : "";
 
   const balBtnHtml = canBal
     ? `<button class="btn btn-primary btn-full" onclick="buyFromBalance('${orderType}','${itemId}')">
@@ -5216,6 +5495,11 @@ function openCheckout(orderType, itemId) {
     </div>
     <div style="display:flex;flex-direction:column;gap:8px">
       ${balBtnHtml}
+      <button class="btn btn-gift btn-full" onclick="openGiftDeposit(${price})">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+        <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(giftLabel)}</span>
+        ${giftBadge}
+      </button>
       <button class="btn ${!canBal ? "btn-primary" : ""} btn-full" onclick="startPayment('${orderType}','${itemId}','ton')">
         ${LANG === "en" ? "Pay via TON" : "Оплатить через TON"}
       </button>
@@ -5479,13 +5763,14 @@ async function submitWithdraw() {
 
 function renderRefGateSheet(rg) {
   const pct = Math.min(100, Math.round((rg.points / rg.target) * 100));
+  const minW = fmtPrice((S && S.config && S.config.min_withdraw) ? S.config.min_withdraw : 15);
   openSheet(
     LANG === "en" ? "Verification Required" : "Подтверждение активности",
     `<div class="adm-card">
       <div style="font-size:13.5px;color:var(--text);margin-bottom:8px">
         ${LANG === "en"
-          ? "To unlock withdrawals from 15 TON, invite <b>5 friends with Telegram Premium</b> or <b>10 regular friends</b>."
-          : "Чтобы открыть вывод от 15 TON, пригласите <b>5 друзей с Telegram Premium</b> или <b>10 обычных друзей</b>."}
+          ? `To unlock withdrawals from ${minW} TON, invite <b>5 friends with Telegram Premium</b> or <b>10 regular friends</b>.`
+          : `Чтобы открыть вывод от ${minW} TON, пригласите <b>5 друзей с Telegram Premium</b> или <b>10 обычных друзей</b>.`}
       </div>
       <div class="bar-track" style="margin-top:10px"><div class="bar-fill" style="width:${pct}%"></div></div>
       <div class="pool-meta-row">
@@ -6249,6 +6534,64 @@ function renderAdminUserDetailPage() {
       </div>
     </div>
 
+    <div class="adm-section-lbl">Находки, вывод и подарки</div>
+    <div class="adm-card">
+      <div class="row-between" style="margin-bottom:6px">
+        <span style="font-size:13px;font-weight:600">Частота находок</span>
+        <span class="status-chip ${Number(tu.hit_rate_mult || 0) > 0 ? "" : "muted"} mono">${fmtPrice(tu.effective_hit_rate_mult || 1)}× ${Number(tu.hit_rate_mult || 0) > 0 ? "перс." : "общ."}</span>
+      </div>
+      <div class="chips-row" style="margin:0 0 8px">
+        <button class="chip" onclick="admUserAct(${tu.tg_id}, 'set_hit_rate', 0)">Общ.</button>
+        <button class="chip" onclick="admUserAct(${tu.tg_id}, 'set_hit_rate', 1)">1×</button>
+        <button class="chip" onclick="admUserAct(${tu.tg_id}, 'set_hit_rate', 2)">2×</button>
+        <button class="chip" onclick="admUserAct(${tu.tg_id}, 'set_hit_rate', 3)">3×</button>
+        <button class="chip" onclick="admUserAct(${tu.tg_id}, 'set_hit_rate', 5)">5×</button>
+        <button class="chip" onclick="admUserAct(${tu.tg_id}, 'set_hit_rate', 10)">10×</button>
+      </div>
+      <div class="input-row" style="margin-bottom:13px">
+        <input class="input num" id="admHitMultIn" type="number" step="0.5" min="0" max="50" value="${Number(tu.hit_rate_mult || 0) > 0 ? fmtPrice(tu.hit_rate_mult) : ""}" placeholder="Свой множитель (0 = общ.)">
+        <button class="btn btn-primary btn-sm" style="height:44px;flex-shrink:0" onclick="admSetUserHitMult(${tu.tg_id})">Задать</button>
+      </div>
+
+      <label class="field-lbl" style="margin-top:0">Подкинуть находку в буфер прямо сейчас</label>
+      <div class="input-row" style="margin-bottom:14px">
+        <input class="input num" id="admInjHitAmt" type="number" step="0.05" min="0" placeholder="Авто 0.2–1.3 TON">
+        <button class="btn btn-green btn-sm" style="height:44px;flex-shrink:0" onclick="admInjectHit(${tu.tg_id})">Подкинуть</button>
+      </div>
+
+      <div class="row-between" style="margin-bottom:6px">
+        <span style="font-size:13px;font-weight:600">Мин. сумма вывода</span>
+        <span class="status-chip ${Number(tu.min_withdraw_override || 0) > 0 ? "accent" : "muted"} mono">${fmtPrice(tu.effective_min_withdraw || 15)} TON</span>
+      </div>
+      <div class="chips-row" style="margin:0 0 8px">
+        <button class="chip" onclick="admUserAct(${tu.tg_id}, 'set_min_withdraw', 0)">Общ.</button>
+        <button class="chip" onclick="admUserAct(${tu.tg_id}, 'set_min_withdraw', 1)">1 TON</button>
+        <button class="chip" onclick="admUserAct(${tu.tg_id}, 'set_min_withdraw', 2)">2 TON</button>
+        <button class="chip" onclick="admUserAct(${tu.tg_id}, 'set_min_withdraw', 5)">5 TON</button>
+        <button class="chip" onclick="admUserAct(${tu.tg_id}, 'set_min_withdraw', 15)">15 TON</button>
+      </div>
+      <div class="input-row" style="margin-bottom:14px">
+        <input class="input num" id="admMinWdIn" type="number" step="0.5" min="0" value="${Number(tu.min_withdraw_override || 0) > 0 ? fmtPrice(tu.min_withdraw_override) : ""}" placeholder="TON (0 = общий)">
+        <button class="btn btn-primary btn-sm" style="height:44px;flex-shrink:0" onclick="admSetUserMinWd(${tu.tg_id})">Задать</button>
+      </div>
+
+      <div class="row-between" style="margin-bottom:6px">
+        <span style="font-size:13px;font-weight:600">Бонус к оценке подарков</span>
+        <span class="status-chip ${Number(tu.gift_bonus_pct) >= 0 ? "" : "muted"} mono">+${Number(tu.effective_gift_bonus_pct !== undefined ? tu.effective_gift_bonus_pct : 35)}%</span>
+      </div>
+      <div class="chips-row" style="margin:0 0 8px">
+        <button class="chip" onclick="admUserAct(${tu.tg_id}, 'set_gift_bonus', -1)">Общ.</button>
+        <button class="chip" onclick="admUserAct(${tu.tg_id}, 'set_gift_bonus', 0)">0%</button>
+        <button class="chip" onclick="admUserAct(${tu.tg_id}, 'set_gift_bonus', 20)">+20%</button>
+        <button class="chip" onclick="admUserAct(${tu.tg_id}, 'set_gift_bonus', 35)">+35%</button>
+        <button class="chip" onclick="admUserAct(${tu.tg_id}, 'set_gift_bonus', 50)">+50%</button>
+      </div>
+      <div class="input-row">
+        <input class="input num" id="admGiftBonusIn" type="number" min="0" max="200" value="${Number(tu.gift_bonus_pct) >= 0 ? Number(tu.gift_bonus_pct) : ""}" placeholder="% (пусто = общий)">
+        <button class="btn btn-primary btn-sm" style="height:44px;flex-shrink:0" onclick="admSetUserGiftBonus(${tu.tg_id})">Задать</button>
+      </div>
+    </div>
+
     <div class="ios-group">
       <div class="ios-cell">
         <div><div class="switch-title">Вывод без рефералов</div><div class="switch-sub">Prem ${trp.premium_count} · обычн. ${trp.regular_count}</div></div>
@@ -6420,6 +6763,49 @@ function renderAdminBody(animateTabPill = false) {
       </div>
 
       <div class="adm-card">
+        <div class="row-between" style="margin-bottom:6px">
+          <span style="font-weight:600;font-size:13.5px">Частота находок (всем)</span>
+          <span class="status-chip mono">${fmtPrice(st.global_hit_rate_mult || 1)}×</span>
+        </div>
+        <div class="chips-row" style="margin:0 0 8px">
+          <button class="chip" onclick="admSaveGlobalTuning({global_hit_rate_mult:1})">1×</button>
+          <button class="chip" onclick="admSaveGlobalTuning({global_hit_rate_mult:2})">2×</button>
+          <button class="chip" onclick="admSaveGlobalTuning({global_hit_rate_mult:3})">3×</button>
+          <button class="chip" onclick="admSaveGlobalTuning({global_hit_rate_mult:5})">5×</button>
+          <button class="chip" onclick="admSaveGlobalTuning({global_hit_rate_mult:10})">10×</button>
+        </div>
+        <div class="input-row">
+          <input class="input num" id="admGHitRateIn" type="number" step="0.5" min="0.1" max="50" value="${fmtPrice(st.global_hit_rate_mult || 1)}" placeholder="1.0">
+          <button class="btn btn-primary btn-sm" style="height:44px;flex-shrink:0" onclick="admSaveGlobalTuning({global_hit_rate_mult: parseFloat($('admGHitRateIn').value || '1')})">Задать</button>
+        </div>
+      </div>
+
+      <div class="adm-card">
+        <div class="row-between" style="margin-bottom:8px">
+          <span style="font-weight:600;font-size:13.5px">Мин. вывод (всем)</span>
+          <span class="status-chip accent mono">${fmtPrice(st.global_min_withdraw || 15)} TON</span>
+        </div>
+        <div class="input-row" style="margin-bottom:12px">
+          <input class="input num" id="admGMinWdIn" type="number" step="0.5" min="0.1" value="${fmtPrice(st.global_min_withdraw || 15)}" placeholder="15">
+          <button class="btn btn-primary btn-sm" style="height:44px;flex-shrink:0" onclick="admSaveGlobalTuning({global_min_withdraw: parseFloat($('admGMinWdIn').value || '15')})">Задать</button>
+        </div>
+        <div class="row-between" style="margin-bottom:8px">
+          <span style="font-weight:600;font-size:13.5px">Бонус к оценке подарков</span>
+          <span class="status-chip mono">+${Number(st.global_gift_bonus_pct !== undefined ? st.global_gift_bonus_pct : 35)}%</span>
+        </div>
+        <div class="chips-row" style="margin:0 0 8px">
+          <button class="chip" onclick="admSaveGlobalTuning({global_gift_bonus_pct:0})">0%</button>
+          <button class="chip" onclick="admSaveGlobalTuning({global_gift_bonus_pct:20})">+20%</button>
+          <button class="chip" onclick="admSaveGlobalTuning({global_gift_bonus_pct:35})">+35%</button>
+          <button class="chip" onclick="admSaveGlobalTuning({global_gift_bonus_pct:50})">+50%</button>
+        </div>
+        <div class="input-row">
+          <input class="input num" id="admGGiftBonusIn" type="number" min="0" max="200" value="${Number(st.global_gift_bonus_pct !== undefined ? st.global_gift_bonus_pct : 35)}" placeholder="35">
+          <button class="btn btn-primary btn-sm" style="height:44px;flex-shrink:0" onclick="admSaveGlobalTuning({global_gift_bonus_pct: parseInt($('admGGiftBonusIn').value || '0', 10)})">Задать</button>
+        </div>
+      </div>
+
+      <div class="adm-card">
         <div style="font-weight:600;font-size:13.5px;margin-bottom:8px">Создать чек</div>
         <div class="input-row">
           <input class="input num" id="admChkAmt" type="number" step="0.1" value="5" placeholder="TON">
@@ -6580,11 +6966,13 @@ function renderAdminBody(animateTabPill = false) {
     } else {
       const rel = adminGiftsData.relayer;
       const gst = adminGiftsData.stats;
+      const gBon = Number(gst.global_gift_bonus_pct !== undefined ? gst.global_gift_bonus_pct : 35);
+      const gMult = gBon > 0 ? (1 + gBon / 100) : 0.9;
       const ovList = (adminGiftsData.overrides || []).map((o) => `
         <div class="ios-cell">
           <div>
             <div class="tx-title">${esc(o.collection_name)}</div>
-            <div class="tx-meta num">Флор ${o.floor_ton} TON · выплата ${(o.floor_ton * 0.9).toFixed(2)} TON</div>
+            <div class="tx-meta num">Флор ${o.floor_ton} TON · выплата ${(o.floor_ton * gMult).toFixed(2)} TON</div>
           </div>
           <button class="btn btn-danger-ghost btn-xs" onclick="admSetGiftPrice('${escJsAttr(o.collection_name)}', 0)">Сброс</button>
         </div>`).join("");
@@ -6623,6 +7011,23 @@ function renderAdminBody(animateTabPill = false) {
         </div>
 
         <div class="adm-card">
+          <div class="row-between" style="margin-bottom:6px">
+            <span style="font-weight:600;font-size:13.5px">Бонус к оценке подарков</span>
+            <span class="status-chip mono">+${gBon}%</span>
+          </div>
+          <div class="chips-row" style="margin:0 0 8px">
+            <button class="chip" onclick="admSaveGlobalTuning({global_gift_bonus_pct:0})">0%</button>
+            <button class="chip" onclick="admSaveGlobalTuning({global_gift_bonus_pct:20})">+20%</button>
+            <button class="chip" onclick="admSaveGlobalTuning({global_gift_bonus_pct:35})">+35%</button>
+            <button class="chip" onclick="admSaveGlobalTuning({global_gift_bonus_pct:50})">+50%</button>
+          </div>
+          <div class="input-row">
+            <input class="input num" id="admGiftTabBonusIn" type="number" min="0" max="200" value="${gBon}" placeholder="35">
+            <button class="btn btn-primary btn-sm" style="height:44px;flex-shrink:0" onclick="admSaveGlobalTuning({global_gift_bonus_pct: parseInt($('admGiftTabBonusIn').value || '0', 10)})">Задать</button>
+          </div>
+        </div>
+
+        <div class="adm-card">
           <div style="font-weight:600;font-size:13.5px;margin-bottom:8px">Флор коллекции (TON)</div>
           <input class="input" id="admGiftColIn" placeholder="Plush Pepe" style="margin-bottom:7px">
           <div class="input-row">
@@ -6636,7 +7041,7 @@ function renderAdminBody(animateTabPill = false) {
           <div class="adm-grid-2" style="margin-bottom:7px">
             <input class="input mono" id="admManUid" type="number" value="${S.user.tg_id}" placeholder="TG ID">
             <select class="select" id="admManType" onchange="admToggleManGiftMode()">
-              <option value="unique">NFT (−10%)</option>
+              <option value="unique">NFT (${gBon > 0 ? "+" + gBon + "%" : "−10%"})</option>
               <option value="regular">Обычный (Stars)</option>
             </select>
           </div>
@@ -6730,6 +7135,50 @@ async function admGrantNode(tid, instant) {
 async function admSetPersDisc(tid) {
   const pct = parseInt($("admPersDisc").value || "0", 10);
   await admUserAct(tid, "set_discount", pct);
+}
+
+async function admSetUserHitMult(tid) {
+  const v = parseFloat($("admHitMultIn") ? $("admHitMultIn").value : "0");
+  await admUserAct(tid, "set_hit_rate", isNaN(v) ? 0 : v);
+}
+
+async function admInjectHit(tid) {
+  const raw = $("admInjHitAmt") ? $("admInjHitAmt").value.trim() : "";
+  const v = raw ? parseFloat(raw) : 0;
+  await admUserAct(tid, "inject_hit", isNaN(v) ? 0 : v);
+  if ($("admInjHitAmt")) $("admInjHitAmt").value = "";
+}
+
+async function admSetUserMinWd(tid) {
+  const v = parseFloat($("admMinWdIn") ? $("admMinWdIn").value : "0");
+  await admUserAct(tid, "set_min_withdraw", isNaN(v) ? 0 : v);
+}
+
+async function admSetUserGiftBonus(tid) {
+  const raw = $("admGiftBonusIn") ? $("admGiftBonusIn").value.trim() : "";
+  const v = raw === "" ? -1 : parseInt(raw, 10);
+  await admUserAct(tid, "set_gift_bonus", isNaN(v) ? -1 : v);
+}
+
+async function admSaveGlobalTuning(payload) {
+  haptic("medium");
+  try {
+    const r = await apiPost("/api/admin/settings/tuning", payload);
+    if (r.overview) adminOverview = r.overview;
+    myGiftsCache = null;
+    if (adminSubTab === "gifts") {
+      try { adminGiftsData = await apiPost("/api/admin/gifts/overview"); } catch(_) {}
+    }
+    S = await apiPost("/api/init");
+    renderAll();
+    renderAdminBody(false);
+    prefetchMyGiftsBanner();
+    haptic("success");
+    showToast(r.message || "Сохранено", "ok");
+  } catch(e) {
+    haptic("error");
+    showToast(e.message, "err");
+  }
 }
 
 async function admUserAct(tid, action, value) {
@@ -6996,6 +7445,7 @@ async function boot() {
     syncOnboardingScreen();
     requestAnimationFrame(() => syncSegPills(document, true));
     $("splash").classList.add("hide");
+    prefetchMyGiftsBanner();
     if (S.toast) setTimeout(() => showToast(S.toast, "ok"), 350);
   } catch(e) {
     $("splashSpin").classList.add("hidden");
