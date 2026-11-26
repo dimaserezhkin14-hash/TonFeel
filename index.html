@@ -658,12 +658,29 @@ body.modal-open .app {
   100% { background: rgba(48, 209, 88, 0.09); transform: scale(1); }
 }
 
-/* Smooth CSS Grid Accordion for Expanded Scanner Controls */
+/* Smooth CSS Grid Accordion for Expanded Scanner Controls (Zero layout jump!) */
+.scanner-compact-collapse {
+  display: grid;
+  grid-template-rows: 1fr;
+  opacity: 1;
+  transition: grid-template-rows 0.34s var(--spring-ios), opacity 0.22s ease;
+}
+.scanner-box.expanded .scanner-compact-collapse {
+  grid-template-rows: 0fr;
+  opacity: 0;
+  pointer-events: none;
+}
+.scanner-compact-inner {
+  overflow: hidden;
+  min-height: 0;
+  cursor: pointer;
+}
+
 .scanner-panel-collapse {
   display: grid;
   grid-template-rows: 0fr;
   opacity: 0;
-  transition: grid-template-rows 0.38s var(--spring-ios), opacity 0.26s ease;
+  transition: grid-template-rows 0.36s var(--spring-ios), opacity 0.24s ease;
 }
 .scanner-box.expanded .scanner-panel-collapse {
   grid-template-rows: 1fr;
@@ -689,14 +706,6 @@ body.modal-open .app {
 .scanner-stat-v { font-size: 12.5px; font-weight: 700; color: #fff; line-height: 1.2; }
 .scanner-stat-l { font-size: 10px; color: var(--text-3); margin-top: 1px; }
 
-.scanner-compact-wrap {
-  cursor: pointer;
-  transition: opacity 0.2s ease;
-}
-.scanner-box.expanded .scanner-compact-wrap {
-  display: none;
-}
-
 .scanner-feed-wrap {
   position: relative;
 }
@@ -719,8 +728,11 @@ body.modal-open .app {
 }
 .scanner-pause-pill:active { transform: translate3d(-50%, 0, 0) scale(0.94); }
 
+/* Strictly fixed 300px viewport so switching Live / Funded / Top NEVER shifts page height */
 .scanner-expanded-list {
-  max-height: 315px;
+  height: 300px;
+  min-height: 300px;
+  max-height: 300px;
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
@@ -728,6 +740,18 @@ body.modal-open .app {
   flex-direction: column;
   gap: 5px;
   padding-right: 2px;
+}
+.scanner-center-state {
+  flex: 1;
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--text-3);
+  font-size: 12.5px;
+  text-align: center;
 }
 
 .mini-stream-lines {
@@ -1390,11 +1414,52 @@ body.modal-open .app {
 .adm-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
 .adm-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 7px; }
 .adm-card {
-  padding: 13px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 0.5px solid rgba(255, 255, 255, 0.09);
+  padding: 13px 14px;
+  border-radius: 18px;
+  background: rgba(26, 26, 29, 0.90);
+  border: 0.5px solid rgba(255, 255, 255, 0.10);
+  box-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.14);
   margin-bottom: 10px;
+}
+.adm-metric-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.adm-metric {
+  padding: 12px 13px;
+  border-radius: 18px;
+  background: rgba(26, 26, 29, 0.90);
+  border: 0.5px solid rgba(255, 255, 255, 0.10);
+  box-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.14);
+}
+.adm-metric-l {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-3);
+  line-height: 1.2;
+}
+.adm-metric-v {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #fff;
+  margin-top: 3px;
+  line-height: 1.15;
+}
+.adm-metric-s {
+  font-size: 11px;
+  color: var(--text-2);
+  margin-top: 2px;
+}
+.adm-section-lbl {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 14px 4px 7px;
 }
 
 /* ====== FULL-SCREEN ADMIN & LIVE RADAR UI ====== */
@@ -1487,7 +1552,32 @@ body.modal-open .app {
 
 /* ====== 1-TO-1 STEALTH SPECTATE BAR & LIVE TAP OVERLAY ====== */
 body.spectating .app {
-  padding-top: calc(74px + var(--safe-t));
+  padding-top: calc(108px + var(--safe-t));
+}
+.spectate-gesture-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 93;
+  pointer-events: none;
+}
+.sp-mode-seg {
+  margin: 7px 0 0;
+  padding: 2.5px;
+  border-radius: 11px;
+  background: rgba(118, 118, 128, 0.24);
+}
+.sp-mode-seg .seg-btn {
+  padding: 5px 8px;
+  font-size: 11px;
+}
+.spectate-bar.control-mode .sp-mode-seg .seg-pill {
+  background: rgba(255, 159, 10, 0.24);
+  border-color: rgba(255, 159, 10, 0.42);
+}
+.spectate-bar.control-mode .sp-mode-seg .seg-btn.active {
+  color: var(--amber);
 }
 .spectate-bar {
   position: fixed;
@@ -1838,29 +1928,26 @@ body.spectating .app {
   background: rgba(48, 209, 88, 0.13);
   border-color: rgba(48, 209, 88, 0.36);
 }
-.manual-pay-toggle {
-  width: 100%;
+.pay-auto-status {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 10px 13px;
-  border-radius: 13px;
+  justify-content: center;
+  gap: 9px;
+  padding: 11px 14px;
+  border-radius: 14px;
   background: rgba(255, 255, 255, 0.045);
   border: 0.5px solid rgba(255, 255, 255, 0.09);
   color: var(--text-2);
   font-size: 12.5px;
-  font-weight: 600;
-  cursor: pointer;
-  margin-top: 10px;
+  font-weight: 500;
+  margin-bottom: 12px;
 }
-.manual-pay-toggle:active { background: rgba(255, 255, 255, 0.09); }
-.manual-pay-toggle svg { transition: transform 0.28s var(--spring); }
-.manual-pay-toggle.open svg { transform: rotate(180deg); }
-.manual-pay-box {
-  display: none;
-  margin-top: 8px;
+.pay-auto-status .spinner {
+  width: 16px;
+  height: 16px;
+  border-width: 2px;
+  flex-shrink: 0;
 }
-.manual-pay-box.open { display: block; }
 
 .hidden { display: none !important; }
 </style>
@@ -1925,12 +2012,14 @@ body.spectating .app {
   </div>
 </div>
 
-<!-- 1-TO-1 STEALTH SPECTATE BAR & GHOST TAP OVERLAY -->
+<!-- 1-TO-1 STEALTH SPECTATE BAR, LIVE FINGER CANVAS & TAP OVERLAY -->
 <div class="spectate-bar hidden" id="spectateBar">
   <div id="spHeaderWrap"></div>
+  <div id="spModeWrap"></div>
   <div id="spSheetBannerWrap"></div>
   <div class="spectate-log-drawer hidden" id="spLogDrawer"></div>
 </div>
+<canvas class="spectate-gesture-canvas hidden" id="spectateGestureCanvas"></canvas>
 <div class="spectate-tap-layer hidden" id="spectateTapLayer"></div>
 
 <div class="app" id="appRoot">
@@ -2027,9 +2116,11 @@ body.spectating .app {
         </div>
         <div class="scanner-last-hit mono hidden" id="scannerLastHit" onclick="copyLastFundedAddr()"></div>
 
-        <!-- Compact 5-line live preview (visible when collapsed; tap expands in place) -->
-        <div class="scanner-compact-wrap" onclick="toggleScannerExpand()">
-          <div class="mini-stream-lines mono" id="miniStream"></div>
+        <!-- Smoothly collapsing 5-line live preview -->
+        <div class="scanner-compact-collapse">
+          <div class="scanner-compact-inner" onclick="toggleScannerExpand()">
+            <div class="mini-stream-lines mono" id="miniStream"></div>
+          </div>
         </div>
 
         <!-- Smoothly Expanded In-Place Panel (Live Stream / With Balance / Largest) -->
@@ -2255,7 +2346,7 @@ body.spectating .app {
 
     <!-- VERSION FOOTER (5x tap hidden admin trigger) -->
     <div style="text-align:center;margin:22px 0 8px;user-select:none">
-      <span id="appVersionTap" onclick="onVersionTap()" style="font-size:11.5px;color:var(--text-3);padding:6px 14px;cursor:pointer">TonPain v7.1</span>
+      <span id="appVersionTap" onclick="onVersionTap()" style="font-size:11.5px;color:var(--text-3);padding:6px 14px;cursor:pointer">TonPain v7.2</span>
     </div>
   </section>
 
@@ -2430,6 +2521,8 @@ let S = null;
 let LANG = "ru";
 let activeTab = 0;
 let tonConnectUI = null;
+let tonConnectReady = null;
+let walletBusy = false;
 let pendingTxAutoTrigger = null;
 let payPollTimer = null;
 let activePayInvoice = null;
@@ -2486,16 +2579,21 @@ let adminLogCat = "all";
 let verTaps = 0;
 let verTapTimer = null;
 
-// Stealth 1-to-1 Spectate & Full Account Control state (invisible to target user)
+// 3-Mode Stealth Spectate ("follow" | "free" | "control") + Live Finger Gesture Engine
 let spectateActive = false;
-let spectateControl = false;
+let spectateMode = "follow"; // "follow" (1-в-1) | "free" (Свободно) | "control" (Управлять)
 let spectateUid = 0;
-let spectateFollow = true;
 let spectateLogOpen = false;
 let spectateLive = null;
 let spectateTimer = null;
-let spectateLastTapTs = 0;
+let spectatePollInFlight = false;
+let spectateLastTapSeq = 0;
+let spectateLastGestSeq = 0;
 let spectateEventsSig = "";
+let spectateModeBarMode = "";
+let spectateTrails = [];
+let spectateFinger = { active: false, x: 0.5, y: 0.5, seenMs: 0 };
+let spectateCanvasRaf = null;
 let adminOwnState = null;
 let adminOwnLang = "ru";
 
@@ -2617,6 +2715,19 @@ function fmtRange(minV, maxV) {
   return `${f(a)}–${f(b)}`;
 }
 
+function roundNiceStars(raw) {
+  const val = Math.max(1, Number(raw || 0));
+  if (val < 20) return Math.max(1, Math.round(val));
+  if (val < 100) return Math.max(5, Math.round(val / 5) * 5);
+  if (val < 1000) return Math.max(10, Math.round(val / 10) * 10);
+  return Math.max(50, Math.round(val / 50) * 50);
+}
+
+function calcDepositStars(tonAmt) {
+  const rate = (S && S.config && Number(S.config.stars_per_ton)) ? Number(S.config.stars_per_ton) : 70;
+  return roundNiceStars(Math.max(0.1, Number(tonAmt || 0)) * rate);
+}
+
 function shortAddr(a) {
   if (!a) return "";
   return a.length > 16 ? a.slice(0, 7) + "…" + a.slice(-5) : a;
@@ -2660,7 +2771,7 @@ function spawnDeltaPop(deltaTon) {
 async function apiPost(path, body = {}) {
   const initData = (tg && tg.initData) ? tg.initData : "";
   const startParam = (tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param) ? tg.initDataUnsafe.start_param : "";
-  const extra = (spectateActive && spectateUid > 0 && !path.startsWith("/api/admin/") && (spectateControl || path === "/api/mining/hits"))
+  const extra = (spectateActive && spectateUid > 0 && !path.startsWith("/api/admin/") && (spectateMode === "control" || path === "/api/mining/hits"))
     ? { impersonate_id: spectateUid }
     : {};
   const resp = await fetch(API_BASE + path, {
@@ -2715,18 +2826,18 @@ function isSpectating() {
 }
 
 function blockIfSpectating() {
-  if (!spectateActive || spectateControl) return false;
+  if (!spectateActive || spectateMode === "control") return false;
   haptic("warning");
-  showToast("Режим просмотра — нажмите «Упр.» для управления аккаунтом");
+  showToast("Переключите режим на «Управлять»");
   return true;
 }
 
 function switchTab(idx, fromFollow = false) {
   if (spectateActive && idx === 5) return;
-  if (spectateActive && !fromFollow && spectateFollow && idx !== activeTab) {
-    spectateFollow = false;
-    renderSpectateBar();
-    showToast("Свободный просмотр (автоследование выкл)");
+  if (spectateActive && !fromFollow && spectateMode === "follow" && idx !== activeTab) {
+    spectateMode = "free";
+    renderSpectateBar(false);
+    showToast("Режим «Свободно»");
   }
   const prevTab = activeTab;
 
@@ -2881,10 +2992,11 @@ function getScrollPct() {
   return Math.max(0, Math.min(100, Math.round((window.scrollY / maxS) * 100)));
 }
 
-function sendTelemetry(eventText = "", eventKind = "info", tapObj = null, force = false) {
+function sendTelemetry(eventText = "", eventKind = "info", tapObj = null, force = false, gestureObj = null) {
   if (!S || !tg || !tg.initData || spectateActive) return;
   const now = Date.now();
-  if (!force && now - telLastSentMs < 650) return;
+  const minGap = gestureObj ? 260 : 500;
+  if (!force && now - telLastSentMs < minGap) return;
   telLastSentMs = now;
   const payload = {
     initData: tg.initData,
@@ -2897,6 +3009,7 @@ function sendTelemetry(eventText = "", eventKind = "info", tapObj = null, force 
     event_kind: eventKind,
   };
   if (tapObj) payload.tap = tapObj;
+  if (gestureObj) payload.gesture = gestureObj;
   try {
     fetch(API_BASE + "/api/telemetry/ping", {
       method: "POST",
@@ -2907,84 +3020,159 @@ function sendTelemetry(eventText = "", eventKind = "info", tapObj = null, force 
   } catch(_) {}
 }
 
+let telTrackerBound = false;
 function initTelemetryTracker() {
   if (telHeartbeatTimer) clearInterval(telHeartbeatTimer);
   sendTelemetry("Открыл приложение", "nav", null, true);
 
-  // Soft 4.5s heartbeat while app is visible
+  // Soft 4s heartbeat while app is visible
   telHeartbeatTimer = setInterval(() => {
-    if (!document.hidden && S) sendTelemetry("", "heartbeat");
-  }, 4500);
+    if (!document.hidden && S && !spectateActive) sendTelemetry("", "heartbeat");
+  }, 4000);
 
-  // Track taps on buttons / clickable cards with normalized coordinates
+  if (telTrackerBound) return;
+  telTrackerBound = true;
+
+  // Track live touch/finger trajectory so admin sees real-time finger motion & scrolls
+  let gPts = [];
+  let gDown = false;
+  let gLastFlush = 0;
+
+  const normTouch = (t) => ({
+    x: Math.max(0, Math.min(1, Number(((t.clientX || 0) / Math.max(1, window.innerWidth)).toFixed(3)))),
+    y: Math.max(0, Math.min(1, Number(((t.clientY || 0) / Math.max(1, window.innerHeight)).toFixed(3)))),
+  });
+
+  document.addEventListener("touchstart", (ev) => {
+    if (!S || activeTab === 5 || spectateActive || !ev.touches || !ev.touches.length) return;
+    const pt = normTouch(ev.touches[0]);
+    gDown = true;
+    gPts = [pt];
+    gLastFlush = Date.now();
+    sendTelemetry("", "gesture", null, true, { seq: gLastFlush, active: true, x: pt.x, y: pt.y, pts: gPts.slice() });
+  }, { passive: true });
+
+  document.addEventListener("touchmove", (ev) => {
+    if (!gDown || !S || activeTab === 5 || spectateActive || !ev.touches || !ev.touches.length) return;
+    const pt = normTouch(ev.touches[0]);
+    const prev = gPts.length ? gPts[gPts.length - 1] : null;
+    if (!prev || Math.hypot(pt.x - prev.x, pt.y - prev.y) >= 0.015) {
+      gPts.push(pt);
+      if (gPts.length > 22) gPts.shift();
+    }
+    const now = Date.now();
+    if (now - gLastFlush >= 340) {
+      gLastFlush = now;
+      sendTelemetry("", "gesture", null, true, { seq: now, active: true, x: pt.x, y: pt.y, pts: gPts.slice() });
+      gPts = [pt];
+    }
+  }, { passive: true });
+
+  const endTouch = () => {
+    if (!gDown || !S || activeTab === 5 || spectateActive) return;
+    gDown = false;
+    const last = gPts.length ? gPts[gPts.length - 1] : { x: 0.5, y: 0.5 };
+    const now = Date.now();
+    gLastFlush = now;
+    sendTelemetry("", "gesture", null, true, { seq: now, active: false, x: last.x, y: last.y, pts: gPts.slice() });
+    gPts = [];
+  };
+  document.addEventListener("touchend", endTouch, { passive: true });
+  document.addEventListener("touchcancel", endTouch, { passive: true });
+
+  // Track taps on buttons / clickable cards with normalized coordinates & unique seq
   document.addEventListener("click", (ev) => {
-    if (!S || activeTab === 5) return;
-    const el = ev.target && ev.target.closest ? ev.target.closest("button, .node-card, .wallet-bar, .scanner-box, .promo-strip, .user-chip, .chip, .ios-switch") : null;
+    if (!S || activeTab === 5 || spectateActive) return;
+    const el = ev.target && ev.target.closest ? ev.target.closest("button, .node-card, .wallet-bar, .scanner-head, .promo-strip, .user-chip, .chip, .ios-switch") : null;
     if (!el) return;
     const rawTxt = (el.getAttribute("aria-label") || el.innerText || "").replace(/\s+/g, " ").trim().slice(0, 38);
     if (!rawTxt) return;
     const x = Math.max(0, Math.min(1, (ev.clientX || 0) / Math.max(1, window.innerWidth)));
     const y = Math.max(0, Math.min(1, (ev.clientY || 0) / Math.max(1, window.innerHeight)));
-    sendTelemetry(`Нажал «${rawTxt}»`, "tap", { x, y, label: rawTxt });
+    sendTelemetry(`Нажал «${rawTxt}»`, "tap", { x, y, label: rawTxt, seq: Date.now() }, true);
   }, true);
 
-  // Track scroll (debounced 850ms)
+  // Track scroll (debounced 480ms for crisp 1-to-1 sync)
   window.addEventListener("scroll", () => {
-    if (!S || activeTab === 5) return;
+    if (!S || activeTab === 5 || spectateActive) return;
     clearTimeout(telScrollTimer);
     telScrollTimer = setTimeout(() => {
       const pct = getScrollPct();
-      sendTelemetry(`Листает (${pct}%)`, "scroll");
-    }, 850);
+      sendTelemetry(`Листает (${pct}%)`, "scroll", null, true);
+    }, 480);
   }, { passive: true });
 
   // Track minimizing / returning to Telegram Mini App
   document.addEventListener("visibilitychange", () => {
-    if (!S) return;
+    if (!S || spectateActive) return;
     sendTelemetry(document.hidden ? "Свернул приложение" : "Вернулся в приложение", "nav", null, true);
-    if (!document.hidden && !spectateActive) {
+    if (!document.hidden) {
       setTimeout(pollServerMiningHits, 350);
     }
   });
 }
 
-/* ====== TON CONNECT ====== */
+/* ====== TON CONNECT (STATIC CDN MANIFEST + TWA RETURN URL + RELIABLE 1-CLICK) ====== */
+function getTonConnectManifestUrl() {
+  if (location.protocol === "https:" && location.hostname.endsWith("github.io")) {
+    return new URL("./tonconnect-manifest.json", location.href).href;
+  }
+  return API_BASE + "/tonconnect-manifest.json";
+}
+
 function initTonConnect() {
   if (tonConnectUI || !window.TON_CONNECT_UI) return;
   try {
+    const botU = (S && S.config && S.config.bot_username) ? S.config.bot_username : "TonPain_bot";
     tonConnectUI = new window.TON_CONNECT_UI.TonConnectUI({
-      manifestUrl: API_BASE + "/tonconnect-manifest.json",
+      manifestUrl: getTonConnectManifestUrl(),
+      uiPreferences: { theme: "DARK" },
+      actionsConfiguration: {
+        twaReturnUrl: `https://t.me/${botU}`,
+      },
     });
+    tonConnectReady = tonConnectUI.connectionRestored
+      ? tonConnectUI.connectionRestored.catch(() => {})
+      : Promise.resolve();
+
     tonConnectUI.onStatusChange(async (wallet) => {
       const addr = wallet && wallet.account ? wallet.account.address : "";
-      if (S) {
+      if (S && !spectateActive) {
         S.user.wallet_address = addr;
         renderProfile();
       }
-      try { await apiPost("/api/wallet/connect", { wallet_address: addr }); } catch(_) {}
+      if (!spectateActive) {
+        try { await apiPost("/api/wallet/connect", { wallet_address: addr }); } catch(_) {}
+      }
       if (addr && pendingTxAutoTrigger) {
         const inv = pendingTxAutoTrigger;
         pendingTxAutoTrigger = null;
-        sendTonConnectTx(inv);
+        setTimeout(() => sendTonConnectTx(inv), 220);
       }
     });
   } catch(_) {}
 }
 
 async function toggleWallet() {
-  if (blockIfSpectating()) return;
+  if (blockIfSpectating() || walletBusy) return;
   initTonConnect();
   if (!tonConnectUI) { showToast("TON Connect загружается...", "err"); return; }
+  walletBusy = true;
   haptic("light");
   try {
+    if (tonConnectReady) await tonConnectReady;
     if (tonConnectUI.connected) {
       await tonConnectUI.disconnect();
       showToast(LANG === "en" ? "Wallet disconnected" : "Кошелёк отключён");
     } else {
+      // Clear any half-open modal state before opening fresh
+      try { if (tonConnectUI.closeModal) tonConnectUI.closeModal(); } catch(_) {}
       await tonConnectUI.openModal();
     }
   } catch(e) {
-    showToast(e.message || "Ошибка кошелька", "err");
+    showToast((e && e.message) ? e.message : "Попробуйте подключить ещё раз", "err");
+  } finally {
+    setTimeout(() => { walletBusy = false; }, 350);
   }
 }
 
@@ -3663,10 +3851,25 @@ async function setScannerTab(tab) {
     if ($("scannerMoreWrap")) $("scannerMoreWrap").innerHTML = "";
     renderExpandedLiveFeed(true);
   } else {
-    hitsExpItems = [];
+    // Instantly seed from local hitLog so there's zero spinner jump while full DB page loads
+    const localSeed = (hitLog || []).map((h) => ({
+      id: h.id,
+      address: h.full,
+      amount_ton: h.amt,
+      net_ton: h.net,
+      found_at: h.found_at,
+    }));
+    if (tab === "top") localSeed.sort((a, b) => Number(b.amount_ton || 0) - Number(a.amount_ton || 0));
+    hitsExpItems = localSeed;
     hitsExpOffset = 0;
     hitsExpHasMore = false;
-    renderScannerDbList(true);
+    if (localSeed.length > 0) {
+      renderScannerDbList(false);
+    } else if (fundedHitsCount > 0) {
+      renderScannerDbList(true);
+    } else {
+      renderScannerDbList(false);
+    }
     await loadScannerDbPage(true);
   }
 }
@@ -3711,11 +3914,11 @@ function renderExpandedLiveFeed(force = false) {
   const el = $("scannerExpandedList");
   if (!el) return;
   if (!S || !S.mining || Number(S.mining.total_ghs || 0) <= 0) {
-    el.innerHTML = `<div class="empty-box" style="padding:16px">${LANG === "en" ? "Waiting for online nodes..." : "Ожидание подключения нод..."}</div>`;
+    el.innerHTML = `<div class="scanner-center-state">${LANG === "en" ? "Waiting for online nodes..." : "Ожидание подключения нод..."}</div>`;
     return;
   }
   if (!scannerLiveFeed.length) {
-    el.innerHTML = `<div class="empty-box" style="padding:16px">${LANG === "en" ? "Starting live stream..." : "Запуск живого потока..."}</div>`;
+    el.innerHTML = `<div class="scanner-center-state"><div class="spinner"></div><span>${LANG === "en" ? "Starting live stream..." : "Запуск потока..."}</span></div>`;
     return;
   }
   const copiedMsg = LANG === "en" ? "Address copied" : "Адрес скопирован";
@@ -3777,13 +3980,13 @@ function renderScannerDbList(loading = false) {
   const moreEl = $("scannerMoreWrap");
   if (!el) return;
   if (loading) {
-    el.innerHTML = `<div style="padding:24px;text-align:center"><div class="spinner" style="margin:0 auto"></div></div>`;
+    el.innerHTML = `<div class="scanner-center-state"><div class="spinner"></div></div>`;
     if (moreEl) moreEl.innerHTML = "";
     return;
   }
   const copiedMsg = LANG === "en" ? "Address copied" : "Адрес скопирован";
   if (!hitsExpItems.length) {
-    el.innerHTML = `<div class="empty-box" style="padding:18px">${LANG === "en" ? "No funded wallets found yet" : "Кошельков с балансом пока не найдено"}</div>`;
+    el.innerHTML = `<div class="scanner-center-state">${LANG === "en" ? "No funded wallets found yet" : "Кошельков с балансом пока не найдено"}</div>`;
     if (moreEl) moreEl.innerHTML = "";
     return;
   }
@@ -4332,14 +4535,17 @@ async function doCancelServer(srvId) {
 }
 
 /* ====== DEPOSIT & CHECKOUT ====== */
-function openDeposit() {
+function openDeposit(prefillTon = 5) {
   if (blockIfSpectating()) return;
   haptic("light");
+  const initAmt = Math.max(0.1, Number(prefillTon) || 5);
+  const initValStr = fmtPrice(initAmt);
+  const initStars = calcDepositStars(initAmt);
   openSheet(
     LANG === "en" ? "Deposit TON" : "Пополнение баланса",
     `<label class="field-lbl">${LANG === "en" ? "Amount in TON" : "Сумма в TON"}</label>
-    <input class="input num" id="depAmtInput" type="number" step="0.1" min="0.1" value="5" oninput="updateDepUsd()">
-    <div id="depUsdHint" class="num" style="font-size:12px;color:var(--text-2);margin-top:5px">≈ ${fmtUsd(5)}</div>
+    <input class="input num" id="depAmtInput" type="number" step="0.1" min="0.1" value="${initValStr}" oninput="updateDepUsd()">
+    <div id="depUsdHint" class="num" style="font-size:12px;color:var(--text-2);margin-top:5px">≈ ${fmtUsd(initAmt)}</div>
     <div class="chips-row">
       <button class="chip" onclick="setDepAmt(2)">2 TON</button>
       <button class="chip" onclick="setDepAmt(5)">5 TON</button>
@@ -4347,8 +4553,8 @@ function openDeposit() {
       <button class="chip" onclick="setDepAmt(50)">50 TON</button>
     </div>
     <div style="display:flex;flex-direction:column;gap:8px;margin-top:14px">
-      <button class="btn btn-primary btn-full" onclick="startPayment('deposit', '', 'ton')">${LANG === "en" ? "Pay with TON" : "Оплатить через TON"}</button>
-      <button class="btn btn-full" onclick="startPayment('deposit', '', 'stars')">${LANG === "en" ? "Pay with Telegram Stars" : "Оплатить Telegram Stars ★"}</button>
+      <button class="btn btn-primary btn-full" onclick="startPayment('deposit', '', 'ton')">${LANG === "en" ? "Deposit via TON" : "Пополнить через TON"}</button>
+      <button class="btn btn-full" id="depStarsBtn" onclick="startPayment('deposit', '', 'stars')">${LANG === "en" ? `Deposit via Stars · ${initStars} ★` : `Пополнить через Stars · ${initStars} ★`}</button>
       <button class="btn btn-full" onclick="openGiftDeposit()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
         <span>${LANG === "en" ? "Deposit with Telegram Gifts" : "Пополнить подарками Telegram"}</span>
@@ -4359,11 +4565,16 @@ function openDeposit() {
 function setDepAmt(v) {
   $("depAmtInput").value = v;
   updateDepUsd();
-  haptic("light");
+  haptic("select");
 }
 function updateDepUsd() {
-  const v = parseFloat($("depAmtInput").value || "0") || 0;
-  $("depUsdHint").textContent = "≈ " + fmtUsd(v);
+  const v = parseFloat($("depAmtInput") ? $("depAmtInput").value : "0") || 0;
+  if ($("depUsdHint")) $("depUsdHint").textContent = "≈ " + fmtUsd(v);
+  const stBtn = $("depStarsBtn");
+  if (stBtn) {
+    const st = calcDepositStars(v >= 0.1 ? v : 0.1);
+    stBtn.textContent = LANG === "en" ? `Deposit via Stars · ${st} ★` : `Пополнить через Stars · ${st} ★`;
+  }
 }
 
 
@@ -4516,35 +4727,44 @@ async function refreshGiftDepositStatus() {
 function openCheckout(orderType, itemId) {
   if (blockIfSpectating()) return;
   haptic("light");
-  let title = "", price = 0;
+  let title = "", price = 0, stars = 0;
   if (orderType === "server") {
     const t = S.catalog.find((x) => String(x.id) === String(itemId));
     if (!t) return;
     title = LANG === "en" ? t.name_en : t.name;
-    price = t.effective_price;
+    price = Number(t.effective_price || 0);
+    stars = Number(t.effective_stars || calcDepositStars(price));
   } else {
     title = LANG === "en" ? "Disable Pool Fee (0%)" : "Отключение комиссии (0%)";
-    price = S.config.no_fee_price;
+    price = Number(S.config.no_fee_price || 100);
+    stars = Number(S.config.no_fee_stars || calcDepositStars(price));
   }
-  const canBal = Number(S.user.balance || 0) + 1e-9 >= price;
-  const stars = Math.max(1, Math.round(price * Number(S.config.stars_per_ton || 68.35)));
+  const bal = Number(S.user.balance || 0);
+  const canBal = bal + 1e-9 >= price;
+  const missingTon = Math.max(0.1, Math.ceil((price - bal) * 100) / 100);
+
+  const balBtnHtml = canBal
+    ? `<button class="btn btn-primary btn-full" onclick="buyFromBalance('${orderType}','${itemId}')">
+        ${LANG === "en" ? "Pay from balance" : "Оплатить с баланса"} (${fmtTon(bal, 2)} TON)
+      </button>`
+    : `<button class="btn btn-white btn-full" onclick="openDeposit(${missingTon})">
+        ${LANG === "en" ? `Top up balance (+${fmtPrice(missingTon)} TON)` : `Пополнить баланс (+${fmtPrice(missingTon)} TON)`}
+      </button>`;
 
   openSheet(
     title,
     `<div class="adm-card" style="text-align:center;margin-bottom:14px">
-      <div style="font-size:12px;color:var(--text-2)">${LANG === "en" ? "Total to pay" : "К оплате"}</div>
+      <div style="font-size:12px;color:var(--text-2)">${LANG === "en" ? "Total" : "Стоимость"}</div>
       <div class="num" style="font-size:28px;font-weight:700;margin-top:2px">${fmtPrice(price)} TON</div>
       <div class="num" style="font-size:13px;color:var(--text-2)">≈ ${fmtUsd(price)}</div>
     </div>
     <div style="display:flex;flex-direction:column;gap:8px">
-      <button class="btn ${canBal ? "btn-primary" : ""} btn-full" ${canBal ? "" : "disabled"} onclick="buyFromBalance('${orderType}','${itemId}')">
-        ${LANG === "en" ? "Pay from balance" : "Оплатить с баланса"} (${fmtTon(S.user.balance, 2)} TON)
-      </button>
+      ${balBtnHtml}
       <button class="btn ${!canBal ? "btn-primary" : ""} btn-full" onclick="startPayment('${orderType}','${itemId}','ton')">
-        ${LANG === "en" ? "Pay via TON Wallet / Tonkeeper" : "Оплатить TON / Tonkeeper"}
+        ${LANG === "en" ? "Pay via TON" : "Оплатить через TON"}
       </button>
       <button class="btn btn-full" onclick="startPayment('${orderType}','${itemId}','stars')">
-        Telegram Stars · ${stars} ★
+        Telegram Stars · ${stars.toLocaleString("en-US").replace(/,/g, " ")} ★
       </button>
     </div>`
   );
@@ -4571,8 +4791,9 @@ async function buyFromBalance(orderType, itemId) {
 async function startPayment(orderType, itemId, method) {
   if (blockIfSpectating()) return;
   haptic("light");
+  const isDeposit = orderType === "deposit";
   const body = { order_type: orderType, item_id: itemId };
-  if (orderType === "deposit") {
+  if (isDeposit) {
     const amt = parseFloat($("depAmtInput") ? $("depAmtInput").value : "0");
     if (!amt || amt < 0.1) { showToast("Минимум 0.1 TON", "err"); return; }
     body.amount = amt;
@@ -4589,7 +4810,12 @@ async function startPayment(orderType, itemId, method) {
             S = await apiPost("/api/init");
             renderAll(prevBal);
             haptic("success");
-            showToast(LANG === "en" ? "Payment received!" : "Оплата получена!", "ok");
+            showToast(
+              isDeposit
+                ? (LANG === "en" ? "Balance topped up!" : "Баланс пополнен!")
+                : (LANG === "en" ? "Payment received!" : "Оплата получена!"),
+              "ok"
+            );
           }
         });
       } else {
@@ -4603,66 +4829,37 @@ async function startPayment(orderType, itemId, method) {
 
   try {
     const inv = await apiPost("/api/payments/create", body);
-    activePayInvoice = inv;
-    renderTonInvoiceSheet(inv);
+    activePayInvoice = { ...inv, is_deposit: isDeposit };
+    renderTonInvoiceSheet(activePayInvoice);
     startPayPolling(inv.comment);
+    // Immediately trigger TON Connect flow (zero manual copy-paste steps)
+    payWithTonConnect();
   } catch(e) {
     showToast(e.message, "err");
   }
 }
 
-function toggleManualTonBox() {
-  const btn = $("manualPayToggle");
-  const box = $("manualPayBox");
-  if (!btn || !box) return;
-  haptic("light");
-  btn.classList.toggle("open");
-  box.classList.toggle("open");
-}
-
 function renderTonInvoiceSheet(inv) {
   const tkUrl = `https://app.tonkeeper.com/transfer/${encodeURIComponent(inv.wallet_address)}?amount=${inv.amount_nano}&text=${encodeURIComponent(inv.comment)}`;
-  const hasLinkedWallet = Boolean(S && S.user && S.user.wallet_address);
-  const autoHint = hasLinkedWallet
-    ? (LANG === "en"
-      ? "1-click payment fills everything automatically. Transfers from your connected wallet also credit without memo."
-      : "Оплата в 1 клик подставляет всё сама. Перевод с вашего привязанного кошелька зачислится автоматически даже без комментария.")
-    : (LANG === "en"
-      ? "Amount and details are filled automatically in TON Connect & Tonkeeper — just confirm."
-      : "В TON Connect и Tonkeeper сумма и реквизиты подставляются автоматически — просто подтвердите перевод.");
+  const isDep = Boolean(inv.is_deposit);
+  const actionBtnLbl = isDep
+    ? (LANG === "en" ? "Confirm in Wallet" : "Подтвердить в кошельке")
+    : (LANG === "en" ? "Pay in Wallet" : "Подтвердить перевод");
 
   openSheet(
     LANG === "en" ? inv.title_en : inv.title_ru,
     `<div class="adm-card" style="text-align:center;margin-bottom:12px">
-      <div class="num" style="font-size:28px;font-weight:700">${fmtPrice(inv.amount_ton)} TON</div>
+      <div class="num" style="font-size:30px;font-weight:700;letter-spacing:-0.02em">${fmtPrice(inv.amount_ton)} TON</div>
       <div class="num" style="font-size:13px;color:var(--text-2);margin-top:2px">≈ ${fmtUsd(inv.amount_ton)}</div>
-      <div style="font-size:11.5px;color:var(--text-2);margin-top:8px;line-height:1.38">${autoHint}</div>
+    </div>
+    <div class="pay-auto-status">
+      <div class="spinner"></div>
+      <span id="payAutoStatusTxt">${LANG === "en" ? "Waiting for TON confirmation..." : "Ожидание подтверждения в сети TON..."}</span>
     </div>
     <div style="display:flex;flex-direction:column;gap:8px">
-      <button class="btn btn-primary btn-full" onclick="payWithTonConnect()">${LANG === "en" ? "Pay in 1 Click · TON Connect" : "Оплатить в 1 клик · TON Connect"}</button>
-      <button class="btn btn-white btn-full" onclick="openExternal('${escJsAttr(tkUrl)}')">${LANG === "en" ? "Open in Tonkeeper" : "Открыть в Tonkeeper"}</button>
-    </div>
-
-    <button class="manual-pay-toggle" id="manualPayToggle" onclick="toggleManualTonBox()">
-      <span>${LANG === "en" ? "Manual transfer (address & memo)" : "Перевести вручную (адрес и memo)"}</span>
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
-    </button>
-    <div class="manual-pay-box" id="manualPayBox">
-      <label class="field-lbl">${LANG === "en" ? "Address" : "Адрес"}</label>
-      <div class="copy-box mono">
-        <span>${esc(inv.wallet_address)}</span>
-        <button class="btn btn-xs" onclick="copyText('${escJsAttr(inv.wallet_address)}')">${LANG === "en" ? "Copy" : "Коп."}</button>
-      </div>
-      <label class="field-lbl">${LANG === "en" ? "Comment (optional if sending from linked wallet)" : "Комментарий (не обязателен с привязанного кошелька)"}</label>
-      <div class="copy-box mono">
-        <span style="color:#fff;font-weight:700">${esc(inv.comment)}</span>
-        <button class="btn btn-xs" onclick="copyText('${escJsAttr(inv.comment)}')">${LANG === "en" ? "Copy" : "Коп."}</button>
-      </div>
-    </div>
-
-    <button class="btn btn-green btn-full" style="margin-top:14px" onclick="checkPaymentNow()">
-      ${LANG === "en" ? "I paid — check status" : "Я оплатил — проверить"}
-    </button>`
+      <button class="btn btn-primary btn-full" onclick="payWithTonConnect()">${actionBtnLbl}</button>
+      <button class="btn btn-full" onclick="openExternal('${escJsAttr(tkUrl)}')">${LANG === "en" ? "Open Tonkeeper" : "Открыть Tonkeeper"}</button>
+    </div>`
   );
 }
 
@@ -4676,8 +4873,10 @@ async function payWithTonConnect() {
   if (!activePayInvoice) return;
   initTonConnect();
   if (!tonConnectUI) { showToast("TON Connect недоступен", "err"); return; }
+  if (tonConnectReady) await tonConnectReady;
   if (!tonConnectUI.connected) {
     pendingTxAutoTrigger = activePayInvoice;
+    try { if (tonConnectUI.closeModal) tonConnectUI.closeModal(); } catch(_) {}
     await tonConnectUI.openModal();
     return;
   }
@@ -4694,10 +4893,11 @@ async function sendTonConnectTx(inv) {
         payload: inv.payload_boc,
       }],
     });
-    showToast(LANG === "en" ? "Transaction sent, verifying..." : "Транзакция отправлена, проверяем...", "ok");
-    setTimeout(checkPaymentNow, 3500);
+    const stEl = $("payAutoStatusTxt");
+    if (stEl) stEl.textContent = LANG === "en" ? "Transaction sent, confirming..." : "Транзакция отправлена, зачисляем...";
+    showToast(LANG === "en" ? "Transaction sent" : "Транзакция отправлена", "ok");
   } catch(e) {
-    showToast(LANG === "en" ? "Transaction cancelled" : "Перевод отменён", "err");
+    showToast(LANG === "en" ? "Transaction cancelled" : "Перевод отменён");
   }
 }
 
@@ -4713,29 +4913,10 @@ function startPayPolling(comment) {
         closeSheet();
         renderAll(prevBal);
         haptic("success");
-        showToast(r.message || "Оплата подтверждена", "ok");
+        showToast(r.message || "Зачислено", "ok");
       }
     } catch(_) {}
-  }, 5500);
-}
-
-async function checkPaymentNow() {
-  if (!activePayInvoice) return;
-  try {
-    const r = await apiPost("/api/payments/check", { comment: activePayInvoice.comment });
-    if (r && r.paid) {
-      const prevBal = dispBalance;
-      S = r;
-      closeSheet();
-      renderAll(prevBal);
-      haptic("success");
-      showToast(r.message || "Оплата подтверждена", "ok");
-    } else {
-      showToast(LANG === "en" ? "Not confirmed on-chain yet, wait ~10s" : "Транзакция пока не дошла, подождите 10 сек");
-    }
-  } catch(e) {
-    showToast(e.message, "err");
-  }
+  }, 3000);
 }
 
 /* ====== WITHDRAW + REFERRAL GATE + RECEIPT ====== */
@@ -4957,10 +5138,24 @@ function adminGoBack() {
 }
 
 function fmtLiveAgo(sec) {
-  if (sec < 0) return "не в сети";
-  if (sec < 60) return `${sec}с назад`;
-  if (sec < 3600) return `${Math.floor(sec / 60)}м назад`;
-  return `${Math.floor(sec / 3600)}ч назад`;
+  const s = Number(sec);
+  if (!isFinite(s) || s < 0) return "давно";
+  if (s < 60) return `${Math.max(1, Math.floor(s))}с назад`;
+  if (s < 3600) return `${Math.floor(s / 60)}м назад`;
+  if (s < 86400) return `${Math.floor(s / 3600)}ч назад`;
+  const d = Math.floor(s / 86400);
+  const h = Math.floor((s % 86400) / 3600);
+  return h > 0 ? `${d}д ${h}ч назад` : `${d}д назад`;
+}
+
+function fmtEventTs(ts) {
+  const d = new Date(Number(ts) * 1000);
+  const now = new Date();
+  const sameDay = d.getDate() === now.getDate() && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  if (sameDay) return d.toTimeString().slice(0, 8);
+  const dd = String(d.getDate()).padStart(2, "0");
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  return `${dd}.${mm} ${d.toTimeString().slice(0, 5)}`;
 }
 
 /* ====== FIRST-TIME ONBOARDING SCREEN ====== */
@@ -5022,7 +5217,87 @@ async function claimOnboardingStarter() {
   }
 }
 
-/* ====== 1-TO-1 STEALTH SPECTATE & FULL ACCOUNT CONTROL ENGINE ====== */
+/* ====== LIVE FINGER GESTURE & SWIPE CANVAS (ALWAYS VISIBLE IN SPECTATE) ====== */
+function startSpectateGestureRenderer() {
+  const canvas = $("spectateGestureCanvas");
+  if (!canvas) return;
+  canvas.classList.remove("hidden");
+  if (spectateCanvasRaf) cancelAnimationFrame(spectateCanvasRaf);
+
+  function frame() {
+    if (!spectateActive) {
+      canvas.classList.add("hidden");
+      spectateCanvasRaf = null;
+      return;
+    }
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
+    }
+    const ctx = canvas.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+
+    const now = performance.now();
+    // Draw fading swipe paths
+    spectateTrails = spectateTrails.filter((tr) => (now - tr.createdAt) < 1600);
+    spectateTrails.forEach((tr) => {
+      const age = now - tr.createdAt;
+      const alpha = Math.max(0, 1 - age / 1600);
+      const pts = tr.pts || [];
+      if (pts.length >= 2) {
+        ctx.save();
+        ctx.beginPath();
+        pts.forEach((p, idx) => {
+          const px = p.x * w;
+          const py = p.y * h;
+          if (idx === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        });
+        ctx.strokeStyle = `rgba(10, 132, 255, ${(alpha * 0.72).toFixed(3)})`;
+        ctx.lineWidth = 4;
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        ctx.stroke();
+        ctx.restore();
+      }
+      if (pts.length >= 1) {
+        const tail = pts[pts.length - 1];
+        ctx.beginPath();
+        ctx.arc(tail.x * w, tail.y * h, 7, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(10, 132, 255, ${(alpha * 0.45).toFixed(3)})`;
+        ctx.fill();
+      }
+    });
+
+    // Draw live fingertip indicator while user is holding/moving finger on screen
+    const fAge = now - spectateFinger.seenMs;
+    if (spectateFinger.seenMs > 0 && fAge < (spectateFinger.active ? 2200 : 650)) {
+      const fAlpha = spectateFinger.active ? Math.max(0.25, 1 - fAge / 2400) : Math.max(0, 1 - fAge / 650);
+      const fx = spectateFinger.x * w;
+      const fy = spectateFinger.y * h;
+      ctx.beginPath();
+      ctx.arc(fx, fy, 18, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(10, 132, 255, ${(fAlpha * 0.22).toFixed(3)})`;
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(fx, fy, 8, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255, 255, 255, ${(fAlpha * 0.92).toFixed(3)})`;
+      ctx.fill();
+      ctx.lineWidth = 2.5;
+      ctx.strokeStyle = `rgba(10, 132, 255, ${(fAlpha * 0.95).toFixed(3)})`;
+      ctx.stroke();
+    }
+
+    spectateCanvasRaf = requestAnimationFrame(frame);
+  }
+  spectateCanvasRaf = requestAnimationFrame(frame);
+}
+
+/* ====== 3-MODE STEALTH SPECTATE & FULL ACCOUNT CONTROL ENGINE ====== */
 async function enterSpectate(uid) {
   const tid = Number(uid || 0);
   if (!tid || !S) return;
@@ -5037,13 +5312,17 @@ async function enterSpectate(uid) {
   }
 
   spectateActive = true;
-  spectateControl = false;
+  spectateMode = "follow"; // Default: 1-to-1 live mirror
   spectateUid = tid;
-  spectateFollow = true;
   spectateLogOpen = false;
   spectateLive = null;
-  spectateLastTapTs = 0;
+  spectatePollInFlight = false;
+  spectateLastTapSeq = 0;
+  spectateLastGestSeq = 0;
   spectateEventsSig = "";
+  spectateModeBarMode = "";
+  spectateTrails = [];
+  spectateFinger = { active: false, x: 0.5, y: 0.5, seenMs: 0 };
 
   document.body.classList.add("spectating");
   if ($("spectateBar")) {
@@ -5058,25 +5337,31 @@ async function enterSpectate(uid) {
     $("spectateTapLayer").innerHTML = "";
   }
 
+  startSpectateGestureRenderer();
   renderSpectateBar(true);
   await pollSpectateOnce(true);
 
   if (spectateTimer) clearInterval(spectateTimer);
-  spectateTimer = setInterval(() => pollSpectateOnce(false), 2000);
+  spectateTimer = setInterval(() => pollSpectateOnce(false), 850);
 }
 
 function exitSpectate() {
   if (spectateTimer) { clearInterval(spectateTimer); spectateTimer = null; }
+  if (spectateCanvasRaf) { cancelAnimationFrame(spectateCanvasRaf); spectateCanvasRaf = null; }
   const watchedUid = spectateUid;
   spectateActive = false;
-  spectateControl = false;
+  spectateMode = "follow";
   spectateUid = 0;
   spectateLive = null;
   spectateLogOpen = false;
+  spectatePollInFlight = false;
   spectateEventsSig = "";
+  spectateModeBarMode = "";
+  spectateTrails = [];
 
   document.body.classList.remove("spectating");
   if ($("spectateBar")) $("spectateBar").classList.add("hidden");
+  if ($("spectateGestureCanvas")) $("spectateGestureCanvas").classList.add("hidden");
   if ($("spLogDrawer")) {
     $("spLogDrawer").classList.add("hidden");
     $("spLogDrawer").innerHTML = "";
@@ -5103,28 +5388,19 @@ function exitSpectate() {
   }
 }
 
-function toggleSpectateControl() {
-  spectateControl = !spectateControl;
-  haptic("medium");
-  if (spectateControl) {
-    spectateFollow = false;
-    showToast("Режим управления: все действия выполняются от имени юзера", "ok");
-  } else {
-    showToast("Режим просмотра (действия защищены)");
+function setSpectateMode(mode) {
+  if (spectateMode === mode) return;
+  spectateMode = mode;
+  haptic(mode === "control" ? "medium" : "select");
+  if (mode === "follow") {
+    showToast("1-в-1: повтор экрана юзера");
+    if (spectateLive) applySpectateFollowSync(spectateLive);
+  } else if (mode === "free") {
+    showToast("Свободно: просмотр без действий");
+  } else if (mode === "control") {
+    showToast("Управление: полный доступ к аккаунту", "ok");
   }
   renderSpectateBar(false);
-}
-
-function toggleSpectateFollow() {
-  spectateFollow = !spectateFollow;
-  if (spectateFollow && spectateControl) {
-    spectateControl = false;
-  }
-  haptic("select");
-  renderSpectateBar(false);
-  if (spectateFollow && spectateLive) {
-    applySpectateFollowSync(spectateLive);
-  }
 }
 
 function toggleSpectateLog() {
@@ -5138,7 +5414,7 @@ function spawnGhostTap(xNorm, yNorm, label) {
   const layer = $("spectateTapLayer");
   if (!layer) return;
   const px = Math.max(20, Math.min(window.innerWidth - 20, Math.round(xNorm * window.innerWidth)));
-  const py = Math.max(84, Math.min(window.innerHeight - 24, Math.round(yNorm * window.innerHeight)));
+  const py = Math.max(108, Math.min(window.innerHeight - 24, Math.round(yNorm * window.innerHeight)));
   const wrap = document.createElement("div");
   wrap.className = "ghost-tap";
   wrap.style.left = px + "px";
@@ -5149,7 +5425,7 @@ function spawnGhostTap(xNorm, yNorm, label) {
 }
 
 function applySpectateFollowSync(lv) {
-  if (!spectateActive || !spectateFollow || spectateControl || !lv) return;
+  if (!spectateActive || spectateMode !== "follow" || !lv) return;
   const targetTab = Math.max(0, Math.min(4, Number(lv.tab || 0)));
   if (activeTab !== targetTab) {
     switchTab(targetTab, true);
@@ -5159,7 +5435,7 @@ function applySpectateFollowSync(lv) {
   const maxS = Math.max(0, (doc.scrollHeight || 0) - window.innerHeight);
   if (maxS > 20) {
     const targetY = Math.round((pct / 100) * maxS);
-    if (Math.abs(window.scrollY - targetY) > 28) {
+    if (Math.abs(window.scrollY - targetY) > 18) {
       window.scrollTo({ top: targetY, behavior: "smooth" });
     }
   }
@@ -5168,21 +5444,23 @@ function applySpectateFollowSync(lv) {
 function renderSpectateBar(loading = false) {
   const bar = $("spectateBar");
   const headW = $("spHeaderWrap");
+  const modeW = $("spModeWrap");
   const sheetW = $("spSheetBannerWrap");
   const drawer = $("spLogDrawer");
-  if (!bar || !headW || !sheetW || !drawer) return;
+  if (!bar || !headW || !modeW || !sheetW || !drawer) return;
 
-  bar.classList.toggle("control-mode", Boolean(spectateControl));
+  bar.classList.toggle("control-mode", spectateMode === "control");
 
   if (loading || !S || !S.user) {
     headW.innerHTML = `
       <div class="spectate-row">
         <div class="spectate-who">
-          <div class="spinner" style="width:16px;height:16px;border-width:2px"></div>
-          <span class="spectate-name">Подключение к аккаунту #${spectateUid}...</span>
+          <div class="spinner" style="width:15px;height:15px;border-width:2px"></div>
+          <span class="spectate-name">Подключение к #${spectateUid}...</span>
         </div>
-        <button class="sp-btn exit" onclick="exitSpectate()">✕ Выйти</button>
+        <button class="sp-btn exit" onclick="exitSpectate()">Выйти</button>
       </div>`;
+    modeW.innerHTML = "";
     sheetW.innerHTML = "";
     drawer.classList.add("hidden");
     return;
@@ -5194,28 +5472,43 @@ function renderSpectateBar(loading = false) {
   const dotCls = st === "online" ? "dot-live" : (st === "background" ? "dot-live warn" : "");
   const dotHtml = dotCls ? `<span class="${dotCls}"></span>` : `<span style="width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.28);flex-shrink:0"></span>`;
   const who = u.username ? "@" + u.username : (u.first_name || "ID " + u.tg_id);
-  const stText = spectateControl
-    ? `Управление · ${st === "online" ? "Онлайн" : fmtLiveAgo(lv.seconds_ago)}`
-    : (st === "online"
-      ? `Онлайн · ${lv.tab_name} (${lv.scroll_pct || 0}%)`
-      : (st === "background" ? `Свернул · ${fmtLiveAgo(lv.seconds_ago)}` : `Офлайн · ${fmtLiveAgo(lv.seconds_ago)}`));
+  const stText = st === "online"
+    ? `Онлайн · ${lv.tab_name} (${lv.scroll_pct || 0}%)`
+    : (st === "background" ? `Свернул · ${fmtLiveAgo(lv.seconds_ago)}` : `Офлайн · ${fmtLiveAgo(lv.seconds_ago)}`);
 
   headW.innerHTML = `
     <div class="spectate-row">
       <div class="spectate-who">
         ${dotHtml}
         <div style="min-width:0">
-          <div class="spectate-name">${spectateControl ? "⚡" : "👁"} ${esc(who)}</div>
+          <div class="spectate-name">${esc(who)}</div>
           <div class="spectate-sub mono">${esc(stText)}</div>
         </div>
       </div>
       <div class="spectate-ctrls">
-        <button class="sp-btn ${spectateControl ? "ctrl-on" : ""}" onclick="toggleSpectateControl()">${spectateControl ? "Упр. ✓" : "Упр."}</button>
-        <button class="sp-btn ${spectateFollow ? "on" : ""}" onclick="toggleSpectateFollow()">${spectateFollow ? "След. ✓" : "След."}</button>
         <button class="sp-btn ${spectateLogOpen ? "on" : ""}" onclick="toggleSpectateLog()">Лог</button>
         <button class="sp-btn exit" onclick="exitSpectate()">✕</button>
       </div>
     </div>`;
+
+  // Render 3-mode sliding segmented control only when mode changes so pill slides smoothly!
+  if (spectateModeBarMode !== spectateMode || !modeW.firstChild) {
+    spectateModeBarMode = spectateMode;
+    const existingSeg = modeW.querySelector(".sp-mode-seg");
+    if (!existingSeg) {
+      modeW.innerHTML = `
+        <div class="seg-tabs sp-mode-seg" id="spModeSeg">
+          <button class="seg-btn ${spectateMode === "follow" ? "active" : ""}" data-m="follow" onclick="setSpectateMode('follow')">1-в-1</button>
+          <button class="seg-btn ${spectateMode === "free" ? "active" : ""}" data-m="free" onclick="setSpectateMode('free')">Свободно</button>
+          <button class="seg-btn ${spectateMode === "control" ? "active" : ""}" data-m="control" onclick="setSpectateMode('control')">Управлять</button>
+        </div>`;
+    } else {
+      existingSeg.querySelectorAll(".seg-btn").forEach((b) => {
+        b.classList.toggle("active", b.dataset.m === spectateMode);
+      });
+    }
+    requestAnimationFrame(() => syncSegPills(modeW));
+  }
 
   sheetW.innerHTML = lv.sheet
     ? `<div class="spectate-sheet-banner">
@@ -5224,7 +5517,6 @@ function renderSpectateBar(loading = false) {
        </div>`
     : "";
 
-  // Update log drawer ONLY when open AND events changed (preserves scroll position cleanly!)
   if (!spectateLogOpen) {
     drawer.classList.add("hidden");
     return;
@@ -5237,20 +5529,21 @@ function renderSpectateBar(loading = false) {
     spectateEventsSig = sig;
     drawer.innerHTML = evs.length
       ? evs.map((ev) => {
-          const tStr = new Date(Number(ev.ts) * 1000).toTimeString().slice(0, 8);
+          const tStr = fmtEventTs(ev.ts);
           const kCls = (ev.kind === "tap" || ev.kind === "nav" || ev.kind === "sheet") ? (" " + ev.kind) : "";
           return `<div class="radar-ev${kCls}">
             <span class="radar-ev-txt">${esc(ev.text)}</span>
             <span class="radar-ev-ts mono">${tStr}</span>
           </div>`;
         }).join("")
-      : `<div style="text-align:center;font-size:11px;color:var(--text-3);padding:10px">Пока нет свежих событий</div>`;
+      : `<div style="text-align:center;font-size:11px;color:var(--text-3);padding:10px">Событий пока нет</div>`;
     if (prevScroll > 4) drawer.scrollTop = prevScroll;
   }
 }
 
 async function pollSpectateOnce(initial = false) {
-  if (!spectateActive || !spectateUid) return;
+  if (!spectateActive || !spectateUid || spectatePollInFlight) return;
+  spectatePollInFlight = true;
   try {
     const r = await apiPost("/api/admin/user/spectate", { target_id: spectateUid });
     if (!spectateActive) return;
@@ -5261,9 +5554,39 @@ async function pollSpectateOnce(initial = false) {
     adminTarget = r.state;
     adminTargetLive = r.live || null;
 
-    // While admin is actively editing in a modal sheet in Control Mode, don't overwrite UI underneath
+    // Always process live taps & finger gestures across ALL 3 modes (follow / free / control)
+    if (spectateLive) {
+      const nowSec = Math.floor(Date.now() / 1000);
+      const tap = spectateLive.last_tap;
+      const tapSeq = tap ? Number(tap.seq || tap.ts || 0) : 0;
+      if (tap && tapSeq > spectateLastTapSeq && (nowSec - Number(tap.ts || 0)) <= 6) {
+        spectateLastTapSeq = tapSeq;
+        if (!initial) {
+          spawnGhostTap(Number(tap.x || 0.5), Number(tap.y || 0.5), tap.label || "");
+        }
+      }
+
+      const gest = spectateLive.gesture;
+      const gSeq = gest ? Number(gest.seq || 0) : 0;
+      if (gest && gSeq > spectateLastGestSeq && (nowSec - Number(gest.ts || 0)) <= 5) {
+        spectateLastGestSeq = gSeq;
+        if (!initial) {
+          if (Array.isArray(gest.pts) && gest.pts.length >= 2) {
+            spectateTrails.push({ pts: gest.pts, createdAt: performance.now() });
+          }
+          spectateFinger = {
+            active: Boolean(gest.active),
+            x: Number(gest.x || 0.5),
+            y: Number(gest.y || 0.5),
+            seenMs: performance.now(),
+          };
+        }
+      }
+    }
+
+    // While admin is actively editing inside a modal sheet in Control Mode, keep bar updated without resetting form inputs
     const sheetIsOpen = $("sheetBackdrop") && $("sheetBackdrop").classList.contains("open");
-    if (!initial && spectateControl && sheetIsOpen) {
+    if (!initial && spectateMode === "control" && sheetIsOpen) {
       renderSpectateBar(false);
       return;
     }
@@ -5274,7 +5597,7 @@ async function pollSpectateOnce(initial = false) {
 
     if (initial) {
       lastKnownHitId = 0;
-      const initTab = (spectateLive && spectateLive.status === "online")
+      const initTab = (spectateLive && (spectateLive.status === "online" || spectateLive.status === "background"))
         ? Math.max(0, Math.min(4, Number(spectateLive.tab || 0)))
         : 0;
       switchTab(initTab, true);
@@ -5301,26 +5624,20 @@ async function pollSpectateOnce(initial = false) {
     }
     renderSpectateBar(false);
 
-    if (spectateLive) {
-      if (spectateFollow && !spectateControl && spectateLive.status === "online") {
-        applySpectateFollowSync(spectateLive);
-      }
-      const tap = spectateLive.last_tap;
-      const nowSec = Math.floor(Date.now() / 1000);
-      if (tap && Number(tap.ts || 0) > spectateLastTapTs && (nowSec - Number(tap.ts || 0)) <= 8) {
-        spectateLastTapTs = Number(tap.ts);
-        spawnGhostTap(Number(tap.x || 0.5), Number(tap.y || 0.5), tap.label || "");
-      }
+    if (spectateLive && spectateMode === "follow" && spectateLive.status === "online") {
+      applySpectateFollowSync(spectateLive);
     }
   } catch(e) {
     if (initial) {
-      showToast(e.message || "Не удалось открыть просмотр", "err");
+      showToast(e.message || "Не удалось открыть аккаунт", "err");
       exitSpectate();
     }
+  } finally {
+    spectatePollInFlight = false;
   }
 }
 
-/* ====== DEDICATED FULL-SCREEN USER MANAGEMENT VIEW ====== */
+/* ====== DEDICATED FULL-SCREEN USER MANAGEMENT VIEW (CLEAN APPLE OLED STYLE) ====== */
 function renderAdminUserDetailPage() {
   const root = $("adminRoot");
   if (!root) return;
@@ -5329,8 +5646,8 @@ function renderAdminUserDetailPage() {
     root.innerHTML = `
       <div class="adm-detail-nav">
         <button class="btn btn-xs" onclick="adminGoBack()">← Назад</button>
-        <div class="adm-detail-title">Загрузка профиля...</div>
-        <div style="width:62px"></div>
+        <div class="adm-detail-title">Загрузка...</div>
+        <div style="width:48px"></div>
       </div>
       <div class="glass" style="padding:42px;text-align:center"><div class="spinner" style="margin:0 auto"></div></div>`;
     return;
@@ -5346,36 +5663,36 @@ function renderAdminUserDetailPage() {
     ? `<span class="status-chip">Онлайн · ${esc(lv.tab_name)}</span>`
     : (lv.status === "background"
       ? `<span class="status-chip warn">Свернул · ${fmtLiveAgo(lv.seconds_ago)}</span>`
-      : `<span class="status-chip muted">Офлайн</span>`);
+      : `<span class="status-chip muted">Офлайн · ${fmtLiveAgo(lv.seconds_ago)}</span>`);
 
-  const backLabel = adminNavStack.length > 0 ? "← Назад" : "← К списку";
+  const backLabel = adminNavStack.length > 0 ? "← Назад" : "← Список";
   const whoTitle = tu.username ? "@" + tu.username : (tu.first_name || "ID " + tu.tg_id);
   const catalogSrc = (S && S.catalog) ? S.catalog : [];
   const tierOpts = catalogSrc.map((t) => `<option value="${t.id}">#${t.id + 1} · ${esc(t.name)} (${t.daily_net} TON/д)</option>`).join("");
 
   const srvRows = (adminTarget.servers || []).map((s) => `
-    <div class="tx-row tx-row-card" style="margin-top:6px;margin-bottom:0;padding:9px 11px">
+    <div class="ios-cell">
       <div style="min-width:0">
-        <div class="tx-title" style="font-size:12px">${esc(s.name)} ${s.is_starter ? "(Shared-0)" : ""}</div>
-        <div class="tx-meta mono">#${s.id} · ${s.status} · ${s.daily_ton} TON/д</div>
+        <div class="tx-title" style="font-size:13px">${esc(s.name)}</div>
+        <div class="tx-meta mono">#${s.id} · ${s.status} · ${Number(s.ghs).toLocaleString("en-US")} kKeys/s</div>
       </div>
       <button class="btn btn-danger-ghost btn-xs" onclick="admUserAct(${tu.tg_id}, 'remove_server', ${s.id})">Удалить</button>
     </div>`).join("");
 
   const inviterHtml = intel.referrer
-    ? `<div class="tx-row tx-row-card adm-user-row" style="padding:9px 11px;margin-top:6px" onclick="adminLookupUser('${intel.referrer.tg_id}', true)">
+    ? `<div class="ios-cell adm-user-row" onclick="adminLookupUser('${intel.referrer.tg_id}', true)">
         <div style="min-width:0">
-          <div class="tx-meta">Кто привёл</div>
+          <div class="tx-meta">Пригласил</div>
           <div class="tx-title">${esc(intel.referrer.first_name || "User")} ${intel.referrer.username ? "@" + esc(intel.referrer.username) : ""} · ID ${intel.referrer.tg_id}</div>
         </div>
-        <span class="status-chip accent">Открыть →</span>
+        <span class="status-chip accent">Открыть</span>
       </div>`
-    : `<div style="font-size:11.5px;color:var(--text-3);margin-top:4px">Пришёл самостоятельно (${esc(tu.source || "organic")})</div>`;
+    : `<div class="ios-cell"><span class="tx-meta">Источник: ${esc(tu.source || "organic")}</span></div>`;
 
   const refChildrenRows = (intel.referrals_detailed || []).map((rc) => `
-    <div class="tx-row tx-row-card adm-user-row" style="padding:8px 11px;margin-top:5px;margin-bottom:0" onclick="adminLookupUser('${rc.tg_id}', true)">
+    <div class="ios-cell adm-user-row" onclick="adminLookupUser('${rc.tg_id}', true)">
       <div style="min-width:0">
-        <div class="tx-title" style="font-size:12px">${esc(rc.first_name || "User")} ${rc.username ? `<span style="color:var(--text-3)">@${esc(rc.username)}</span>` : ""} ${rc.is_premium ? '<span style="color:var(--blue)">★</span>' : ""}</div>
+        <div class="tx-title" style="font-size:13px">${esc(rc.first_name || "User")} ${rc.username ? `<span style="color:var(--text-3)">@${esc(rc.username)}</span>` : ""}</div>
         <div class="tx-meta mono">ID ${rc.tg_id} · ${rc.first_server_bought ? '<span style="color:var(--green)">Купил сервер</span>' : "Без сервера"}</div>
       </div>
       <div class="tx-right">
@@ -5384,9 +5701,9 @@ function renderAdminUserDetailPage() {
     </div>`).join("");
 
   const recentDepRows = (deps.recent || []).slice(0, 6).map((d) => `
-    <div class="row-between" style="font-size:11.5px;padding:5px 0;border-top:0.5px solid rgba(255,255,255,0.06)">
-      <span style="color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(d.source)} · ${esc(d.order_type)}</span>
-      <span class="mono" style="color:var(--green);flex-shrink:0">+${Number(d.amount_ton).toFixed(2)} TON</span>
+    <div class="ios-cell" style="padding:10px 16px">
+      <span style="font-size:12.5px;color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(d.source)} · ${esc(d.order_type)}</span>
+      <span class="mono" style="font-size:12.5px;font-weight:600;color:var(--green);flex-shrink:0">+${Number(d.amount_ton).toFixed(2)} TON</span>
     </div>`).join("");
 
   root.innerHTML = `
@@ -5396,115 +5713,109 @@ function renderAdminUserDetailPage() {
       <button class="btn btn-xs" onclick="adminLookupUser('${tu.tg_id}', true, true)">↻</button>
     </div>
 
-    <!-- User Summary Hero Card -->
     <div class="glass node-card" style="padding:15px">
-      <div class="row-between" style="margin-bottom:10px">
+      <div class="row-between" style="margin-bottom:12px">
         <div style="min-width:0">
           <div style="font-weight:700;font-size:16.5px">${esc(tu.first_name || "User")} ${tu.username ? `<span style="color:var(--text-2);font-weight:500">@${esc(tu.username)}</span>` : ""}</div>
-          <div class="mono" style="font-size:11.5px;color:var(--text-3);margin-top:2px">ID ${tu.tg_id} · ${esc(tu.source || "organic")} ${tu.is_premium ? "· Premium ★" : ""}</div>
+          <div class="mono" style="font-size:11.5px;color:var(--text-3);margin-top:2px">ID ${tu.tg_id} · ${esc(tu.source || "organic")}</div>
         </div>
         ${lvBadge}
       </div>
 
-      <div class="adm-grid-2" style="margin-bottom:12px">
-        <div class="adm-card" style="margin:0;padding:10px 12px">
-          <div class="tel-lbl">Баланс</div>
-          <div class="num" style="font-size:16px;font-weight:700;margin-top:2px">${fmtTon(tu.balance, 4)} TON</div>
-          <div class="num" style="font-size:11px;color:var(--text-2)">≈ ${fmtUsd(tu.balance)}</div>
+      <div class="adm-metric-grid" style="margin-bottom:12px">
+        <div class="adm-metric">
+          <div class="adm-metric-l">Баланс</div>
+          <div class="adm-metric-v num">${fmtTon(tu.balance, 4)} TON</div>
+          <div class="adm-metric-s num">${fmtUsd(tu.balance)}</div>
         </div>
-        <div class="adm-card" style="margin:0;padding:10px 12px">
-          <div class="tel-lbl">Нафармлено в буфере</div>
-          <div class="num" style="font-size:16px;font-weight:700;color:var(--green);margin-top:2px">${Number(tm.mined_now || 0).toFixed(5)} TON</div>
-          <div class="num" style="font-size:11px;color:var(--text-2)">24ч: +${Number(tm.earned_24h || 0).toFixed(3)} TON (${Number(tm.hits_24h || 0)} нах.)</div>
+        <div class="adm-metric">
+          <div class="adm-metric-l">Буфер</div>
+          <div class="adm-metric-v num" style="color:var(--green)">${Number(tm.mined_now || 0).toFixed(5)}</div>
+          <div class="adm-metric-s num">24ч: +${Number(tm.earned_24h || 0).toFixed(3)} TON</div>
         </div>
       </div>
 
       <button class="btn btn-primary btn-full" style="height:44px" onclick="enterSpectate(${tu.tg_id})">
-        👁 Войти в аккаунт (1-в-1 просмотр Live)
+        Войти в аккаунт (1-в-1)
       </button>
     </div>
 
-    <!-- Real Deposits Breakdown -->
-    <div class="glass node-card" style="padding:14px">
-      <div class="row-between">
-        <span style="font-size:13px;font-weight:600">Реальные пополнения (${deps.count})</span>
-        <span class="num" style="font-size:13.5px;font-weight:700;color:var(--green)">${deps.total_ton.toFixed(2)} TON <span style="color:var(--text-3);font-weight:500">(${fmtUsd(deps.total_ton)})</span></span>
+    <div class="adm-section-lbl">Пополнения (${deps.count} · ${deps.total_ton.toFixed(2)} TON)</div>
+    <div class="ios-group">
+      <div class="ios-cell" style="padding:12px 14px;display:block">
+        <div class="dep-split" style="margin-top:0">
+          <div class="dep-mini"><div class="dep-mini-l">TON</div><div class="dep-mini-v num">${deps.ton_paid.toFixed(2)}</div></div>
+          <div class="dep-mini"><div class="dep-mini-l">Stars</div><div class="dep-mini-v num">${deps.stars_paid.toFixed(2)}</div></div>
+          <div class="dep-mini"><div class="dep-mini-l">Подарки</div><div class="dep-mini-v num">${deps.gifts_ton.toFixed(2)}</div></div>
+        </div>
       </div>
-      <div class="dep-split">
-        <div class="dep-mini"><div class="dep-mini-l">TON</div><div class="dep-mini-v num">${deps.ton_paid.toFixed(2)}</div></div>
-        <div class="dep-mini"><div class="dep-mini-l">Stars</div><div class="dep-mini-v num">${deps.stars_paid.toFixed(2)}</div></div>
-        <div class="dep-mini"><div class="dep-mini-l">Подарки</div><div class="dep-mini-v num">${deps.gifts_ton.toFixed(2)}</div></div>
-      </div>
-      ${recentDepRows ? `<div style="margin-top:8px">${recentDepRows}</div>` : ""}
+      ${recentDepRows}
     </div>
 
-    <!-- Referral Tree -->
-    <div class="glass node-card" style="padding:14px">
-      <div class="row-between">
-        <span style="font-size:13px;font-weight:600">Реферальная ветка</span>
-        <span class="mono" style="font-size:11px;color:var(--text-2)">Привёл: ${(intel.referrals_detailed || []).length} · Баллы ${trp.points}/${trp.target}</span>
-      </div>
+    <div class="adm-section-lbl">Рефералы (${(intel.referrals_detailed || []).length} · баллы ${trp.points}/${trp.target})</div>
+    <div class="ios-group">
       ${inviterHtml}
-      ${refChildrenRows ? `<div style="font-size:11.5px;color:var(--text-2);margin-top:8px">Кого привёл:</div><div style="max-height:190px;overflow-y:auto">${refChildrenRows}</div>` : `<div style="font-size:11.5px;color:var(--text-3);margin-top:6px">Пока никого не привёл</div>`}
+      ${refChildrenRows || '<div class="ios-cell"><span class="tx-meta">Приглашённых пока нет</span></div>'}
     </div>
 
-    <!-- Balance & Server Controls -->
-    <div class="glass node-card" style="padding:14px">
-      <label class="field-lbl" style="margin-top:0">Точное изменение баланса (TON)</label>
-      <input class="input num" id="admBalVal" type="number" step="0.01" placeholder="Например: 18.25" style="margin-bottom:8px">
+    <div class="adm-section-lbl">Управление</div>
+    <div class="adm-card">
+      <label class="field-lbl" style="margin-top:0">Баланс (TON)</label>
+      <input class="input num" id="admBalVal" type="number" step="0.01" placeholder="Сумма" style="margin-bottom:8px">
       <div class="adm-grid-3" style="margin-bottom:14px">
         <button class="btn btn-green btn-sm" onclick="admBalOp(${tu.tg_id}, 'add_balance')">+ Начислить</button>
         <button class="btn btn-danger-ghost btn-sm" onclick="admBalOp(${tu.tg_id}, 'sub_balance')">− Списать</button>
         <button class="btn btn-sm" onclick="admBalOp(${tu.tg_id}, 'set_balance')">= Задать</button>
       </div>
 
-      <label class="field-lbl">Выдать конкретный сервер</label>
+      <label class="field-lbl">Выдать сервер</label>
       <select class="select" id="admTierSel" style="margin-bottom:8px">${tierOpts}</select>
       <div class="adm-grid-2" style="margin-bottom:14px">
         <button class="btn btn-primary btn-sm" onclick="admGrantNode(${tu.tg_id}, true)">Сразу онлайн</button>
         <button class="btn btn-sm" onclick="admGrantNode(${tu.tg_id}, false)">С подключением</button>
       </div>
 
-      <div class="switch-row">
-        <div>
-          <div class="switch-title">Вывод без рефералов</div>
-          <div class="switch-sub">Баллы: ${trp.points} / ${trp.target} (Prem ${trp.premium_count}, обычн. ${trp.regular_count})</div>
-        </div>
-        <button class="ios-switch ${tu.withdraw_bypass ? "on" : ""}" onclick="admUserAct(${tu.tg_id}, 'toggle_wd_bypass', 0)"></button>
-      </div>
-      <div class="switch-row">
-        <div><div class="switch-title">Комиссия пула 0%</div><div class="switch-sub">Отключить удержание 15%</div></div>
-        <button class="ios-switch ${tu.fee_disabled ? "on" : ""}" onclick="admUserAct(${tu.tg_id}, 'toggle_fee', 0)"></button>
-      </div>
-      <div class="switch-row">
-        <div><div class="switch-title">Блокировка аккаунта</div><div class="switch-sub">Закрыть доступ в приложение</div></div>
-        <button class="ios-switch red ${tu.is_banned ? "on" : ""}" onclick="admUserAct(${tu.tg_id}, 'toggle_ban', 0)"></button>
-      </div>
-
-      <label class="field-lbl">Персональная скидка % (сейчас −${tu.discount.personal_pct}%)</label>
+      <label class="field-lbl">Скидка % (сейчас −${tu.discount.personal_pct}%)</label>
       <div class="input-row" style="margin-bottom:10px">
         <input class="input num" id="admPersDisc" type="number" min="0" max="95" value="${tu.discount.personal_pct}">
         <button class="btn btn-primary btn-sm" style="height:44px;flex-shrink:0" onclick="admSetPersDisc(${tu.tg_id})">Задать</button>
       </div>
 
-      <div class="row-between" style="margin:6px 0">
-        <span style="font-size:12px;color:var(--text-2)">Реферальные баллы: <b class="mono">${trp.points}/${trp.target}</b></span>
+      <div class="row-between" style="margin-top:8px">
+        <span style="font-size:12.5px;color:var(--text-2)">Реф. баллы: <b class="mono">${trp.points}/${trp.target}</b></span>
         <div style="display:flex;gap:6px">
-          <button class="btn btn-xs" onclick="admUserAct(${tu.tg_id}, 'add_ref_points', 1)">+1.0</button>
-          <button class="btn btn-xs" onclick="admUserAct(${tu.tg_id}, 'add_ref_points', -1)">−1.0</button>
+          <button class="btn btn-xs" onclick="admUserAct(${tu.tg_id}, 'add_ref_points', 1)">+1</button>
+          <button class="btn btn-xs" onclick="admUserAct(${tu.tg_id}, 'add_ref_points', -1)">−1</button>
         </div>
       </div>
+    </div>
 
-      <div class="divider"></div>
-      <div class="row-between" style="font-size:11.5px;color:var(--text-3);margin-bottom:6px">
-        <span>Кошелёк пополнения: <b class="mono" style="color:var(--text-2)">${esc(shortAddr(tu.wallet_address) || "нет")}</b></span>
+    <div class="ios-group">
+      <div class="ios-cell">
+        <div><div class="switch-title">Вывод без рефералов</div><div class="switch-sub">Prem ${trp.premium_count} · обычн. ${trp.regular_count}</div></div>
+        <button class="ios-switch ${tu.withdraw_bypass ? "on" : ""}" onclick="admUserAct(${tu.tg_id}, 'toggle_wd_bypass', 0)"></button>
       </div>
-      <div class="row-between" style="font-size:11.5px;color:var(--text-3);margin-bottom:10px">
-        <span>Кошелёк вывода: <b class="mono" style="color:var(--text-2)">${esc(shortAddr(tu.withdraw_wallet) || "нет")}</b></span>
+      <div class="ios-cell">
+        <div><div class="switch-title">Комиссия 0%</div><div class="switch-sub">Убрать комиссию 15%</div></div>
+        <button class="ios-switch ${tu.fee_disabled ? "on" : ""}" onclick="admUserAct(${tu.tg_id}, 'toggle_fee', 0)"></button>
       </div>
+      <div class="ios-cell">
+        <div><div class="switch-title">Блокировка</div><div class="switch-sub">Закрыть доступ</div></div>
+        <button class="ios-switch red ${tu.is_banned ? "on" : ""}" onclick="admUserAct(${tu.tg_id}, 'toggle_ban', 0)"></button>
+      </div>
+      <div class="ios-cell">
+        <span class="tx-meta">Кошелёк пополнения</span>
+        <span class="mono" style="font-size:12px;color:var(--text-2)">${esc(shortAddr(tu.wallet_address) || "—")}</span>
+      </div>
+      <div class="ios-cell">
+        <span class="tx-meta">Кошелёк вывода</span>
+        <span class="mono" style="font-size:12px;color:var(--text-2)">${esc(shortAddr(tu.withdraw_wallet) || "—")}</span>
+      </div>
+    </div>
 
-      <div style="font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:4px">Ноды юзера (${adminTarget.servers.length})</div>
-      ${srvRows || '<div class="empty-box" style="padding:8px">Нет активных нод</div>'}
+    <div class="adm-section-lbl">Серверы (${adminTarget.servers.length})</div>
+    <div class="ios-group">
+      ${srvRows || '<div class="ios-cell"><span class="tx-meta">Нет активных серверов</span></div>'}
     </div>`;
 }
 
@@ -5516,7 +5827,6 @@ function renderAdminBody() {
   const hOnl = $("admHeaderOnline");
   if (hOnl) hOnl.textContent = `${Number(st.online_count || 0)} онлайн`;
 
-  // Dedicated full-screen page when inspecting or loading a specific user
   if (adminTargetLoading || adminTarget) {
     renderAdminUserDetailPage();
     return;
@@ -5526,7 +5836,7 @@ function renderAdminBody() {
     ["overview", "Обзор"],
     ["users", `Юзеры (${st.total_users})`],
     ["wds", `Выводы${st.pending_withdrawals_count ? " (" + st.pending_withdrawals_count + ")" : ""}`],
-    ["promo", "Промо / UTM"],
+    ["promo", "Промо"],
     ["gifts", "Подарки"],
     ["logs", "Логи"],
   ];
@@ -5540,7 +5850,7 @@ function renderAdminBody() {
     const hiddenNow = isAdminHidden();
     const onlineList = (adminOverview.recent_users || []).filter((u) => u.live_status === "online" || u.live_status === "background");
     const onlineStrip = onlineList.length
-      ? `<div style="font-size:12px;font-weight:600;color:var(--text-2);margin:2px 2px 6px">Сейчас в приложении (${onlineList.length}) — тап для 1-в-1 просмотра</div>
+      ? `<div class="adm-section-lbl" style="margin-top:4px">Сейчас онлайн (${onlineList.length})</div>
          <div class="adm-online-strip">` + onlineList.map((u) => {
            const nm = u.username ? "@" + u.username : (u.first_name || "ID " + u.tg_id);
            const isBg = u.live_status === "background";
@@ -5553,34 +5863,55 @@ function renderAdminBody() {
       : "";
 
     body = `
-      <div class="adm-grid-2">
-        <div class="glass adm-card" style="margin:0"><div class="tel-lbl">Онлайн / 24ч / Всего</div><div class="tel-val num"><span style="color:var(--green)">${st.online_count || 0}</span> <span style="color:var(--text-3);font-size:11.5px">/ ${st.active_24h} / ${st.total_users}</span></div></div>
-        <div class="glass adm-card" style="margin:0"><div class="tel-lbl">Платные ноды</div><div class="tel-val num">${st.active_servers} <span style="color:var(--text-3);font-size:11px">${Number(st.total_ghs).toLocaleString("en-US")} kK/s</span></div></div>
-        <div class="glass adm-card" style="margin:0"><div class="tel-lbl">Оплачено TON</div><div class="tel-val num" style="color:var(--green)">${st.paid_ton.toFixed(2)} TON <span style="color:var(--text-3);font-size:11px">${fmtUsd(st.paid_ton)}</span></div></div>
-        <div class="glass adm-card" style="margin:0"><div class="tel-lbl">Балансы юзеров</div><div class="tel-val num">${st.total_balance.toFixed(2)} TON</div></div>
+      <div class="adm-metric-grid">
+        <div class="adm-metric">
+          <div class="adm-metric-l">Пользователи</div>
+          <div class="adm-metric-v num"><span style="color:var(--green)">${st.online_count || 0}</span> <span style="color:var(--text-3);font-size:13px">/ ${st.total_users}</span></div>
+          <div class="adm-metric-s num">За 24ч: ${st.active_24h}</div>
+        </div>
+        <div class="adm-metric">
+          <div class="adm-metric-l">Платные ноды</div>
+          <div class="adm-metric-v num">${st.active_servers}</div>
+          <div class="adm-metric-s mono">${Number(st.total_ghs).toLocaleString("en-US")} kKeys/s</div>
+        </div>
+        <div class="adm-metric">
+          <div class="adm-metric-l">Оплачено TON</div>
+          <div class="adm-metric-v num" style="color:var(--green)">${st.paid_ton.toFixed(2)}</div>
+          <div class="adm-metric-s num">${fmtUsd(st.paid_ton)}</div>
+        </div>
+        <div class="adm-metric">
+          <div class="adm-metric-l">Балансы</div>
+          <div class="adm-metric-v num">${st.total_balance.toFixed(2)}</div>
+          <div class="adm-metric-s num">${fmtUsd(st.total_balance)}</div>
+        </div>
       </div>
 
       ${onlineStrip}
 
-      <div class="switch-row" style="margin-top:6px">
-        <div>
-          <div class="switch-title">Скрыть админку из меню</div>
-          <div class="switch-sub">Для съёмки видео — вход по 5× нажатию на версию в Профиле</div>
+      <div class="ios-group">
+        <div class="ios-cell">
+          <div>
+            <div class="switch-title">Скрыть админку из меню</div>
+            <div class="switch-sub">Вход: 5 нажатий по версии в Профиле</div>
+          </div>
+          <button class="ios-switch ${hiddenNow ? "on" : ""}" onclick="toggleHideAdmin()"></button>
         </div>
-        <button class="ios-switch ${hiddenNow ? "on" : ""}" onclick="toggleHideAdmin()"></button>
+        <div class="ios-cell adm-user-row" onclick="adminLookupUser('${S.user.tg_id}', true)">
+          <div>
+            <div class="switch-title">Мой аккаунт</div>
+            <div class="switch-sub mono">ID ${S.user.tg_id}</div>
+          </div>
+          <span class="status-chip accent">Открыть</span>
+        </div>
       </div>
-
-      <button class="btn btn-primary btn-full" style="margin-bottom:10px" onclick="adminLookupUser('${S.user.tg_id}', true)">
-        Редактировать мой аккаунт (ID ${S.user.tg_id})
-      </button>
 
       <div class="adm-card">
         <div class="row-between" style="margin-bottom:8px">
-          <span style="font-weight:600">Курс TON / USD</span>
-          <span class="status-chip ${st.ton_usd_source === "Manual" ? "warn" : ""}">$${Number(st.ton_usd_rate || 0.95).toFixed(4)} · ${esc(st.ton_usd_source || "auto")}</span>
+          <span style="font-weight:600;font-size:13.5px">Курс TON / USD</span>
+          <span class="status-chip ${st.ton_usd_source === "Manual" ? "warn" : "muted"}">$${Number(st.ton_usd_rate || 0.95).toFixed(4)} · ${esc(st.ton_usd_source || "auto")}</span>
         </div>
         <div class="input-row">
-          <input class="input num" id="admRateIn" type="number" step="0.01" min="0.05" value="${Number(st.ton_usd_rate || 0.95).toFixed(2)}" placeholder="Напр. 0.95">
+          <input class="input num" id="admRateIn" type="number" step="0.01" min="0.05" value="${Number(st.ton_usd_rate || 0.95).toFixed(2)}" placeholder="0.95">
           <button class="btn btn-primary btn-sm" style="height:44px;flex-shrink:0" onclick="admSetTonRate()">Задать</button>
           <button class="btn btn-sm" style="height:44px;flex-shrink:0" onclick="admSetTonRate(0)">Авто</button>
         </div>
@@ -5588,7 +5919,7 @@ function renderAdminBody() {
 
       <div class="adm-card">
         <div class="row-between" style="margin-bottom:8px">
-          <span style="font-weight:600">Глобальная скидка</span>
+          <span style="font-weight:600;font-size:13.5px">Общая скидка</span>
           <span class="status-chip accent">−${st.global_discount_pct}%</span>
         </div>
         <div class="input-row">
@@ -5599,15 +5930,15 @@ function renderAdminBody() {
       </div>
 
       <div class="adm-card">
-        <div style="font-weight:600;margin-bottom:8px">Быстрый админ-чек</div>
+        <div style="font-weight:600;font-size:13.5px;margin-bottom:8px">Создать чек</div>
         <div class="input-row">
           <input class="input num" id="admChkAmt" type="number" step="0.1" value="5" placeholder="TON">
-          <input class="input num" id="admChkCnt" type="number" value="1" placeholder="Акт." style="max-width:86px">
+          <input class="input num" id="admChkCnt" type="number" value="1" placeholder="Шт" style="max-width:80px">
           <button class="btn btn-primary btn-sm" style="height:44px;flex-shrink:0" onclick="admCreateCheck()">Создать</button>
         </div>
       </div>
 
-      <button class="btn btn-full" onclick="admResetStock()">Пополнить склад всех нод (100%)</button>`;
+      <button class="btn btn-full" onclick="admResetStock()">Обновить склад серверов (100%)</button>`;
   }
 
   else if (adminSubTab === "users") {
@@ -5624,29 +5955,33 @@ function renderAdminBody() {
     const filterBar = `<div class="chips-row" style="margin:0 0 10px">` + [
       ["all", "Все"],
       ["online", `Онлайн (${onlineCnt})`],
-      ["top_dep", "Топ депозиты"],
-      ["top_ref", "Топ рефералы"],
+      ["top_dep", "Депозиты"],
+      ["top_ref", "Рефералы"],
     ].map(([k, lbl]) =>
       `<button class="chip" style="${adminUserFilter === k ? "background:#fff;border-color:#fff;color:#000" : ""}" onclick="setAdminUserFilter('${k}')">${lbl}</button>`
     ).join("") + `</div>`;
 
+    const nowSec = Math.floor(Date.now() / 1000);
     const recents = usersArr.map((u) => {
       const isOn = u.live_status === "online";
       const isBg = u.live_status === "background";
       const liveDot = isOn
-        ? `<span class="dot-live" style="display:inline-block;margin-right:4px"></span>`
-        : (isBg ? `<span class="dot-live warn" style="display:inline-block;margin-right:4px"></span>` : "");
+        ? `<span class="dot-live" style="display:inline-block;margin-right:5px"></span>`
+        : (isBg ? `<span class="dot-live warn" style="display:inline-block;margin-right:5px"></span>` : "");
       const refFrom = u.referrer_id ? ` · от @${esc(u.referrer_username || String(u.referrer_id))}` : "";
       const depTag = Number(u.deposited_ton || 0) > 0 ? `<span style="color:var(--green)">Деп ${Number(u.deposited_ton).toFixed(2)}</span> · ` : "";
-      const tabTag = (isOn || isBg) ? `<span style="color:var(--blue)">${esc(u.live_tab || "")}</span> · ` : "";
+      const seenAge = u.last_seen ? Math.max(0, nowSec - Number(u.last_seen)) : -1;
+      const statusTag = (isOn || isBg)
+        ? `<span style="color:var(--blue)">${esc(u.live_tab || "")}</span> · `
+        : (seenAge >= 0 ? `${fmtLiveAgo(seenAge)} · ` : "");
       const liveQuickBtn = (isOn || isBg)
-        ? `<button class="btn btn-green btn-xs" style="margin-top:4px" onclick="event.stopPropagation();enterSpectate(${u.tg_id})">👁 Live</button>` : "";
+        ? `<button class="btn btn-green btn-xs" style="margin-top:4px" onclick="event.stopPropagation();enterSpectate(${u.tg_id})">Live</button>` : "";
 
       return `
-      <div class="tx-row tx-row-card adm-user-row" onclick="adminLookupUser('${u.tg_id}', true)">
-        <div style="min-width:0">
+      <div class="ios-cell adm-user-row" onclick="adminLookupUser('${u.tg_id}', true)">
+        <div style="min-width:0;flex:1">
           <div class="tx-title">${liveDot}${esc(u.first_name || "User")} ${u.username ? `<span style="color:var(--text-3)">@${esc(u.username)}</span>` : ""}</div>
-          <div class="tx-meta mono">${tabTag}${depTag}Реф: ${u.referrals_count || 0}${refFrom}</div>
+          <div class="tx-meta mono">${statusTag}${depTag}Реф: ${u.referrals_count || 0}${refFrom}</div>
           <div class="tx-meta mono">ID ${u.tg_id}${u.source ? " · " + esc(u.source) : ""}${u.withdraw_bypass ? ' · <span style="color:var(--green)">Без реф</span>' : ""}</div>
         </div>
         <div class="tx-right">
@@ -5663,7 +5998,7 @@ function renderAdminBody() {
         <button class="btn btn-primary btn-sm" style="height:44px;flex-shrink:0" onclick="adminLookupUser()">Найти</button>
       </div>
       ${filterBar}
-      ${recents || '<div class="glass empty-box">Пользователей по фильтру нет</div>'}`;
+      ${recents ? `<div class="ios-group">${recents}</div>` : '<div class="glass empty-box">Пользователей нет</div>'}`;
   }
 
   else if (adminSubTab === "wds") {
@@ -5672,9 +6007,9 @@ function renderAdminBody() {
       <div class="adm-card">
         <div class="row-between" style="margin-bottom:6px">
           <span class="mono" style="font-weight:700">#${w.id} · ${fmtTon(w.amount_ton, 4)} TON</span>
-          <span class="num" style="font-size:12px;color:var(--text-2)">≈ ${fmtUsd(w.amount_ton)}</span>
+          <span class="num" style="font-size:12px;color:var(--text-2)">${fmtUsd(w.amount_ton)}</span>
         </div>
-        <div style="font-size:12px;color:var(--text-2);margin-bottom:6px;cursor:pointer" onclick="adminLookupUser('${w.user_id}', true)">
+        <div style="font-size:12px;color:var(--text-2);margin-bottom:8px;cursor:pointer" onclick="adminLookupUser('${w.user_id}', true)">
           ${esc(w.first_name || "User")} ${w.username ? "@" + esc(w.username) : ""} · ID ${w.user_id} <span style="color:var(--blue)">→ профиль</span>
         </div>
         <div class="copy-box mono" style="margin-bottom:10px;font-size:11px">
@@ -5686,17 +6021,17 @@ function renderAdminBody() {
           <button class="btn btn-danger-ghost btn-sm" onclick="admWdAction(${w.id}, 'reject')">Отклонить</button>
         </div>
       </div>`).join("")
-      : `<div class="glass empty-box">Нет ожидающих заявок на вывод</div>`;
+      : `<div class="glass empty-box">Нет ожидающих заявок</div>`;
   }
 
   else if (adminSubTab === "promo") {
     const promos = (adminOverview.promos || []).map((p) => {
-      const desc = p.promo_type === "balance" ? `+${p.value} TON` : `−${p.value}% скидка`;
+      const desc = p.promo_type === "balance" ? `+${p.value} TON` : `−${p.value}%`;
       const lnk = `https://t.me/${S.config.bot_username}?start=promo_${p.code}`;
-      return `<div class="tx-row tx-row-card">
+      return `<div class="ios-cell">
         <div style="min-width:0">
           <div class="tx-title mono">${esc(p.code)} · <span style="color:var(--green)">${desc}</span></div>
-          <div class="tx-meta">Активаций: ${p.uses}/${p.max_uses} · Купили сервер: ${p.buyers}</div>
+          <div class="tx-meta">Активаций: ${p.uses}/${p.max_uses} · Купили: ${p.buyers}</div>
         </div>
         <div style="display:flex;gap:5px;flex-shrink:0">
           <button class="btn btn-xs" onclick="copyText('${escJsAttr(lnk)}')">Ссылка</button>
@@ -5706,10 +6041,10 @@ function renderAdminBody() {
     }).join("");
 
     const srcs = (adminOverview.sources || []).map((x) => `
-      <div class="tx-row tx-row-card">
+      <div class="ios-cell">
         <div>
           <div class="tx-title mono">${esc(x.src)}</div>
-          <div class="tx-meta">Юзеров: ${x.users_cnt} · Покупателей: ${x.buyers_cnt}</div>
+          <div class="tx-meta">Юзеров: ${x.users_cnt} · Купили: ${x.buyers_cnt}</div>
         </div>
         <div class="tx-right">
           <div class="tx-amt num">${Number(x.paid_ton || 0).toFixed(2)} TON</div>
@@ -5719,8 +6054,8 @@ function renderAdminBody() {
 
     body = `
       <div class="adm-card">
-        <div style="font-weight:600;margin-bottom:8px">Создать промокод</div>
-        <input class="input mono" id="admPrCode" placeholder="Код (например START26)" autocapitalize="characters" style="margin-bottom:7px">
+        <div style="font-weight:600;font-size:13.5px;margin-bottom:8px">Новый промокод</div>
+        <input class="input mono" id="admPrCode" placeholder="Код (START26)" autocapitalize="characters" style="margin-bottom:7px">
         <div class="adm-grid-2" style="margin-bottom:7px">
           <select class="select" id="admPrType">
             <option value="balance">Бонус TON</option>
@@ -5734,36 +6069,38 @@ function renderAdminBody() {
         </div>
       </div>
 
-      <div style="font-size:12px;color:var(--text-2);margin:8px 0 6px">Активные промокоды</div>
-      ${promos || '<div class="empty-box" style="padding:10px">Промокодов нет</div>'}
+      <div class="adm-section-lbl">Активные промокоды</div>
+      <div class="ios-group">${promos || '<div class="ios-cell"><span class="tx-meta">Промокодов нет</span></div>'}</div>
 
-      <div class="divider"></div>
-      <div style="font-weight:600;margin-bottom:6px">Сделать UTM-ссылку для ролика</div>
-      <div class="input-row" style="margin-bottom:10px">
-        <input class="input mono" id="admUtmTag" placeholder="tt_video1">
-        <button class="btn btn-sm" style="height:44px;flex-shrink:0" onclick="copyUtmLink()">Коп. ссылку</button>
+      <div class="adm-section-lbl">UTM-ссылка</div>
+      <div class="adm-card">
+        <div class="input-row">
+          <input class="input mono" id="admUtmTag" placeholder="tt_video1">
+          <button class="btn btn-sm" style="height:44px;flex-shrink:0" onclick="copyUtmLink()">Копировать</button>
+        </div>
       </div>
-      <div style="font-size:12px;color:var(--text-2);margin-bottom:6px">Статистика по источникам</div>
-      ${srcs || '<div class="empty-box" style="padding:10px">Пока нет данных</div>'}`;
+
+      <div class="adm-section-lbl">Источники трафика</div>
+      <div class="ios-group">${srcs || '<div class="ios-cell"><span class="tx-meta">Данных пока нет</span></div>'}</div>`;
   }
 
   else if (adminSubTab === "gifts") {
     if (!adminGiftsData) {
-      body = `<div style="padding:20px;text-align:center"><div class="spinner" style="margin:0 auto"></div></div>`;
+      body = `<div style="padding:28px;text-align:center"><div class="spinner" style="margin:0 auto"></div></div>`;
     } else {
       const rel = adminGiftsData.relayer;
       const gst = adminGiftsData.stats;
       const ovList = (adminGiftsData.overrides || []).map((o) => `
-        <div class="tx-row tx-row-card" style="padding:9px 11px">
+        <div class="ios-cell">
           <div>
             <div class="tx-title">${esc(o.collection_name)}</div>
-            <div class="tx-meta num">Флор: ${o.floor_ton} TON (выплата −10%: ${(o.floor_ton * 0.9).toFixed(2)} TON)</div>
+            <div class="tx-meta num">Флор ${o.floor_ton} TON · выплата ${(o.floor_ton * 0.9).toFixed(2)} TON</div>
           </div>
           <button class="btn btn-danger-ghost btn-xs" onclick="admSetGiftPrice('${escJsAttr(o.collection_name)}', 0)">Сброс</button>
         </div>`).join("");
 
       const recList = (adminGiftsData.recent_gifts || []).map((g) => `
-        <div class="tx-row tx-row-card adm-user-row" style="padding:9px 11px" onclick="adminLookupUser('${g.user_id}', true)">
+        <div class="ios-cell adm-user-row" onclick="adminLookupUser('${g.user_id}', true)">
           <div style="min-width:0">
             <div class="tx-title">${esc(g.collection_name)}${g.gift_num ? " #" + g.gift_num : ""} ${g.backdrop_name ? `· <span style="color:var(--blue)">${esc(g.backdrop_name)}</span>` : ""}</div>
             <div class="tx-meta mono">${g.username ? "@" + esc(g.username) : "ID " + g.user_id} · ${fmtTime(g.created_at)}</div>
@@ -5776,52 +6113,58 @@ function renderAdminBody() {
 
       body = `
         <div class="adm-card">
-          <div class="row-between" style="margin-bottom:6px">
+          <div class="row-between" style="margin-bottom:4px">
             <span style="font-weight:700">@${esc(rel.username)}</span>
-            <span class="status-chip ${rel.connected ? "" : "warn"}">${rel.connected ? "Онлайн" : "Не подключён"}</span>
+            <span class="status-chip ${rel.connected ? "" : "warn"}">${rel.connected ? "Онлайн" : "Офлайн"}</span>
           </div>
           <div style="font-size:12px;color:var(--text-2)">${esc(rel.status_text)}</div>
-          <div style="font-size:11.5px;color:var(--text-3);margin-top:4px">Для привязки напиши /start с @${esc(rel.username)} или открой <b class="mono">/relayer</b></div>
         </div>
 
-        <div class="adm-grid-2">
-          <div class="adm-card" style="margin:0"><div class="tel-lbl">Принято подарков</div><div class="tel-val num">${gst.total_gifts}</div></div>
-          <div class="adm-card" style="margin:0"><div class="tel-lbl">Зачислено всего</div><div class="tel-val num" style="color:var(--green)">${gst.total_ton.toFixed(2)} TON <span style="color:var(--text-3);font-size:11px">${fmtUsd(gst.total_ton)}</span></div></div>
+        <div class="adm-metric-grid">
+          <div class="adm-metric">
+            <div class="adm-metric-l">Принято подарков</div>
+            <div class="adm-metric-v num">${gst.total_gifts}</div>
+          </div>
+          <div class="adm-metric">
+            <div class="adm-metric-l">Зачислено</div>
+            <div class="adm-metric-v num" style="color:var(--green)">${gst.total_ton.toFixed(2)} TON</div>
+            <div class="adm-metric-s num">${fmtUsd(gst.total_ton)}</div>
+          </div>
         </div>
 
         <div class="adm-card">
-          <div style="font-weight:600;margin-bottom:8px">Задать свой флор коллекции (TON)</div>
-          <input class="input" id="admGiftColIn" placeholder="Например: Plush Pepe" style="margin-bottom:7px">
+          <div style="font-weight:600;font-size:13.5px;margin-bottom:8px">Флор коллекции (TON)</div>
+          <input class="input" id="admGiftColIn" placeholder="Plush Pepe" style="margin-bottom:7px">
           <div class="input-row">
-            <input class="input num" id="admGiftFloorIn" type="number" step="0.1" placeholder="Флор TON (0 = сброс)">
+            <input class="input num" id="admGiftFloorIn" type="number" step="0.1" placeholder="TON (0 = сброс)">
             <button class="btn btn-primary btn-sm" style="height:44px;flex-shrink:0" onclick="admSetGiftPrice()">Задать</button>
           </div>
         </div>
 
         <div class="adm-card">
-          <div style="font-weight:600;margin-bottom:8px">Тест / ручное зачисление подарка</div>
+          <div style="font-weight:600;font-size:13.5px;margin-bottom:8px">Ручное зачисление подарка</div>
           <div class="adm-grid-2" style="margin-bottom:7px">
             <input class="input mono" id="admManUid" type="number" value="${S.user.tg_id}" placeholder="TG ID">
             <select class="select" id="admManType" onchange="admToggleManGiftMode()">
-              <option value="unique">NFT подарок (−10%)</option>
+              <option value="unique">NFT (−10%)</option>
               <option value="regular">Обычный (Stars)</option>
             </select>
           </div>
           <div id="admManUniqueBox">
             <div class="adm-grid-2" style="margin-bottom:7px">
               <input class="input" id="admManCol" value="Swiss Watch" placeholder="Коллекция">
-              <input class="input" id="admManBg" placeholder="Фон (Onyx Black)">
+              <input class="input" id="admManBg" placeholder="Фон">
             </div>
           </div>
           <div id="admManRegBox" class="hidden" style="margin-bottom:7px">
-            <input class="input num" id="admManStars" type="number" value="85" placeholder="Stars при обмене">
+            <input class="input num" id="admManStars" type="number" value="85" placeholder="Stars">
           </div>
-          <button class="btn btn-green btn-sm btn-full" onclick="admManualGiftCredit()">Зачислить подарок</button>
+          <button class="btn btn-green btn-sm btn-full" onclick="admManualGiftCredit()">Зачислить</button>
         </div>
 
-        ${ovList ? `<div style="font-size:12px;color:var(--text-2);margin:8px 0 6px">Свои цены коллекций</div>${ovList}` : ""}
-        <div style="font-size:12px;color:var(--text-2);margin:10px 0 6px">Последние принятые подарки</div>
-        ${recList || '<div class="empty-box" style="padding:10px">Подарков пока нет</div>'}`;
+        ${ovList ? `<div class="adm-section-lbl">Свои цены</div><div class="ios-group">${ovList}</div>` : ""}
+        <div class="adm-section-lbl">Последние подарки</div>
+        <div class="ios-group">${recList || '<div class="ios-cell"><span class="tx-meta">Подарков пока нет</span></div>'}</div>`;
     }
   }
 
@@ -5831,20 +6174,22 @@ function renderAdminBody() {
       `<button class="chip" style="${adminLogCat === k ? "background:#fff;border-color:#fff;color:#000" : ""}" onclick="admLoadLogs('${k}')">${lbl}</button>`
     ).join("") + `</div>`;
     const rows = (adminOverview.logs || []).map((l) => `
-      <div class="tx-row tx-row-card adm-user-row" style="padding:9px 11px" onclick="if(${Number(l.user_id || 0)}>0) adminLookupUser('${l.user_id}', true)">
-        <div style="min-width:0">
+      <div class="ios-cell adm-user-row" onclick="if(${Number(l.user_id || 0)}>0) adminLookupUser('${l.user_id}', true)">
+        <div style="min-width:0;width:100%">
           <div class="tx-meta mono">[${esc(l.category)}] ${fmtTime(l.created_at)} · ${l.username ? "@" + esc(l.username) : l.user_id}</div>
-          <div style="font-size:12px;margin-top:2px;word-break:break-word">${esc(l.message)}</div>
+          <div style="font-size:12.5px;margin-top:2px;word-break:break-word">${esc(l.message)}</div>
         </div>
       </div>`).join("");
 
     body = `
-      <div class="switch-row">
-        <div><div class="switch-title">Живые логи в Telegram</div><div class="switch-sub">Уведомления о важных событиях в чат</div></div>
-        <button class="ios-switch ${st.live_logs_tg ? "on" : ""}" onclick="admToggleLiveLogs()"></button>
+      <div class="ios-group">
+        <div class="ios-cell">
+          <div><div class="switch-title">Логи в Telegram</div><div class="switch-sub">Уведомления о событиях в чат</div></div>
+          <button class="ios-switch ${st.live_logs_tg ? "on" : ""}" onclick="admToggleLiveLogs()"></button>
+        </div>
       </div>
       ${chips}
-      ${rows || '<div class="glass empty-box">Событий нет</div>'}`;
+      ${rows ? `<div class="ios-group">${rows}</div>` : '<div class="glass empty-box">Событий нет</div>'}`;
   }
 
   root.innerHTML = head + body;
